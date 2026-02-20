@@ -273,55 +273,28 @@ export default function BookingsGrid() {
       <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
 
       <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-xs" style={{ minWidth: 1400 }}>
+        <table className="w-full border-collapse text-xs" style={{ minWidth: 1100 }}>
           <thead>
-            {/* ── Row 1: group labels ── */}
+            {/* ── Single-row header ── */}
             <tr style={gridHeaderStyle}>
-              <TH rowSpan={2} cls="min-w-[100px]">Date</TH>
-              <TH rowSpan={2}>GMT</TH>
-              <TH rowSpan={2}>CET</TH>
-              <TH rowSpan={2} cls="min-w-[110px]">League</TH>
-              <TH rowSpan={2} cls="min-w-[160px]">Event Name</TH>
-              <TH rowSpan={2} cls="min-w-[110px]">Incoming Ch.</TH>
-              <TH rowSpan={2} cls="min-w-[90px]">Work Order</TH>
-              <TH rowSpan={2} cls="w-14 text-center">Conf.</TH>
-              {/* Slot group labels */}
+              <TH cls="min-w-[100px]">Date</TH>
+              <TH>GMT</TH>
+              <TH>CET</TH>
+              <TH cls="min-w-[110px]">League</TH>
+              <TH cls="min-w-[160px]">Event Name</TH>
+              <TH cls="min-w-[110px]">Incoming Ch.</TH>
+              <TH cls="min-w-[90px]">Work Order</TH>
+              <TH cls="w-14 text-center">Conf.</TH>
               {([1, 2, 3] as const).map((slot) => (
                 <TH
                   key={slot}
-                  colSpan={3}
-                  cls="text-center border-l-2 border-[rgba(255,255,255,0.25)]"
+                  cls="text-center border-l-2 border-[rgba(255,255,255,0.25)] min-w-[140px]"
                   style={{ background: SLOT_COLORS[slot - 1] }}
                 >
                   Streaming Taker {slot}
                 </TH>
               ))}
-              <TH rowSpan={2} cls="w-8 border-r-0"></TH>
-            </tr>
-            {/* ── Row 2: sub-column headers ── */}
-            <tr style={gridHeaderStyle}>
-              {([1, 2, 3] as const).map((slot) => (
-                <React.Fragment key={slot}>
-                  <TH
-                    cls="border-l-2 border-[rgba(255,255,255,0.25)] min-w-[100px]"
-                    style={{ background: SLOT_COLORS[slot - 1], opacity: 0.85 }}
-                  >
-                    Taker
-                  </TH>
-                  <TH
-                    cls="min-w-[90px]"
-                    style={{ background: SLOT_COLORS[slot - 1], opacity: 0.85 }}
-                  >
-                    Ch. Label
-                  </TH>
-                  <TH
-                    cls="min-w-[70px]"
-                    style={{ background: SLOT_COLORS[slot - 1], opacity: 0.85 }}
-                  >
-                    Actual Ch. ID
-                  </TH>
-                </React.Fragment>
-              ))}
+              <TH cls="w-8 border-r-0"></TH>
             </tr>
           </thead>
 
