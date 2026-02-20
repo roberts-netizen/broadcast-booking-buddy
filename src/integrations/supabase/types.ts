@@ -165,6 +165,96 @@ export type Database = {
         }
         Relationships: []
       }
+      taker_assignments: {
+        Row: {
+          audio: string | null
+          booking_id: string
+          communication_method: string | null
+          communication_notes: string | null
+          created_at: string
+          email_subject: string | null
+          host: string | null
+          id: string
+          password: string | null
+          port: string | null
+          protocol: string | null
+          quality: string | null
+          sort_order: number
+          stream_key_or_channel_id: string | null
+          taker_id: string | null
+          test_datetime: string | null
+          test_notes: string | null
+          test_status: string
+          tested_by: string | null
+          updated_at: string
+          username: string | null
+          whatsapp_details: string | null
+        }
+        Insert: {
+          audio?: string | null
+          booking_id: string
+          communication_method?: string | null
+          communication_notes?: string | null
+          created_at?: string
+          email_subject?: string | null
+          host?: string | null
+          id?: string
+          password?: string | null
+          port?: string | null
+          protocol?: string | null
+          quality?: string | null
+          sort_order?: number
+          stream_key_or_channel_id?: string | null
+          taker_id?: string | null
+          test_datetime?: string | null
+          test_notes?: string | null
+          test_status?: string
+          tested_by?: string | null
+          updated_at?: string
+          username?: string | null
+          whatsapp_details?: string | null
+        }
+        Update: {
+          audio?: string | null
+          booking_id?: string
+          communication_method?: string | null
+          communication_notes?: string | null
+          created_at?: string
+          email_subject?: string | null
+          host?: string | null
+          id?: string
+          password?: string | null
+          port?: string | null
+          protocol?: string | null
+          quality?: string | null
+          sort_order?: number
+          stream_key_or_channel_id?: string | null
+          taker_id?: string | null
+          test_datetime?: string | null
+          test_notes?: string | null
+          test_status?: string
+          tested_by?: string | null
+          updated_at?: string
+          username?: string | null
+          whatsapp_details?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "taker_assignments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "taker_assignments_taker_id_fkey"
+            columns: ["taker_id"]
+            isOneToOne: false
+            referencedRelation: "takers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       taker_channel_maps: {
         Row: {
           active: boolean

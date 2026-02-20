@@ -1,12 +1,9 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Trash2, Plus, Check } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakers, useTakerChannelMaps } from "@/hooks/useLookups";
-import {
-  useBookingTakerAssignments,
-  BookingTakerAssignment,
-} from "@/hooks/useBookingTakerAssignments";
-import { TakerSlot } from "@/components/TakerSlot";
+import { useLeagues, useIncomingChannels, useTakers } from "@/hooks/useLookups";
+import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
+import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
 
 function addOneHour(time: string): string {
@@ -43,21 +40,13 @@ function CellSelect({ value, options, onChange, placeholder = "—" }: CellSelec
   );
 }
 
-// ── Slot column group header colours (subtle tint per slot) ──────────────────
-const SLOT_COLORS = [
-  "hsl(215 70% 28%)", // slot 1 – darker blue
-  "hsl(215 50% 33%)", // slot 2 – mid blue
-  "hsl(215 35% 38%)", // slot 3 – lighter blue
-];
-
 // ── Single booking row ───────────────────────────────────────────────────────
 type BookingRowProps = {
   booking: Booking;
   leagues: { id: string; name: string }[];
   channels: { id: string; name: string }[];
   takers: { id: string; name: string }[];
-  takerMaps: { id: string; label: string; actual_channel_id: string; taker_id: string | null }[];
-  assignmentsBySlot: Record<number, BookingTakerAssignment>;
+  assignments: TakerAssignment[];
   onDelete: (id: string) => void;
 };
 
@@ -66,8 +55,7 @@ function BookingRow({
   leagues,
   channels,
   takers,
-  takerMaps,
-  assignmentsBySlot,
+  assignments,
   onDelete,
 }: BookingRowProps) {
   const update = useUpdateBooking();
@@ -165,17 +153,13 @@ function BookingRow({
         )}
       </td>
 
-      {/* ── Taker slots 1-3 ── */}
-      {([1, 2, 3] as const).map((slot) => (
-        <TakerSlot
-          key={slot}
-          slotNumber={slot}
-          bookingId={booking.id}
-          assignment={assignmentsBySlot[slot]}
-          takers={takers}
-          takerMaps={takerMaps}
-        />
-      ))}
+      {/* ── Takers column ── */}
+      <TakersCell
+        bookingId={booking.id}
+        bookingLabel={booking.event_name || booking.date}
+        assignments={assignments}
+        takers={takers}
+      />
 
       {/* ── Delete ── */}
       <td className="px-1 py-0.5 text-center w-8">
@@ -202,17 +186,16 @@ export default function BookingsGrid() {
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
   const { data: takers = [] } = useTakers(true);
-  const { data: takerMaps = [] } = useTakerChannelMaps(true);
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
-  const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
+  const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
 
-  // Group: bookingId → slotNumber → assignment
+  // Group: bookingId → [assignments]
   const assignmentMap = useMemo(() => {
-    const map: Record<string, Record<number, BookingTakerAssignment>> = {};
+    const map: Record<string, TakerAssignment[]> = {};
     for (const a of allAssignments) {
-      if (!map[a.booking_id]) map[a.booking_id] = {};
-      map[a.booking_id][a.slot_number] = a;
+      if (!map[a.booking_id]) map[a.booking_id] = [];
+      map[a.booking_id].push(a);
     }
     return map;
   }, [allAssignments]);
@@ -231,13 +214,7 @@ export default function BookingsGrid() {
     });
   };
 
-  // ── Typed takerMaps for TakerSlot ──
-  const typedTakerMaps = (takerMaps as any[]).map((m) => ({
-    id: m.id as string,
-    label: m.label as string,
-    actual_channel_id: m.actual_channel_id as string,
-    taker_id: m.taker_id as string | null,
-  }));
+  const typedTakers = (takers as any[]).map((t) => ({ id: t.id as string, name: t.name as string }));
 
   // ── Header helpers ──
   const TH = ({
@@ -267,9 +244,8 @@ export default function BookingsGrid() {
       <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
 
       <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-xs" style={{ minWidth: 1100 }}>
+        <table className="w-full border-collapse text-xs" style={{ minWidth: 900 }}>
           <thead>
-            {/* ── Single-row header ── */}
             <tr style={gridHeaderStyle}>
               <TH cls="min-w-[100px]">Date</TH>
               <TH>GMT</TH>
@@ -279,15 +255,7 @@ export default function BookingsGrid() {
               <TH cls="min-w-[110px]">Incoming Ch.</TH>
               <TH cls="min-w-[90px]">Work Order</TH>
               <TH cls="w-14 text-center">Conf.</TH>
-              {([1, 2, 3] as const).map((slot) => (
-                <TH
-                  key={slot}
-                  cls="text-center border-l-2 border-[rgba(255,255,255,0.25)] min-w-[140px]"
-                  style={{ background: SLOT_COLORS[slot - 1] }}
-                >
-                  Streaming Taker {slot}
-                </TH>
-              ))}
+              <TH cls="min-w-[180px] border-l-2 border-[rgba(255,255,255,0.25)]">Takers</TH>
               <TH cls="w-8 border-r-0"></TH>
             </tr>
           </thead>
@@ -295,14 +263,14 @@ export default function BookingsGrid() {
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={20} className="text-center py-10 text-muted-foreground">
+                <td colSpan={10} className="text-center py-10 text-muted-foreground">
                   Loading…
                 </td>
               </tr>
             )}
             {!isLoading && bookings.length === 0 && (
               <tr>
-                <td colSpan={20} className="text-center py-10 text-muted-foreground">
+                <td colSpan={10} className="text-center py-10 text-muted-foreground">
                   No bookings found. Add one below.
                 </td>
               </tr>
@@ -313,9 +281,8 @@ export default function BookingsGrid() {
                 booking={b}
                 leagues={leagues}
                 channels={channels}
-                takers={takers}
-                takerMaps={typedTakerMaps}
-                assignmentsBySlot={assignmentMap[b.id] ?? {}}
+                takers={typedTakers}
+                assignments={assignmentMap[b.id] ?? []}
                 onDelete={(id) => deleteBooking.mutate(id)}
               />
             ))}
