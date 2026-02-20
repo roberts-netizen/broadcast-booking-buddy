@@ -153,17 +153,13 @@ function BookingRow({
         )}
       </td>
 
-      {/* ── Taker slots 1-3 ── */}
-      {([1, 2, 3] as const).map((slot) => (
-        <TakerSlot
-          key={slot}
-          slotNumber={slot}
-          bookingId={booking.id}
-          assignment={assignmentsBySlot[slot]}
-          takers={takers}
-          takerMaps={takerMaps}
-        />
-      ))}
+      {/* ── Takers column ── */}
+      <TakersCell
+        bookingId={booking.id}
+        bookingLabel={booking.event_name || booking.date}
+        assignments={assignments}
+        takers={takers}
+      />
 
       {/* ── Delete ── */}
       <td className="px-1 py-0.5 text-center w-8">
