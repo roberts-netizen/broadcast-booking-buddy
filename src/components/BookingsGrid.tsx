@@ -243,19 +243,13 @@ export default function BookingsGrid() {
   const TH = ({
     children,
     cls = "",
-    rowSpan,
-    colSpan,
     style,
   }: {
     children?: React.ReactNode;
     cls?: string;
-    rowSpan?: number;
-    colSpan?: number;
     style?: React.CSSProperties;
   }) => (
     <th
-      rowSpan={rowSpan}
-      colSpan={colSpan}
       style={style}
       className={`px-2 py-1.5 text-left text-xs font-semibold tracking-wide border-r border-[rgba(255,255,255,0.15)] last:border-r-0 whitespace-nowrap ${cls}`}
     >
