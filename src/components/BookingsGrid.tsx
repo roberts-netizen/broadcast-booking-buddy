@@ -40,21 +40,13 @@ function CellSelect({ value, options, onChange, placeholder = "—" }: CellSelec
   );
 }
 
-// ── Slot column group header colours (subtle tint per slot) ──────────────────
-const SLOT_COLORS = [
-  "hsl(215 70% 28%)", // slot 1 – darker blue
-  "hsl(215 50% 33%)", // slot 2 – mid blue
-  "hsl(215 35% 38%)", // slot 3 – lighter blue
-];
-
 // ── Single booking row ───────────────────────────────────────────────────────
 type BookingRowProps = {
   booking: Booking;
   leagues: { id: string; name: string }[];
   channels: { id: string; name: string }[];
   takers: { id: string; name: string }[];
-  takerMaps: { id: string; label: string; actual_channel_id: string; taker_id: string | null }[];
-  assignmentsBySlot: Record<number, BookingTakerAssignment>;
+  assignments: TakerAssignment[];
   onDelete: (id: string) => void;
 };
 
@@ -63,8 +55,7 @@ function BookingRow({
   leagues,
   channels,
   takers,
-  takerMaps,
-  assignmentsBySlot,
+  assignments,
   onDelete,
 }: BookingRowProps) {
   const update = useUpdateBooking();
