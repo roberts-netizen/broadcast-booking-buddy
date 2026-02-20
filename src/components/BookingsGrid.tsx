@@ -1,12 +1,9 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Trash2, Plus, Check } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakers, useTakerChannelMaps } from "@/hooks/useLookups";
-import {
-  useBookingTakerAssignments,
-  BookingTakerAssignment,
-} from "@/hooks/useBookingTakerAssignments";
-import { TakerSlot } from "@/components/TakerSlot";
+import { useLeagues, useIncomingChannels, useTakers } from "@/hooks/useLookups";
+import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
+import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
 
 function addOneHour(time: string): string {
