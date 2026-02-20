@@ -14,6 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_taker_assignments: {
+        Row: {
+          actual_channel_id: string
+          booking_id: string
+          created_at: string
+          id: string
+          slot_number: number
+          taker_channel_map_id: string | null
+          taker_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_channel_id?: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          slot_number: number
+          taker_channel_map_id?: string | null
+          taker_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_channel_id?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          slot_number?: number
+          taker_channel_map_id?: string | null
+          taker_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_taker_assignments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_taker_assignments_taker_channel_map_id_fkey"
+            columns: ["taker_channel_map_id"]
+            isOneToOne: false
+            referencedRelation: "taker_channel_maps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_taker_assignments_taker_id_fkey"
+            columns: ["taker_id"]
+            isOneToOne: false
+            referencedRelation: "takers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           cet_time: string | null
@@ -24,8 +79,6 @@ export type Database = {
           id: string
           incoming_channel_id: string | null
           league_id: string | null
-          taker_channel_map_id: string | null
-          taker_id: string | null
           updated_at: string
           work_order_id: string
         }
@@ -38,8 +91,6 @@ export type Database = {
           id?: string
           incoming_channel_id?: string | null
           league_id?: string | null
-          taker_channel_map_id?: string | null
-          taker_id?: string | null
           updated_at?: string
           work_order_id?: string
         }
@@ -52,8 +103,6 @@ export type Database = {
           id?: string
           incoming_channel_id?: string | null
           league_id?: string | null
-          taker_channel_map_id?: string | null
-          taker_id?: string | null
           updated_at?: string
           work_order_id?: string
         }
@@ -70,20 +119,6 @@ export type Database = {
             columns: ["league_id"]
             isOneToOne: false
             referencedRelation: "leagues"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_taker_channel_map_id_fkey"
-            columns: ["taker_channel_map_id"]
-            isOneToOne: false
-            referencedRelation: "taker_channel_maps"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_taker_id_fkey"
-            columns: ["taker_id"]
-            isOneToOne: false
-            referencedRelation: "takers"
             referencedColumns: ["id"]
           },
         ]

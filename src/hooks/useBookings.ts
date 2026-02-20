@@ -10,8 +10,6 @@ export type Booking = {
   event_name: string;
   incoming_channel_id: string | null;
   work_order_id: string;
-  taker_id: string | null;
-  taker_channel_map_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -20,7 +18,11 @@ export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leag
   return useQuery({
     queryKey: ["bookings", filters],
     queryFn: async () => {
-      let q = supabase.from("bookings").select("*").order("date", { ascending: true }).order("gmt_time", { ascending: true });
+      let q = supabase
+        .from("bookings")
+        .select("*")
+        .order("date", { ascending: true })
+        .order("gmt_time", { ascending: true });
       if (filters?.dateFrom) q = q.gte("date", filters.dateFrom);
       if (filters?.dateTo) q = q.lte("date", filters.dateTo);
       if (filters?.leagueId) q = q.eq("league_id", filters.leagueId);
