@@ -186,7 +186,124 @@ export default function BookingsGrid() {
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
   const { data: takers = [] } = useTakers(true);
-  const { data: takerMaps = [] } = useTakerChannelMaps(true);
+
+  const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
+  const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
+
+  // Group: bookingId → [assignments]
+  const assignmentMap = useMemo(() => {
+    const map: Record<string, TakerAssignment[]> = {};
+    for (const a of allAssignments) {
+      if (!map[a.booking_id]) map[a.booking_id] = [];
+      map[a.booking_id].push(a);
+    }
+    return map;
+  }, [allAssignments]);
+
+  const createBooking = useCreateBooking();
+  const deleteBooking = useDeleteBooking();
+
+  const handleAddRow = () => {
+    const today = new Date().toISOString().split("T")[0];
+    createBooking.mutate({
+      date: today,
+      gmt_time: "00:00",
+      cet_time: "01:00",
+      event_name: "",
+      work_order_id: "",
+    });
+  };
+
+  const typedTakers = (takers as any[]).map((t) => ({ id: t.id as string, name: t.name as string }));
+
+  // ── Header helpers ──
+  const TH = ({
+    children,
+    cls = "",
+    style,
+  }: {
+    children?: React.ReactNode;
+    cls?: string;
+    style?: React.CSSProperties;
+  }) => (
+    <th
+      style={style}
+      className={`px-2 py-1.5 text-left text-xs font-semibold tracking-wide border-r border-[rgba(255,255,255,0.15)] last:border-r-0 whitespace-nowrap ${cls}`}
+    >
+      {children}
+    </th>
+  );
+
+  const gridHeaderStyle: React.CSSProperties = {
+    background: "hsl(var(--grid-header))",
+    color: "hsl(var(--grid-header-foreground))",
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
+
+      <div className="flex-1 overflow-auto">
+        <table className="w-full border-collapse text-xs" style={{ minWidth: 900 }}>
+          <thead>
+            <tr style={gridHeaderStyle}>
+              <TH cls="min-w-[100px]">Date</TH>
+              <TH>GMT</TH>
+              <TH>CET</TH>
+              <TH cls="min-w-[110px]">League</TH>
+              <TH cls="min-w-[160px]">Event Name</TH>
+              <TH cls="min-w-[110px]">Incoming Ch.</TH>
+              <TH cls="min-w-[90px]">Work Order</TH>
+              <TH cls="w-14 text-center">Conf.</TH>
+              <TH cls="min-w-[180px] border-l-2 border-[rgba(255,255,255,0.25)]">Takers</TH>
+              <TH cls="w-8 border-r-0"></TH>
+            </tr>
+          </thead>
+
+          <tbody>
+            {isLoading && (
+              <tr>
+                <td colSpan={10} className="text-center py-10 text-muted-foreground">
+                  Loading…
+                </td>
+              </tr>
+            )}
+            {!isLoading && bookings.length === 0 && (
+              <tr>
+                <td colSpan={10} className="text-center py-10 text-muted-foreground">
+                  No bookings found. Add one below.
+                </td>
+              </tr>
+            )}
+            {bookings.map((b) => (
+              <BookingRow
+                key={b.id}
+                booking={b}
+                leagues={leagues}
+                channels={channels}
+                takers={typedTakers}
+                assignments={assignmentMap[b.id] ?? []}
+                onDelete={(id) => deleteBooking.mutate(id)}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="border-t border-border p-2 shrink-0">
+        <button
+          onClick={handleAddRow}
+          disabled={createBooking.isPending}
+          className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add booking
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
