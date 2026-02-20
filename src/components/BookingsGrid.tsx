@@ -1,18 +1,22 @@
-import React, { useState, useCallback } from "react";
-import { Trash2, Plus, Check, X } from "lucide-react";
+import React, { useState, useCallback, useMemo } from "react";
+import { Trash2, Plus, Check } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues, useIncomingChannels, useTakers, useTakerChannelMaps } from "@/hooks/useLookups";
+import {
+  useBookingTakerAssignments,
+  BookingTakerAssignment,
+} from "@/hooks/useBookingTakerAssignments";
+import { TakerSlot } from "@/components/TakerSlot";
 import BookingFilters from "./BookingFilters";
 
-// Helper: add 1 hour to a time string (HH:MM or HH:MM:SS)
 function addOneHour(time: string): string {
   if (!time) return "";
   const [h, m] = time.split(":").map(Number);
   const newH = (h + 1) % 24;
-  return `${String(newH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
 }
 
-function formatTime(t: string | null): string {
+function formatTime(t: string | null | undefined): string {
   if (!t) return "";
   return t.slice(0, 5);
 }
@@ -39,42 +43,56 @@ function CellSelect({ value, options, onChange, placeholder = "—" }: CellSelec
   );
 }
 
+// ── Slot column group header colours (subtle tint per slot) ──────────────────
+const SLOT_COLORS = [
+  "hsl(215 70% 28%)", // slot 1 – darker blue
+  "hsl(215 50% 33%)", // slot 2 – mid blue
+  "hsl(215 35% 38%)", // slot 3 – lighter blue
+];
+
+// ── Single booking row ───────────────────────────────────────────────────────
 type BookingRowProps = {
   booking: Booking;
   leagues: { id: string; name: string }[];
   channels: { id: string; name: string }[];
   takers: { id: string; name: string }[];
   takerMaps: { id: string; label: string; actual_channel_id: string; taker_id: string | null }[];
+  assignmentsBySlot: Record<number, BookingTakerAssignment>;
   onDelete: (id: string) => void;
 };
 
-function BookingRow({ booking, leagues, channels, takers, takerMaps, onDelete }: BookingRowProps) {
+function BookingRow({
+  booking,
+  leagues,
+  channels,
+  takers,
+  takerMaps,
+  assignmentsBySlot,
+  onDelete,
+}: BookingRowProps) {
   const update = useUpdateBooking();
   const [local, setLocal] = useState<Partial<Booking>>({});
   const [cetOverride, setCetOverride] = useState(false);
 
-  const get = <K extends keyof Booking>(key: K): Booking[K] => (key in local ? (local as Booking)[key] : booking[key]);
+  const get = <K extends keyof Booking>(key: K): Booking[K] =>
+    (key in local ? (local as Booking)[key] : booking[key]);
 
-  const patch = useCallback((fields: Partial<Booking>) => {
-    setLocal((prev) => ({ ...prev, ...fields }));
-    update.mutate({ id: booking.id, ...fields });
-  }, [booking.id, update]);
+  const patch = useCallback(
+    (fields: Partial<Booking>) => {
+      setLocal((prev) => ({ ...prev, ...fields }));
+      update.mutate({ id: booking.id, ...fields });
+    },
+    [booking.id, update]
+  );
 
   const gmtTime = get("gmt_time");
   const cetTime = get("cet_time");
   const workOrderId = get("work_order_id") ?? "";
   const confirmation = workOrderId.trim() !== "" ? "yes" : "";
-  const takerMapId = get("taker_channel_map_id");
-  const selectedMap = takerMaps.find((m) => m.id === takerMapId);
-  const actualChannelId = selectedMap?.actual_channel_id ?? "";
-
-  // Filter taker maps by selected taker
-  const takerId = get("taker_id");
-  const filteredMaps = takerMaps.filter((m) => !takerId || m.taker_id === takerId);
 
   return (
     <tr className="grid-row group">
-      {/* Date */}
+      {/* ── Core booking fields ── */}
       <td className="px-1 py-0.5 border-r border-border whitespace-nowrap">
         <input
           type="date"
@@ -83,7 +101,6 @@ function BookingRow({ booking, leagues, channels, takers, takerMaps, onDelete }:
           onChange={(e) => patch({ date: e.target.value })}
         />
       </td>
-      {/* GMT Time */}
       <td className="px-1 py-0.5 border-r border-border">
         <input
           type="time"
@@ -95,7 +112,6 @@ function BookingRow({ booking, leagues, channels, takers, takerMaps, onDelete }:
           }}
         />
       </td>
-      {/* CET Time */}
       <td className="px-1 py-0.5 border-r border-border">
         <input
           type="time"
@@ -107,11 +123,14 @@ function BookingRow({ booking, leagues, channels, takers, takerMaps, onDelete }:
           }}
         />
       </td>
-      {/* League */}
-      <td className="px-1 py-0.5 border-r border-border min-w-[120px]">
-        <CellSelect value={get("league_id")} options={leagues} onChange={(v) => patch({ league_id: v })} placeholder="— league —" />
+      <td className="px-1 py-0.5 border-r border-border min-w-[110px]">
+        <CellSelect
+          value={get("league_id")}
+          options={leagues}
+          onChange={(v) => patch({ league_id: v })}
+          placeholder="— league —"
+        />
       </td>
-      {/* Event Name */}
       <td className="px-1 py-0.5 border-r border-border min-w-[160px]">
         <input
           type="text"
@@ -121,12 +140,15 @@ function BookingRow({ booking, leagues, channels, takers, takerMaps, onDelete }:
           placeholder="Event name…"
         />
       </td>
-      {/* Incoming Channel */}
-      <td className="px-1 py-0.5 border-r border-border min-w-[120px]">
-        <CellSelect value={get("incoming_channel_id")} options={channels} onChange={(v) => patch({ incoming_channel_id: v })} placeholder="— channel —" />
+      <td className="px-1 py-0.5 border-r border-border min-w-[110px]">
+        <CellSelect
+          value={get("incoming_channel_id")}
+          options={channels}
+          onChange={(v) => patch({ incoming_channel_id: v })}
+          placeholder="— channel —"
+        />
       </td>
-      {/* Work Order */}
-      <td className="px-1 py-0.5 border-r border-border">
+      <td className="px-1 py-0.5 border-r border-border min-w-[90px]">
         <input
           type="text"
           className="grid-cell-input"
@@ -135,38 +157,28 @@ function BookingRow({ booking, leagues, channels, takers, takerMaps, onDelete }:
           placeholder="WO-…"
         />
       </td>
-      {/* Confirmation */}
-      <td className="px-1 py-0.5 border-r border-border text-center">
-        {confirmation ? (
+      <td className="px-2 py-0.5 border-r border-border text-center w-14">
+        {confirmation && (
           <span className="inline-flex items-center gap-0.5 text-[hsl(var(--confirmation-yes))] font-semibold text-xs">
             <Check className="h-3 w-3" /> yes
           </span>
-        ) : null}
+        )}
       </td>
-      {/* Taker */}
-      <td className="px-1 py-0.5 border-r border-border min-w-[120px]">
-        <CellSelect
-          value={get("taker_id")}
-          options={takers}
-          onChange={(v) => patch({ taker_id: v, taker_channel_map_id: null })}
-          placeholder="— taker —"
+
+      {/* ── Taker slots 1-3 ── */}
+      {([1, 2, 3] as const).map((slot) => (
+        <TakerSlot
+          key={slot}
+          slotNumber={slot}
+          bookingId={booking.id}
+          assignment={assignmentsBySlot[slot]}
+          takers={takers}
+          takerMaps={takerMaps}
         />
-      </td>
-      {/* Taker Channel Label */}
-      <td className="px-1 py-0.5 border-r border-border min-w-[110px]">
-        <CellSelect
-          value={get("taker_channel_map_id")}
-          options={filteredMaps.map((m) => ({ id: m.id, name: m.label }))}
-          onChange={(v) => patch({ taker_channel_map_id: v })}
-          placeholder="— label —"
-        />
-      </td>
-      {/* Actual Channel ID (read-only) */}
-      <td className="px-2 py-0.5 border-r border-border text-muted-foreground font-mono text-xs whitespace-nowrap">
-        {actualChannelId}
-      </td>
-      {/* Delete */}
-      <td className="px-1 py-0.5 text-center">
+      ))}
+
+      {/* ── Delete ── */}
+      <td className="px-1 py-0.5 text-center w-8">
         <button
           onClick={() => onDelete(booking.id)}
           className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5 rounded"
@@ -178,63 +190,154 @@ function BookingRow({ booking, leagues, channels, takers, takerMaps, onDelete }:
   );
 }
 
+// ── Grid ─────────────────────────────────────────────────────────────────────
 export default function BookingsGrid() {
-  const [filters, setFilters] = useState<{ dateFrom?: string; dateTo?: string; leagueId?: string }>({});
+  const [filters, setFilters] = useState<{
+    dateFrom?: string;
+    dateTo?: string;
+    leagueId?: string;
+  }>({});
+
   const { data: bookings = [], isLoading } = useBookings(filters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
   const { data: takers = [] } = useTakers(true);
   const { data: takerMaps = [] } = useTakerChannelMaps(true);
 
+  const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
+  const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
+
+  // Group: bookingId → slotNumber → assignment
+  const assignmentMap = useMemo(() => {
+    const map: Record<string, Record<number, BookingTakerAssignment>> = {};
+    for (const a of allAssignments) {
+      if (!map[a.booking_id]) map[a.booking_id] = {};
+      map[a.booking_id][a.slot_number] = a;
+    }
+    return map;
+  }, [allAssignments]);
+
   const createBooking = useCreateBooking();
   const deleteBooking = useDeleteBooking();
 
   const handleAddRow = () => {
     const today = new Date().toISOString().split("T")[0];
-    createBooking.mutate({ date: today, gmt_time: "00:00", cet_time: "01:00", event_name: "", work_order_id: "" });
+    createBooking.mutate({
+      date: today,
+      gmt_time: "00:00",
+      cet_time: "01:00",
+      event_name: "",
+      work_order_id: "",
+    });
   };
 
-  const col = (label: string, cls = "") => (
-    <th className={`px-2 py-2 text-left text-xs font-semibold tracking-wide border-r border-[hsl(var(--grid-header)/0.3)] last:border-r-0 whitespace-nowrap ${cls}`}>
-      {label}
+  // ── Typed takerMaps for TakerSlot ──
+  const typedTakerMaps = (takerMaps as any[]).map((m) => ({
+    id: m.id as string,
+    label: m.label as string,
+    actual_channel_id: m.actual_channel_id as string,
+    taker_id: m.taker_id as string | null,
+  }));
+
+  // ── Header helpers ──
+  const TH = ({
+    children,
+    cls = "",
+    rowSpan,
+    colSpan,
+    style,
+  }: {
+    children?: React.ReactNode;
+    cls?: string;
+    rowSpan?: number;
+    colSpan?: number;
+    style?: React.CSSProperties;
+  }) => (
+    <th
+      rowSpan={rowSpan}
+      colSpan={colSpan}
+      style={style}
+      className={`px-2 py-1.5 text-left text-xs font-semibold tracking-wide border-r border-[rgba(255,255,255,0.15)] last:border-r-0 whitespace-nowrap ${cls}`}
+    >
+      {children}
     </th>
   );
 
+  const gridHeaderStyle: React.CSSProperties = {
+    background: "hsl(var(--grid-header))",
+    color: "hsl(var(--grid-header-foreground))",
+  };
+
   return (
     <div className="flex flex-col h-full">
-      <BookingFilters
-        leagues={leagues}
-        filters={filters}
-        onChange={setFilters}
-      />
+      <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
 
       <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-xs" style={{ minWidth: 1100 }}>
+        <table className="w-full border-collapse text-xs" style={{ minWidth: 1400 }}>
           <thead>
-            <tr style={{ background: "hsl(var(--grid-header))", color: "hsl(var(--grid-header-foreground))" }}>
-              {col("Date")}
-              {col("GMT")}
-              {col("CET")}
-              {col("League")}
-              {col("Event Name", "min-w-[160px]")}
-              {col("Incoming Ch.")}
-              {col("Work Order")}
-              {col("Conf.")}
-              {col("Taker")}
-              {col("Ch. Label")}
-              {col("Actual Ch. ID")}
-              <th className="px-2 py-2 w-8"></th>
+            {/* ── Row 1: group labels ── */}
+            <tr style={gridHeaderStyle}>
+              <TH rowSpan={2} cls="min-w-[100px]">Date</TH>
+              <TH rowSpan={2}>GMT</TH>
+              <TH rowSpan={2}>CET</TH>
+              <TH rowSpan={2} cls="min-w-[110px]">League</TH>
+              <TH rowSpan={2} cls="min-w-[160px]">Event Name</TH>
+              <TH rowSpan={2} cls="min-w-[110px]">Incoming Ch.</TH>
+              <TH rowSpan={2} cls="min-w-[90px]">Work Order</TH>
+              <TH rowSpan={2} cls="w-14 text-center">Conf.</TH>
+              {/* Slot group labels */}
+              {([1, 2, 3] as const).map((slot) => (
+                <TH
+                  key={slot}
+                  colSpan={3}
+                  cls="text-center border-l-2 border-[rgba(255,255,255,0.25)]"
+                  style={{ background: SLOT_COLORS[slot - 1] }}
+                >
+                  Streaming Taker {slot}
+                </TH>
+              ))}
+              <TH rowSpan={2} cls="w-8 border-r-0"></TH>
+            </tr>
+            {/* ── Row 2: sub-column headers ── */}
+            <tr style={gridHeaderStyle}>
+              {([1, 2, 3] as const).map((slot) => (
+                <React.Fragment key={slot}>
+                  <TH
+                    cls="border-l-2 border-[rgba(255,255,255,0.25)] min-w-[100px]"
+                    style={{ background: SLOT_COLORS[slot - 1], opacity: 0.85 }}
+                  >
+                    Taker
+                  </TH>
+                  <TH
+                    cls="min-w-[90px]"
+                    style={{ background: SLOT_COLORS[slot - 1], opacity: 0.85 }}
+                  >
+                    Ch. Label
+                  </TH>
+                  <TH
+                    cls="min-w-[70px]"
+                    style={{ background: SLOT_COLORS[slot - 1], opacity: 0.85 }}
+                  >
+                    Actual Ch. ID
+                  </TH>
+                </React.Fragment>
+              ))}
             </tr>
           </thead>
+
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={12} className="text-center py-8 text-muted-foreground">Loading…</td>
+                <td colSpan={20} className="text-center py-10 text-muted-foreground">
+                  Loading…
+                </td>
               </tr>
             )}
             {!isLoading && bookings.length === 0 && (
               <tr>
-                <td colSpan={12} className="text-center py-8 text-muted-foreground">No bookings. Add one below.</td>
+                <td colSpan={20} className="text-center py-10 text-muted-foreground">
+                  No bookings found. Add one below.
+                </td>
               </tr>
             )}
             {bookings.map((b) => (
@@ -244,7 +347,8 @@ export default function BookingsGrid() {
                 leagues={leagues}
                 channels={channels}
                 takers={takers}
-                takerMaps={takerMaps}
+                takerMaps={typedTakerMaps}
+                assignmentsBySlot={assignmentMap[b.id] ?? {}}
                 onDelete={(id) => deleteBooking.mutate(id)}
               />
             ))}
@@ -252,7 +356,7 @@ export default function BookingsGrid() {
         </table>
       </div>
 
-      <div className="border-t border-border p-2">
+      <div className="border-t border-border p-2 shrink-0">
         <button
           onClick={handleAddRow}
           disabled={createBooking.isPending}
