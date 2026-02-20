@@ -14,7 +14,178 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          cet_time: string | null
+          created_at: string
+          date: string
+          event_name: string
+          gmt_time: string
+          id: string
+          incoming_channel_id: string | null
+          league_id: string | null
+          taker_channel_map_id: string | null
+          taker_id: string | null
+          updated_at: string
+          work_order_id: string
+        }
+        Insert: {
+          cet_time?: string | null
+          created_at?: string
+          date?: string
+          event_name?: string
+          gmt_time?: string
+          id?: string
+          incoming_channel_id?: string | null
+          league_id?: string | null
+          taker_channel_map_id?: string | null
+          taker_id?: string | null
+          updated_at?: string
+          work_order_id?: string
+        }
+        Update: {
+          cet_time?: string | null
+          created_at?: string
+          date?: string
+          event_name?: string
+          gmt_time?: string
+          id?: string
+          incoming_channel_id?: string | null
+          league_id?: string | null
+          taker_channel_map_id?: string | null
+          taker_id?: string | null
+          updated_at?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_incoming_channel_id_fkey"
+            columns: ["incoming_channel_id"]
+            isOneToOne: false
+            referencedRelation: "incoming_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_taker_channel_map_id_fkey"
+            columns: ["taker_channel_map_id"]
+            isOneToOne: false
+            referencedRelation: "taker_channel_maps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_taker_id_fkey"
+            columns: ["taker_id"]
+            isOneToOne: false
+            referencedRelation: "takers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incoming_channels: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      leagues: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      taker_channel_maps: {
+        Row: {
+          active: boolean
+          actual_channel_id: string
+          created_at: string
+          id: string
+          label: string
+          taker_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          actual_channel_id: string
+          created_at?: string
+          id?: string
+          label: string
+          taker_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          actual_channel_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          taker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "taker_channel_maps_taker_id_fkey"
+            columns: ["taker_id"]
+            isOneToOne: false
+            referencedRelation: "takers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      takers: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
