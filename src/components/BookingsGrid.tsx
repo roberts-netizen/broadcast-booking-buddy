@@ -17,6 +17,7 @@ import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/us
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
+import { DateToCell } from "./DateToCell";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -183,14 +184,21 @@ export default function BookingsGrid({ category }: { category?: string }) {
       {
         headerName: "Date To",
         field: "date_to",
-        width: 120,
-        editable: true,
-        cellDataType: "dateString",
-        cellStyle: (params: any) => ({
-          color: params.value ? undefined : 'hsl(var(--muted-foreground))',
-          fontStyle: params.value ? undefined : 'italic',
-        }),
-        valueFormatter: (params: any) => params.value || '—',
+        width: 140,
+        editable: false,
+        sortable: false,
+        cellRenderer: (params: ICellRendererParams) => {
+          if (!params.data?.id) return null;
+          return (
+            <DateToCell
+              value={params.data.date_to ?? null}
+              onChange={(val) => {
+                updateBooking.mutate({ id: params.data.id, date_to: val });
+              }}
+            />
+          );
+        },
+        cellStyle: { padding: 0, display: "flex", alignItems: "center" },
       },
       {
         headerName: "GMT",
