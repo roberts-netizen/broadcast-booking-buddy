@@ -52,7 +52,7 @@ export default function Index() {
           ]).map((t) => (
             <button
               key={t.key}
-              onClick={() => { setTab(t.key); setSelectedBooking(null); }}
+              onClick={() => { setTab(t.key); }}
               className={`h-full px-4 text-xs font-medium border-b-2 transition-colors ${
                 tab === t.key
                   ? "border-primary text-primary"
