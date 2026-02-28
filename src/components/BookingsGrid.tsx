@@ -219,12 +219,12 @@ export default function BookingsGrid() {
       },
       {
         headerName: "Takers",
-        width: 200,
+        width: 320,
         editable: false,
         cellRenderer: TakersCellRenderer,
         sortable: false,
         filter: false,
-        autoHeight: true,
+        autoHeight: false,
         cellStyle: { padding: 0, display: "flex", alignItems: "center" },
       },
       {
