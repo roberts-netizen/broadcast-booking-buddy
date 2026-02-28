@@ -139,6 +139,23 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
     return map;
   }, [allReports]);
 
+  // Get the default tournament ID for non-MCR categories
+  const { data: categoryTournaments = [] } = useQuery({
+    queryKey: ["tournaments-for-category", category],
+    queryFn: async () => {
+      if (!category || category === "MCR") return [];
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("id")
+        .eq("type", category)
+        .limit(1);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!category && category !== "MCR",
+  });
+  const defaultTournamentId = categoryTournaments?.[0]?.id ?? null;
+
   const createBooking = useCreateBooking();
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
