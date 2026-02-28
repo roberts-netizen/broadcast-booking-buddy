@@ -320,9 +320,14 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
         return (
           <div className="flex flex-col gap-1">
             <input className={inputClass} value={ef.source} onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} />
-            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded w-fit ${sm.color}`}>
-              {sm.label} ▾
-            </span>
+            <div className="flex items-center gap-1">
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded w-fit ${sm.color}`}>
+                {sm.label}
+              </span>
+              <span className="text-[9px] text-muted-foreground italic">
+                ({assignments.filter(a => a.test_status === "tested").length}/{assignments.length} tested)
+              </span>
+            </div>
           </div>
         );
       },
