@@ -346,6 +346,7 @@ export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsG
           cet_time: "01:00",
           event_name: "",
           work_order_id: "",
+          tournament_id: tournamentId ?? null,
         };
 
         cols.forEach((col, i) => {
