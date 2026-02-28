@@ -46,14 +46,14 @@ const gridTheme = themeQuartz.withParams({
 
 // ── Takers cell renderer ─────────────────────────────────────────────────────
 function TakersCellRenderer(props: ICellRendererParams) {
-  const { bookingId, bookingLabel, assignments, takers } = props.data?._takersProps ?? {};
+  const { bookingId, bookingLabel, assignments, takerChannelMaps } = props.data?._takersProps ?? {};
   if (!bookingId) return null;
   return (
     <TakersCell
       bookingId={bookingId}
       bookingLabel={bookingLabel}
       assignments={assignments}
-      takers={takers}
+      takerChannelMaps={takerChannelMaps}
     />
   );
 }
