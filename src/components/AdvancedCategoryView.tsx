@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues } from "@/hooks/useLookups";
@@ -15,16 +15,6 @@ export function AdvancedCategoryView({ category }: Props) {
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
   const { data: leagues = [] } = useLeagues(true);
   const createBooking = useCreateBooking();
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-
-  const toggleExpand = (id: string) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const handleAdd = () => {
     createBooking.mutate({
@@ -57,35 +47,11 @@ export function AdvancedCategoryView({ category }: Props) {
           <div className="p-8 text-center text-muted-foreground text-sm">No bookings found</div>
         ) : (
           <div className="divide-y divide-border">
-            {bookings.map((booking) => {
-              const isExpanded = expandedIds.has(booking.id);
-              return (
-                <div key={booking.id}>
-                  <button
-                    onClick={() => toggleExpand(booking.id)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted/50 transition-colors text-left"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    ) : (
-                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    )}
-                    <span className="font-medium text-foreground">{booking.event_name}</span>
-                    <span className="text-muted-foreground ml-2">{booking.date}</span>
-                    <span className="text-muted-foreground">{booking.gmt_time}</span>
-                    {booking.venue && <span className="text-muted-foreground ml-auto">{booking.venue}</span>}
-                  </button>
-                  {isExpanded && (
-                    <div className="border-t border-border">
-                      <AdvancedBookingView
-                        booking={booking}
-                        onBack={() => toggleExpand(booking.id)}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {bookings.map((booking) => (
+              <div key={booking.id}>
+                <AdvancedBookingView booking={booking} />
+              </div>
+            ))}
           </div>
         )}
       </div>
