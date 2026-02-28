@@ -96,12 +96,13 @@ export default function BookingsGrid({ category }: { category?: string }) {
 
   // Derive effective filters based on view
   const effectiveFilters = useMemo(() => {
+    const base = { ...filters, tournamentType: category };
     if (view === "today") {
       const today = new Date().toISOString().split("T")[0];
-      return { ...filters, dateFrom: today, dateTo: today };
+      return { ...base, dateFrom: today, dateTo: today };
     }
-    return filters;
-  }, [view, filters]);
+    return base;
+  }, [view, filters, category]);
 
   const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
