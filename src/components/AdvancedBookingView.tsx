@@ -19,11 +19,10 @@ import { useTakers } from "@/hooks/useLookups";
 
 const PROTOCOLS = ["SRT Pull", "SRT Push", "RTMP", "RTP", "TCP", "Other"];
 const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
-const TEST_STATUSES: { value: TestStatus; label: string }[] = [
-  { value: "not_tested", label: "Not Tested" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "tested", label: "Tested" },
-  { value: "failed", label: "Failed" },
+const TEST_STATUSES: { value: TestStatus; label: string; color: string }[] = [
+  { value: "not_tested", label: "Not Tested", color: "text-destructive bg-destructive/10" },
+  { value: "waiting_for_details", label: "Waiting for details", color: "text-yellow-600 bg-yellow-500/10" },
+  { value: "tested", label: "Tested", color: "text-green-600 bg-green-500/10" },
 ];
 
 const cellBase = "px-2 py-1.5 border-b border-r border-border text-xs";
@@ -126,6 +125,14 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
     return diff >= 0 && diff <= 24 * 60 * 60 * 1000;
   };
 
+  // Overall source status
+  const overallStatus: TestStatus = useMemo(() => {
+    if (assignments.length === 0) return "not_tested";
+    if (assignments.every((a) => a.test_status === "tested")) return "tested";
+    if (assignments.some((a) => a.test_status === "not_tested")) return "not_tested";
+    return "waiting_for_details";
+  }, [assignments]);
+
   // Taker columns (minimum 3 displayed)
   const displayCount = Math.max(3, assignments.length);
   const takerCols = Array.from({ length: displayCount }, (_, i) => assignments[i] ?? null);
@@ -189,16 +196,19 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
     },
     {
       label: "Test Status:",
-      render: (a) =>
-        a ? (
+      render: (a) => {
+        if (!a) return null;
+        const sm = TEST_STATUSES.find((s) => s.value === a.test_status) ?? TEST_STATUSES[0];
+        return (
           <select
-            className={`${selectClass} ${isUrgent(a) ? "text-destructive font-semibold" : ""}`}
+            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
             value={a.test_status}
             onChange={(e) => handleUpdateAssignment(a.id, { test_status: e.target.value as TestStatus })}
           >
             {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-        ) : null,
+        );
+      },
     },
     {
       label: "Notes:",
@@ -306,15 +316,13 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
       label: "Source",
       rowSpan: 2,
       render: () => {
-        const statusMeta = assignments.length > 0
-          ? TEST_STATUSES.find((s) => s.value === assignments[0]?.test_status)
-          : null;
+        const sm = TEST_STATUSES.find((s) => s.value === overallStatus) ?? TEST_STATUSES[0];
         return (
           <div className="flex flex-col gap-1">
             <input className={inputClass} value={ef.source} onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} />
-            {statusMeta && assignments[0]?.test_status === "not_tested" && (
-              <span className="text-[10px] text-destructive font-medium">Not tested ▾</span>
-            )}
+            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded w-fit ${sm.color}`}>
+              {sm.label} ▾
+            </span>
           </div>
         );
       },
