@@ -96,7 +96,7 @@ export default function BookingsGrid() {
   const { data: bookings = [], isLoading } = useBookings(filters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
-  const { data: takers = [] } = useTakers(true);
+  const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
