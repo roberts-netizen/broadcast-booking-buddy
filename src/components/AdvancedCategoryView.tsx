@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
@@ -10,11 +10,26 @@ type Props = {
   category: string;
 };
 
+type TimeTab = "today" | "upcoming" | "past";
+
 export function AdvancedCategoryView({ category }: Props) {
   const [filters, setFilters] = useState<{ dateFrom?: string; dateTo?: string; leagueId?: string }>({});
+  const [timeTab, setTimeTab] = useState<TimeTab>("today");
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
   const { data: leagues = [] } = useLeagues(true);
   const createBooking = useCreateBooking();
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const filteredBookings = useMemo(() => {
+    return bookings.filter((b) => {
+      const d = b.date;
+      if (timeTab === "today") return d === today;
+      if (timeTab === "upcoming") return d > today;
+      if (timeTab === "past") return d < today;
+      return true;
+    });
+  }, [bookings, timeTab, today]);
 
   const handleAdd = () => {
     createBooking.mutate({
@@ -25,9 +40,33 @@ export function AdvancedCategoryView({ category }: Props) {
     });
   };
 
+  const tabs: { key: TimeTab; label: string; count: number }[] = [
+    { key: "today", label: "Today", count: bookings.filter((b) => b.date === today).length },
+    { key: "upcoming", label: "Upcoming", count: bookings.filter((b) => b.date > today).length },
+    { key: "past", label: "Past Events", count: bookings.filter((b) => b.date < today).length },
+  ];
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card shrink-0">
+        {/* Time tabs */}
+        <div className="flex items-center gap-0 mr-3">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTimeTab(t.key)}
+              className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
+                timeTab === t.key
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+              <span className="ml-1.5 text-[10px] text-muted-foreground">({t.count})</span>
+            </button>
+          ))}
+        </div>
+
         <BookingFilters
           leagues={leagues}
           filters={filters}
@@ -43,11 +82,11 @@ export function AdvancedCategoryView({ category }: Props) {
       <div className="flex-1 overflow-auto">
         {isLoading ? (
           <div className="p-8 text-center text-muted-foreground text-sm">Loading...</div>
-        ) : bookings.length === 0 ? (
+        ) : filteredBookings.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-sm">No bookings found</div>
         ) : (
           <div className="divide-y divide-border">
-            {bookings.map((booking) => (
+            {filteredBookings.map((booking) => (
               <div key={booking.id}>
                 <AdvancedBookingView booking={booking} />
               </div>
