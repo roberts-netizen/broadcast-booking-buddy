@@ -13,7 +13,7 @@ import {
 } from "ag-grid-community";
 import { Plus } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakers } from "@/hooks/useLookups";
+import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
@@ -46,14 +46,14 @@ const gridTheme = themeQuartz.withParams({
 
 // ── Takers cell renderer ─────────────────────────────────────────────────────
 function TakersCellRenderer(props: ICellRendererParams) {
-  const { bookingId, bookingLabel, assignments, takers } = props.data?._takersProps ?? {};
+  const { bookingId, bookingLabel, assignments, takerChannelMaps } = props.data?._takersProps ?? {};
   if (!bookingId) return null;
   return (
     <TakersCell
       bookingId={bookingId}
       bookingLabel={bookingLabel}
       assignments={assignments}
-      takers={takers}
+      takerChannelMaps={takerChannelMaps}
     />
   );
 }
@@ -96,7 +96,7 @@ export default function BookingsGrid() {
   const { data: bookings = [], isLoading } = useBookings(filters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
-  const { data: takers = [] } = useTakers(true);
+  const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
@@ -114,9 +114,14 @@ export default function BookingsGrid() {
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
 
-  const typedTakers = useMemo(
-    () => (takers as any[]).map((t) => ({ id: t.id as string, name: t.name as string })),
-    [takers]
+  const typedTakerMaps = useMemo(
+    () => (takerChannelMaps as any[]).map((t) => ({
+      id: t.id as string,
+      label: t.label as string,
+      actual_channel_id: t.actual_channel_id as string,
+      taker_id: (t.taker_id ?? null) as string | null,
+    })),
+    [takerChannelMaps]
   );
 
   // Lookup maps for display
@@ -148,10 +153,10 @@ export default function BookingsGrid() {
           bookingId: b.id,
           bookingLabel: b.event_name || b.date,
           assignments: assignmentMap[b.id] ?? [],
-          takers: typedTakers,
+          takerChannelMaps: typedTakerMaps,
         },
       })),
-    [bookings, leagueMap, channelMap, assignmentMap, typedTakers, dateGroupMap]
+    [bookings, leagueMap, channelMap, assignmentMap, typedTakerMaps, dateGroupMap]
   );
 
   // ── Column defs ──
