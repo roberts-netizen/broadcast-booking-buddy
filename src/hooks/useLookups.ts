@@ -185,3 +185,14 @@ export function useDeleteTakerChannelMap() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["taker_channel_maps"] }),
   });
 }
+
+export function useBulkInsertTakerChannelMaps() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { label: string; actual_channel_id: string; taker_id: string | null; active: boolean }[]) => {
+      const { error } = await supabase.from("taker_channel_maps").insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["taker_channel_maps"] }),
+  });
+}
