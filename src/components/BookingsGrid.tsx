@@ -97,6 +97,10 @@ export default function BookingsGrid({ category }: { category?: string }) {
     leagueId?: string;
   }>({});
 
+  // ── Undo stack ──
+  type UndoEntry = { id: string; field: string; oldValue: any };
+  const undoStackRef = useRef<UndoEntry[]>([]);
+
   // Derive effective filters based on view
   const effectiveFilters = useMemo(() => {
     const base = { ...filters, tournamentType: category };
