@@ -27,6 +27,8 @@ const DEFAULT_SLOT_COUNT = 3;
 
 export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelMaps }: Props) {
   const [open, setOpen] = useState(false);
+  const maxAssignedSlot = useMemo(() => Math.max(0, ...assignments.map((a) => a.slot_number)), [assignments]);
+  const [slotCount, setSlotCount] = useState(Math.max(DEFAULT_SLOT_COUNT, maxAssignedSlot));
   const upsertAssignment = useUpsertBookingTakerAssignment();
   const clearAssignment = useClearBookingTakerAssignment();
 
