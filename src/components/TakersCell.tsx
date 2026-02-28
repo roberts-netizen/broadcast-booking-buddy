@@ -107,7 +107,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
   return (
     <>
       <div className="flex items-center gap-0.5 px-0.5 w-full h-full">
-        {Array.from({ length: SLOT_COUNT }, (_, i) => {
+        {Array.from({ length: slotCount }, (_, i) => {
           const slotNum = i + 1; // slot_number is 1-based (1, 2, 3)
           const assignment = slotAssignment(slotNum);
           const currentLabel = getAssignmentLabel(assignment);
