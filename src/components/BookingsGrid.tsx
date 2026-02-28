@@ -114,9 +114,14 @@ export default function BookingsGrid() {
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
 
-  const typedTakers = useMemo(
-    () => (takers as any[]).map((t) => ({ id: t.id as string, name: t.name as string })),
-    [takers]
+  const typedTakerMaps = useMemo(
+    () => (takerChannelMaps as any[]).map((t) => ({
+      id: t.id as string,
+      label: t.label as string,
+      actual_channel_id: t.actual_channel_id as string,
+      taker_id: (t.taker_id ?? null) as string | null,
+    })),
+    [takerChannelMaps]
   );
 
   // Lookup maps for display
