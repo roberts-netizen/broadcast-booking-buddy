@@ -137,6 +137,17 @@ export function useDeleteTaker() {
   });
 }
 
+export function useBulkInsertTakers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+      const { error } = await supabase.from("takers").insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["takers"] }),
+  });
+}
+
 // ── TakerChannelMap ───────────────────────────────────────────────────────────
 export function useTakerChannelMaps(activeOnly = false) {
   return useQuery({
