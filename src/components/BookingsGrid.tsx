@@ -103,7 +103,7 @@ export default function BookingsGrid() {
     return filters;
   }, [view, filters]);
 
-  const { data: bookings = [], isLoading } = useBookings(filters);
+  const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
   const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
