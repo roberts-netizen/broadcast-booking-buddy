@@ -125,6 +125,14 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
     return diff >= 0 && diff <= 24 * 60 * 60 * 1000;
   };
 
+  // Overall source status
+  const overallStatus: TestStatus = useMemo(() => {
+    if (assignments.length === 0) return "not_tested";
+    if (assignments.every((a) => a.test_status === "tested")) return "tested";
+    if (assignments.some((a) => a.test_status === "not_tested")) return "not_tested";
+    return "waiting_for_details";
+  }, [assignments]);
+
   // Taker columns (minimum 3 displayed)
   const displayCount = Math.max(3, assignments.length);
   const takerCols = Array.from({ length: displayCount }, (_, i) => assignments[i] ?? null);
