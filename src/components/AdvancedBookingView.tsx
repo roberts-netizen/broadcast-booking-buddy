@@ -19,11 +19,10 @@ import { useTakers } from "@/hooks/useLookups";
 
 const PROTOCOLS = ["SRT Pull", "SRT Push", "RTMP", "RTP", "TCP", "Other"];
 const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
-const TEST_STATUSES: { value: TestStatus; label: string }[] = [
-  { value: "not_tested", label: "Not Tested" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "tested", label: "Tested" },
-  { value: "failed", label: "Failed" },
+const TEST_STATUSES: { value: TestStatus; label: string; color: string }[] = [
+  { value: "not_tested", label: "Not Tested", color: "text-destructive bg-destructive/10" },
+  { value: "waiting_for_details", label: "Waiting for details", color: "text-yellow-600 bg-yellow-500/10" },
+  { value: "tested", label: "Tested", color: "text-green-600 bg-green-500/10" },
 ];
 
 const cellBase = "px-2 py-1.5 border-b border-r border-border text-xs";
