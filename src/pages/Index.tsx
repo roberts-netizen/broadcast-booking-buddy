@@ -17,7 +17,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 export default function Index() {
   const [tab, setTab] = useState<Tab>("events");
   const [categoryName, setCategoryName] = useState<string>("MCR");
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  
 
   const { data: categories = [] } = useCategories(true);
 
