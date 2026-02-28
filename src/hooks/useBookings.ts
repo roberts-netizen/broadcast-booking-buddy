@@ -8,7 +8,6 @@ export type Booking = {
   gmt_time: string;
   cet_time: string | null;
   league_id: string | null;
-  tournament_id: string | null;
   event_name: string;
   incoming_channel_id: string | null;
   work_order_id: string;
@@ -16,7 +15,7 @@ export type Booking = {
   updated_at: string;
 };
 
-export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leagueId?: string; tournamentId?: string }) {
+export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leagueId?: string }) {
   return useQuery({
     queryKey: ["bookings", filters],
     queryFn: async () => {
@@ -28,7 +27,6 @@ export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leag
       if (filters?.dateFrom) q = q.gte("date", filters.dateFrom);
       if (filters?.dateTo) q = q.lte("date", filters.dateTo);
       if (filters?.leagueId) q = q.eq("league_id", filters.leagueId);
-      if (filters?.tournamentId) q = q.eq("tournament_id", filters.tournamentId);
       const { data, error } = await q;
       if (error) throw error;
       return data as Booking[];

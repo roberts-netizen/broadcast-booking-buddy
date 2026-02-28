@@ -84,15 +84,10 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 }
 
 // ── Main Grid ────────────────────────────────────────────────────────────────
-type BookingsGridProps = {
-  tournamentId?: string;
-  hideViewToggle?: boolean;
-};
-
-export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsGridProps = {}) {
+export default function BookingsGrid() {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
-  const [view, setView] = useState<"today" | "full">(tournamentId ? "full" : "today");
+  const [view, setView] = useState<"today" | "full">("today");
   const [filters, setFilters] = useState<{
     dateFrom?: string;
     dateTo?: string;
@@ -101,13 +96,12 @@ export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsG
 
   // Derive effective filters based on view
   const effectiveFilters = useMemo(() => {
-    const base = { ...filters, tournamentId };
     if (view === "today") {
       const today = new Date().toISOString().split("T")[0];
-      return { ...base, dateFrom: today, dateTo: today };
+      return { ...filters, dateFrom: today, dateTo: today };
     }
-    return base;
-  }, [view, filters, tournamentId]);
+    return filters;
+  }, [view, filters]);
 
   const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
@@ -320,9 +314,8 @@ export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsG
       cet_time: "01:00",
       event_name: "",
       work_order_id: "",
-      tournament_id: tournamentId ?? null,
     });
-  }, [createBooking, tournamentId]);
+  }, [createBooking]);
 
   // ── Paste handler for multi-row paste ──
   const handlePaste = useCallback(
@@ -346,7 +339,6 @@ export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsG
           cet_time: "01:00",
           event_name: "",
           work_order_id: "",
-          tournament_id: tournamentId ?? null,
         };
 
         cols.forEach((col, i) => {
@@ -390,30 +382,28 @@ export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsG
     <div className="flex flex-col h-full">
       {/* View toggle + filters */}
       <div className="flex items-center gap-0 border-b border-border bg-card shrink-0">
-        {!hideViewToggle && (
-          <div className="flex items-center h-full">
-            <button
-              onClick={() => setView("today")}
-              className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-                view === "today"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Today's Events
-            </button>
-            <button
-              onClick={() => setView("full")}
-              className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-                view === "full"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Full Events
-            </button>
-          </div>
-        )}
+        <div className="flex items-center h-full">
+          <button
+            onClick={() => setView("today")}
+            className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+              view === "today"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Today's Events
+          </button>
+          <button
+            onClick={() => setView("full")}
+            className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+              view === "full"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Full Events
+          </button>
+        </div>
         <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
       </div>
 
