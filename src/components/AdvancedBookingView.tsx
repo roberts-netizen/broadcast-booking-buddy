@@ -148,13 +148,33 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   }[] = [
     {
       label: "Taker Name:",
-      render: (a) =>
-        a ? (
-          <select className={selectClass} value={a.taker_id ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { taker_id: e.target.value || null })}>
-            <option value="">—</option>
-            {takerList.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        ) : null,
+      render: (a) => {
+        if (!a) return null;
+        const customName = (a as any).taker_custom_name ?? "";
+        return (
+          <div className="flex flex-col gap-0.5">
+            <select
+              className={selectClass}
+              value={a.taker_id ?? ""}
+              onChange={(e) => {
+                const val = e.target.value || null;
+                handleUpdateAssignment(a.id, { taker_id: val, taker_custom_name: val ? null : customName } as any);
+              }}
+            >
+              <option value="">— Select or type below —</option>
+              {takerList.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            {!a.taker_id && (
+              <input
+                className={inputClass}
+                placeholder="Custom name..."
+                value={customName}
+                onChange={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
+              />
+            )}
+          </div>
+        );
+      },
     },
     {
       label: "Email / e-subject:",
