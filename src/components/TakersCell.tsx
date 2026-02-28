@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { Settings2 } from "lucide-react";
+import { Settings2, Plus } from "lucide-react";
 import { SearchableSelect } from "./SearchableSelect";
 import {
   BookingTakerAssignment,
@@ -23,10 +23,12 @@ type Props = {
   takerChannelMaps: TakerChannelMap[];
 };
 
-const SLOT_COUNT = 3;
+const DEFAULT_SLOT_COUNT = 3;
 
 export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelMaps }: Props) {
   const [open, setOpen] = useState(false);
+  const maxAssignedSlot = useMemo(() => Math.max(0, ...assignments.map((a) => a.slot_number)), [assignments]);
+  const [slotCount, setSlotCount] = useState(Math.max(DEFAULT_SLOT_COUNT, maxAssignedSlot));
   const upsertAssignment = useUpsertBookingTakerAssignment();
   const clearAssignment = useClearBookingTakerAssignment();
 
@@ -105,7 +107,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
   return (
     <>
       <div className="flex items-center gap-0.5 px-0.5 w-full h-full">
-        {Array.from({ length: SLOT_COUNT }, (_, i) => {
+        {Array.from({ length: slotCount }, (_, i) => {
           const slotNum = i + 1; // slot_number is 1-based (1, 2, 3)
           const assignment = slotAssignment(slotNum);
           const currentLabel = getAssignmentLabel(assignment);
@@ -135,6 +137,16 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
             </div>
           );
         })}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setSlotCount((c) => c + 1);
+          }}
+          className="flex-shrink-0 p-0.5 text-muted-foreground hover:text-primary transition-colors"
+          title="Add taker slot"
+        >
+          <Plus className="h-3 w-3" />
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();

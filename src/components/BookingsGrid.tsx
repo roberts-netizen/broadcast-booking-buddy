@@ -419,9 +419,35 @@ export default function BookingsGrid({ category }: { category?: string }) {
     [createBooking, leagueNameToId, channelNameToId]
   );
 
+  // ── Column resize persistence ──
+  const COLUMN_WIDTH_KEY = `col-widths-${category ?? "default"}`;
+
   const onGridReady = useCallback((params: GridReadyEvent) => {
     setGridApi(params.api);
-  }, []);
+    // Restore saved column widths
+    try {
+      const saved = localStorage.getItem(COLUMN_WIDTH_KEY);
+      if (saved) {
+        const widths: Record<string, number> = JSON.parse(saved);
+        const colState = params.api.getColumnState().map((col) => {
+          if (widths[col.colId] != null) {
+            return { ...col, width: widths[col.colId], flex: null };
+          }
+          return col;
+        });
+        params.api.applyColumnState({ state: colState });
+      }
+    } catch {}
+  }, [COLUMN_WIDTH_KEY]);
+
+  const onColumnResized = useCallback((e: any) => {
+    if (!e.finished || !e.api) return;
+    const widths: Record<string, number> = {};
+    e.api.getColumnState().forEach((col: any) => {
+      if (col.width) widths[col.colId] = col.width;
+    });
+    localStorage.setItem(COLUMN_WIDTH_KEY, JSON.stringify(widths));
+  }, [COLUMN_WIDTH_KEY]);
 
   const defaultColDef = useMemo<ColDef>(
     () => ({
@@ -470,6 +496,7 @@ export default function BookingsGrid({ category }: { category?: string }) {
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           onGridReady={onGridReady}
+          onColumnResized={onColumnResized}
           onCellValueChanged={onCellValueChanged}
           getRowId={(params) => params.data.id}
           getRowStyle={(params) => {
