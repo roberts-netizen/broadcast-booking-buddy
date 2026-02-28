@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Settings2 } from "lucide-react";
+import { SearchableSelect } from "./SearchableSelect";
 import {
   BookingTakerAssignment,
   useUpsertBookingTakerAssignment,
