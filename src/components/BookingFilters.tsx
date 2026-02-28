@@ -9,7 +9,7 @@ type Props = {
 
 export default function BookingFilters({ leagues, filters, onChange }: Props) {
   return (
-    <div className="flex items-center gap-3 px-3 py-2 border-b border-border bg-card flex-wrap">
+    <div className="flex items-center gap-3 px-3 py-2 flex-wrap">
       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Filters</span>
       <div className="flex items-center gap-1.5">
         <label className="text-xs text-muted-foreground">From</label>
