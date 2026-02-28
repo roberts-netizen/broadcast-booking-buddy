@@ -48,6 +48,7 @@ export default function Index() {
         <nav className="flex items-center h-full gap-0">
           {([
             { key: "events" as Tab, label: "Events" },
+            { key: "mcr" as Tab, label: "MCR", icon: LayoutGrid },
             { key: "admin" as Tab, label: "Admin", icon: Settings },
           ]).map((t) => (
             <button
