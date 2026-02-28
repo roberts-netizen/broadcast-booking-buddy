@@ -410,14 +410,18 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
   // ── Add new row ──
   const handleAddRow = useCallback(() => {
     const today = new Date().toISOString().split("T")[0];
-    createBooking.mutate({
+    const payload: Partial<Booking> & { tournament_id?: string | null } = {
       date: today,
       gmt_time: "00:00",
       cet_time: "01:00",
       event_name: "",
       work_order_id: "",
-    });
-  }, [createBooking]);
+    };
+    if (category && category !== "MCR" && defaultTournamentId) {
+      (payload as any).tournament_id = defaultTournamentId;
+    }
+    createBooking.mutate(payload);
+  }, [createBooking, category, defaultTournamentId]);
 
   // ── Paste handler for multi-row paste ──
   const handlePaste = useCallback(
