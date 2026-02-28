@@ -18,6 +18,8 @@ import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useB
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
 import { DateToCell } from "./DateToCell";
+import { ReportCell } from "./ReportCell";
+import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, BookingReport } from "@/hooks/useBookingReports";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
