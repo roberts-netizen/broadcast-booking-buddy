@@ -168,7 +168,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
         onClose={() => setOpen(false)}
         bookingId={bookingId}
         bookingLabel={bookingLabel}
-        assignments={takerAssignments}
+        assignments={[]}
         takers={modalTakers}
       />
     </>
