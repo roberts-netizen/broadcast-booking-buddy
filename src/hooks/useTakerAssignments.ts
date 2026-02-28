@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type TestStatus = "not_tested" | "scheduled" | "tested" | "failed";
+export type TestStatus = "not_tested" | "waiting_for_details" | "tested";
 
 export type TakerAssignment = {
   id: string;
