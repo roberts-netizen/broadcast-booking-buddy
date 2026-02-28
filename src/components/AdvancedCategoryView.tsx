@@ -13,6 +13,7 @@ type Props = {
 export function AdvancedCategoryView({ category }: Props) {
   const [filters, setFilters] = useState<{ dateFrom?: string; dateTo?: string; leagueId?: string }>({});
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
+  const { data: leagues = [] } = useLeagues(true);
   const createBooking = useCreateBooking();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
