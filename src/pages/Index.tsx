@@ -113,6 +113,10 @@ export default function Index() {
               )}
             </div>
           </>
+        ) : tab === "mcr" ? (
+          <div className="h-full overflow-auto flex-1">
+            <McrPage />
+          </div>
         ) : (
           <div className="h-full overflow-auto flex-1">
             <AdminPage />
