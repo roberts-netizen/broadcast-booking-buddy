@@ -100,6 +100,7 @@ export type Database = {
         Row: {
           audio_setup: string | null
           cet_time: string | null
+          cet_time_to: string | null
           created_at: string
           date: string
           date_to: string | null
@@ -119,6 +120,7 @@ export type Database = {
         Insert: {
           audio_setup?: string | null
           cet_time?: string | null
+          cet_time_to?: string | null
           created_at?: string
           date?: string
           date_to?: string | null
@@ -138,6 +140,7 @@ export type Database = {
         Update: {
           audio_setup?: string | null
           cet_time?: string | null
+          cet_time_to?: string | null
           created_at?: string
           date?: string
           date_to?: string | null
@@ -311,6 +314,7 @@ export type Database = {
           quality: string | null
           sort_order: number
           stream_key_or_channel_id: string | null
+          taker_custom_name: string | null
           taker_id: string | null
           test_datetime: string | null
           test_notes: string | null
@@ -336,6 +340,7 @@ export type Database = {
           quality?: string | null
           sort_order?: number
           stream_key_or_channel_id?: string | null
+          taker_custom_name?: string | null
           taker_id?: string | null
           test_datetime?: string | null
           test_notes?: string | null
@@ -361,6 +366,7 @@ export type Database = {
           quality?: string | null
           sort_order?: number
           stream_key_or_channel_id?: string | null
+          taker_custom_name?: string | null
           taker_id?: string | null
           test_datetime?: string | null
           test_notes?: string | null
