@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
+import { useLeagues } from "@/hooks/useLookups";
 import { AdvancedBookingView } from "./AdvancedBookingView";
 import BookingFilters from "./BookingFilters";
 
