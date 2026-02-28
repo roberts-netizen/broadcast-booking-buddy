@@ -526,6 +526,12 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
           onGridReady={onGridReady}
           onColumnResized={onColumnResized}
           onCellValueChanged={onCellValueChanged}
+          onRowDoubleClicked={onBookingClick ? (e: any) => {
+            if (e.data?.id) {
+              const { _takersProps, _dateGroup, _report, league_name, channel_name, ...booking } = e.data;
+              onBookingClick(booking);
+            }
+          } : undefined}
           getRowId={(params) => params.data.id}
           getRowStyle={(params) => {
             const group = params.data?._dateGroup ?? 0;
