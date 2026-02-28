@@ -61,12 +61,16 @@ function SimpleTable({ title, rows, onUpsert, onDelete, onBulkImport }: SimpleTa
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h2 className="text-sm font-semibold">{title}</h2>
-        <button
-          onClick={startNew}
-          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"
-        >
-          <Plus className="h-3.5 w-3.5" /> Add
-        </button>
+        <div className="flex items-center gap-2">
+          {onBulkImport && (
+            <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
+              <ClipboardPaste className="h-3.5 w-3.5" /> Paste
+            </button>
+          )}
+          <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium">
+            <Plus className="h-3.5 w-3.5" /> Add
+          </button>
+        </div>
       </div>
       <table className="w-full text-xs">
         <thead>
