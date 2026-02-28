@@ -316,13 +316,6 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
       label: "Source",
       rowSpan: 2,
       render: () => {
-        // Overall source status: worst status across all takers
-        const overallStatus = useMemo(() => {
-          if (assignments.length === 0) return "not_tested";
-          if (assignments.every((a) => a.test_status === "tested")) return "tested";
-          if (assignments.some((a) => a.test_status === "not_tested")) return "not_tested";
-          return "waiting_for_details";
-        }, [assignments]);
         const sm = TEST_STATUSES.find((s) => s.value === overallStatus) ?? TEST_STATUSES[0];
         return (
           <div className="flex flex-col gap-1">
