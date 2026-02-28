@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { Radio, Settings, Tv, Zap, Trophy } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
-import { AdvancedBookingView } from "@/components/AdvancedBookingView";
+import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
 import AdminPage from "./AdminPage";
 import { useCategories } from "@/hooks/useLookups";
-import { Booking } from "@/hooks/useBookings";
 
 type Tab = "events" | "admin";
 
@@ -17,7 +16,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 export default function Index() {
   const [tab, setTab] = useState<Tab>("events");
   const [categoryName, setCategoryName] = useState<string>("MCR");
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  
 
   const { data: categories = [] } = useCategories(true);
 
@@ -52,7 +51,7 @@ export default function Index() {
           ]).map((t) => (
             <button
               key={t.key}
-              onClick={() => { setTab(t.key); setSelectedBooking(null); }}
+              onClick={() => { setTab(t.key); }}
               className={`h-full px-4 text-xs font-medium border-b-2 transition-colors ${
                 tab === t.key
                   ? "border-primary text-primary"
@@ -85,7 +84,7 @@ export default function Index() {
                   return (
                     <button
                       key={c.id}
-                      onClick={() => { setCategoryName(c.name); setSelectedBooking(null); }}
+                      onClick={() => { setCategoryName(c.name); }}
                       className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors ${
                         isActive
                           ? "bg-primary/10 text-primary border-r-2 border-primary"
@@ -105,16 +104,10 @@ export default function Index() {
 
             {/* Grid or Advanced View */}
             <div className="flex-1 overflow-hidden">
-              {selectedBooking && isAdvanced ? (
-                <AdvancedBookingView
-                  booking={selectedBooking}
-                  onBack={() => setSelectedBooking(null)}
-                />
+              {isAdvanced ? (
+                <AdvancedCategoryView category={categoryName} />
               ) : (
-                <BookingsGrid
-                  category={categoryName}
-                  onBookingClick={isAdvanced ? (booking: Booking) => setSelectedBooking(booking) : undefined}
-                />
+                <BookingsGrid category={categoryName} />
               )}
             </div>
           </>
