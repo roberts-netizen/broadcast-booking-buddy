@@ -172,6 +172,7 @@ export default function BookingsGrid({ category }: { category?: string }) {
         league_name: b.league_id ? leagueMap[b.league_id] ?? "" : "",
         channel_name: b.incoming_channel_id ? channelMap[b.incoming_channel_id] ?? "" : "",
         _dateGroup: dateGroupMap[b.date] ?? 0,
+        _report: reportMap[b.id] ?? null,
         _takersProps: {
           bookingId: b.id,
           bookingLabel: b.event_name || b.date,
@@ -179,7 +180,7 @@ export default function BookingsGrid({ category }: { category?: string }) {
           takerChannelMaps: typedTakerMaps,
         },
       })),
-    [bookings, leagueMap, channelMap, assignmentMap, typedTakerMaps, dateGroupMap]
+    [bookings, leagueMap, channelMap, assignmentMap, typedTakerMaps, dateGroupMap, reportMap]
   );
 
   // ── Column defs ──
