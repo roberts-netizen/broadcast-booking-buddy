@@ -126,6 +126,14 @@ export default function BookingsGrid() {
   const leagueNameToId = useMemo(() => Object.fromEntries(leagues.map((l) => [l.name.toLowerCase(), l.id])), [leagues]);
   const channelNameToId = useMemo(() => Object.fromEntries(channels.map((c) => [c.name.toLowerCase(), c.id])), [channels]);
 
+  // ── Compute date group index for alternating colors ──
+  const dateGroupMap = useMemo(() => {
+    const uniqueDates = [...new Set(bookings.map((b) => b.date))].sort();
+    const map: Record<string, number> = {};
+    uniqueDates.forEach((d, i) => (map[d] = i % 2));
+    return map;
+  }, [bookings]);
+
   // ── Row data with taker props injected ──
   const rowData = useMemo(
     () =>
@@ -135,6 +143,7 @@ export default function BookingsGrid() {
         cet_time: formatTime(b.cet_time) || addOneHour(formatTime(b.gmt_time)),
         league_name: b.league_id ? leagueMap[b.league_id] ?? "" : "",
         channel_name: b.incoming_channel_id ? channelMap[b.incoming_channel_id] ?? "" : "",
+        _dateGroup: dateGroupMap[b.date] ?? 0,
         _takersProps: {
           bookingId: b.id,
           bookingLabel: b.event_name || b.date,
@@ -142,7 +151,7 @@ export default function BookingsGrid() {
           takers: typedTakers,
         },
       })),
-    [bookings, leagueMap, channelMap, assignmentMap, typedTakers]
+    [bookings, leagueMap, channelMap, assignmentMap, typedTakers, dateGroupMap]
   );
 
   // ── Column defs ──
