@@ -84,10 +84,15 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 }
 
 // ── Main Grid ────────────────────────────────────────────────────────────────
-export default function BookingsGrid() {
+type BookingsGridProps = {
+  tournamentId?: string;
+  hideViewToggle?: boolean;
+};
+
+export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsGridProps = {}) {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
-  const [view, setView] = useState<"today" | "full">("today");
+  const [view, setView] = useState<"today" | "full">(tournamentId ? "full" : "today");
   const [filters, setFilters] = useState<{
     dateFrom?: string;
     dateTo?: string;
@@ -96,12 +101,13 @@ export default function BookingsGrid() {
 
   // Derive effective filters based on view
   const effectiveFilters = useMemo(() => {
+    const base = { ...filters, tournamentId };
     if (view === "today") {
       const today = new Date().toISOString().split("T")[0];
-      return { ...filters, dateFrom: today, dateTo: today };
+      return { ...base, dateFrom: today, dateTo: today };
     }
-    return filters;
-  }, [view, filters]);
+    return base;
+  }, [view, filters, tournamentId]);
 
   const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
