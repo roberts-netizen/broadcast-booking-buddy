@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { Settings2 } from "lucide-react";
+import { Settings2, Plus } from "lucide-react";
 import { SearchableSelect } from "./SearchableSelect";
 import {
   BookingTakerAssignment,
@@ -23,7 +23,7 @@ type Props = {
   takerChannelMaps: TakerChannelMap[];
 };
 
-const SLOT_COUNT = 3;
+const DEFAULT_SLOT_COUNT = 3;
 
 export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelMaps }: Props) {
   const [open, setOpen] = useState(false);
