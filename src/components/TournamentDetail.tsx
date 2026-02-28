@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Check, X, Pencil } from "lucide-react";
 import { Tournament, useUpsertTournament, TOURNAMENT_TYPES } from "@/hooks/useTournaments";
+import BookingsGrid from "@/components/BookingsGrid";
 
 type Props = { tournament: Tournament };
 
