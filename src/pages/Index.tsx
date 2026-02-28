@@ -105,16 +105,10 @@ export default function Index() {
 
             {/* Grid or Advanced View */}
             <div className="flex-1 overflow-hidden">
-              {selectedBooking && isAdvanced ? (
-                <AdvancedBookingView
-                  booking={selectedBooking}
-                  onBack={() => setSelectedBooking(null)}
-                />
+              {isAdvanced ? (
+                <AdvancedCategoryView category={categoryName} />
               ) : (
-                <BookingsGrid
-                  category={categoryName}
-                  onBookingClick={isAdvanced ? (booking: Booking) => setSelectedBooking(booking) : undefined}
-                />
+                <BookingsGrid category={categoryName} />
               )}
             </div>
           </>

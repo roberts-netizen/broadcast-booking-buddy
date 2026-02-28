@@ -39,7 +39,6 @@ export function AdvancedCategoryView({ category }: Props) {
         <BookingFilters
           filters={filters}
           onChange={setFilters}
-          showTournamentType={false}
         />
         <div className="ml-auto">
           <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleAdd}>
