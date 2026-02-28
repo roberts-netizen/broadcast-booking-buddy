@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -136,6 +138,33 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
     for (const r of allReports) map[r.booking_id] = r;
     return map;
   }, [allReports]);
+
+  // Get or create the default tournament ID for non-MCR categories
+  const { data: categoryTournaments = [], refetch: refetchTournaments } = useQuery({
+    queryKey: ["tournaments-for-category", category],
+    queryFn: async () => {
+      if (!category || category === "MCR") return [];
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("id")
+        .eq("type", category)
+        .limit(1);
+      if (error) throw error;
+      // Auto-create a default tournament if none exists
+      if (!data || data.length === 0) {
+        const { data: newT, error: createErr } = await supabase
+          .from("tournaments")
+          .insert({ name: `${category} Default`, type: category })
+          .select("id")
+          .single();
+        if (createErr) throw createErr;
+        return [newT];
+      }
+      return data;
+    },
+    enabled: !!category && category !== "MCR",
+  });
+  const defaultTournamentId = categoryTournaments?.[0]?.id ?? null;
 
   const createBooking = useCreateBooking();
   const updateBooking = useUpdateBooking();
@@ -391,14 +420,18 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
   // ── Add new row ──
   const handleAddRow = useCallback(() => {
     const today = new Date().toISOString().split("T")[0];
-    createBooking.mutate({
+    const payload: Partial<Booking> & { tournament_id?: string | null } = {
       date: today,
       gmt_time: "00:00",
       cet_time: "01:00",
       event_name: "",
       work_order_id: "",
-    });
-  }, [createBooking]);
+    };
+    if (category && category !== "MCR" && defaultTournamentId) {
+      (payload as any).tournament_id = defaultTournamentId;
+    }
+    createBooking.mutate(payload);
+  }, [createBooking, category, defaultTournamentId]);
 
   // ── Paste handler for multi-row paste ──
   const handlePaste = useCallback(
@@ -441,10 +474,13 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
           }
         });
 
+        if (category && category !== "MCR" && defaultTournamentId) {
+          (row as any).tournament_id = defaultTournamentId;
+        }
         createBooking.mutate(row);
       }
     },
-    [createBooking, leagueNameToId, channelNameToId]
+    [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]
   );
 
   // ── Column resize persistence ──
