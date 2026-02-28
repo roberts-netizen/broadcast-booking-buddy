@@ -98,45 +98,60 @@ export type Database = {
       }
       bookings: {
         Row: {
+          audio_setup: string | null
           cet_time: string | null
           created_at: string
           date: string
           date_to: string | null
           event_name: string
+          event_notes: string | null
           gmt_time: string
           id: string
           incoming_channel_id: string | null
           league_id: string | null
+          project_lead: string | null
+          source: string | null
           tournament_id: string | null
           updated_at: string
+          venue: string | null
           work_order_id: string
         }
         Insert: {
+          audio_setup?: string | null
           cet_time?: string | null
           created_at?: string
           date?: string
           date_to?: string | null
           event_name?: string
+          event_notes?: string | null
           gmt_time?: string
           id?: string
           incoming_channel_id?: string | null
           league_id?: string | null
+          project_lead?: string | null
+          source?: string | null
           tournament_id?: string | null
           updated_at?: string
+          venue?: string | null
           work_order_id?: string
         }
         Update: {
+          audio_setup?: string | null
           cet_time?: string | null
           created_at?: string
           date?: string
           date_to?: string | null
           event_name?: string
+          event_notes?: string | null
           gmt_time?: string
           id?: string
           incoming_channel_id?: string | null
           league_id?: string | null
+          project_lead?: string | null
+          source?: string | null
           tournament_id?: string | null
           updated_at?: string
+          venue?: string | null
           work_order_id?: string
         }
         Relationships: [
@@ -229,6 +244,56 @@ export type Database = {
         }
         Relationships: []
       }
+      project_taker_endpoints: {
+        Row: {
+          created_at: string
+          endpoint_type: string
+          host: string | null
+          id: string
+          password: string | null
+          port: string | null
+          protocol: string | null
+          stream_key: string | null
+          taker_assignment_id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint_type?: string
+          host?: string | null
+          id?: string
+          password?: string | null
+          port?: string | null
+          protocol?: string | null
+          stream_key?: string | null
+          taker_assignment_id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint_type?: string
+          host?: string | null
+          id?: string
+          password?: string | null
+          port?: string | null
+          protocol?: string | null
+          stream_key?: string | null
+          taker_assignment_id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_taker_endpoints_taker_assignment_id_fkey"
+            columns: ["taker_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "taker_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       taker_assignments: {
         Row: {
           audio: string | null
@@ -240,6 +305,7 @@ export type Database = {
           host: string | null
           id: string
           password: string | null
+          phone_number: string | null
           port: string | null
           protocol: string | null
           quality: string | null
@@ -264,6 +330,7 @@ export type Database = {
           host?: string | null
           id?: string
           password?: string | null
+          phone_number?: string | null
           port?: string | null
           protocol?: string | null
           quality?: string | null
@@ -288,6 +355,7 @@ export type Database = {
           host?: string | null
           id?: string
           password?: string | null
+          phone_number?: string | null
           port?: string | null
           protocol?: string | null
           quality?: string | null
