@@ -141,7 +141,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
                   onClick={(e) => e.stopPropagation()}
                   onChange={(e) => {
                     e.stopPropagation();
-                    handleChannelChange(i, e.target.value);
+                    handleChannelChange(slotNum, e.target.value);
                   }}
                 >
                   {availableChannels.map((m) => (
