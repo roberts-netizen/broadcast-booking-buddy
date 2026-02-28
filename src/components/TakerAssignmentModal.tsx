@@ -22,9 +22,8 @@ const QUALITIES = ["1080p50", "1080i50", "720p50", "Custom"];
 const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
 const TEST_STATUSES: { value: TestStatus; label: string; dot: string }[] = [
   { value: "not_tested", label: "Not Tested", dot: "🔴" },
-  { value: "scheduled", label: "Scheduled", dot: "🟡" },
+  { value: "waiting_for_details", label: "Waiting for details", dot: "🟡" },
   { value: "tested", label: "Tested", dot: "🟢" },
-  { value: "failed", label: "Failed", dot: "⚠️" },
 ];
 
 type Taker = { id: string; name: string };
