@@ -363,6 +363,14 @@ export default function BookingsGrid() {
           onGridReady={onGridReady}
           onCellValueChanged={onCellValueChanged}
           getRowId={(params) => params.data.id}
+          getRowStyle={(params) => {
+            const group = params.data?._dateGroup ?? 0;
+            return {
+              backgroundColor: group === 0
+                ? 'hsl(var(--date-group-even))'
+                : 'hsl(var(--date-group-odd))',
+            };
+          }}
           animateRows={false}
           suppressRowHoverHighlight={false}
           enterNavigatesVertically={true}
