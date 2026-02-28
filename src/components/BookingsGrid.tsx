@@ -172,9 +172,9 @@ export default function BookingsGrid() {
         field: "league_name",
         width: 130,
         editable: true,
-        cellEditor: "agSelectCellEditor",
+        cellEditorPopup: false,
         cellEditorParams: {
-          values: ["", ...leagues.map((l) => l.name)],
+          useFormatter: true,
         },
       },
       {
