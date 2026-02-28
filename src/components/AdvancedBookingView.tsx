@@ -333,8 +333,28 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   // Event details rows (aligned to info rows)
   const eventLabels: { label: string; rowSpan?: number; render: () => React.ReactNode }[] = [
     { label: "Event", rowSpan: 2, render: () => <input className={inputClass} value={ef.event_name} onChange={(e) => setEf((f) => ({ ...f, event_name: e.target.value }))} /> },
-    { label: "Date", rowSpan: 2, render: () => <input type="date" className={inputClass} value={ef.date} onChange={(e) => setEf((f) => ({ ...f, date: e.target.value }))} /> },
-    { label: "Time CET", rowSpan: 2, render: () => <input type="time" className={inputClass} value={ef.cet_time?.slice(0, 5) ?? ""} onChange={(e) => setEf((f) => ({ ...f, cet_time: e.target.value }))} /> },
+    {
+      label: "Date",
+      rowSpan: 2,
+      render: () => (
+        <div className="flex items-center gap-1">
+          <input type="date" className={inputClass} value={ef.date} onChange={(e) => setEf((f) => ({ ...f, date: e.target.value }))} />
+          <span className="text-[10px] text-muted-foreground shrink-0">to</span>
+          <input type="date" className={inputClass} value={ef.date_to} onChange={(e) => setEf((f) => ({ ...f, date_to: e.target.value }))} />
+        </div>
+      ),
+    },
+    {
+      label: "Time CET",
+      rowSpan: 2,
+      render: () => (
+        <div className="flex items-center gap-1">
+          <input type="time" className={inputClass} value={ef.cet_time?.slice(0, 5) ?? ""} onChange={(e) => setEf((f) => ({ ...f, cet_time: e.target.value }))} />
+          <span className="text-[10px] text-muted-foreground shrink-0">to</span>
+          <input type="time" className={inputClass} value={ef.cet_time_to?.slice(0, 5) ?? ""} onChange={(e) => setEf((f) => ({ ...f, cet_time_to: e.target.value }))} />
+        </div>
+      ),
+    },
     { label: "Venue", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} /> },
     {
       label: "Source",
