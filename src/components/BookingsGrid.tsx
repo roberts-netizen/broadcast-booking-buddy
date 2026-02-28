@@ -389,28 +389,30 @@ export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsG
     <div className="flex flex-col h-full">
       {/* View toggle + filters */}
       <div className="flex items-center gap-0 border-b border-border bg-card shrink-0">
-        <div className="flex items-center h-full">
-          <button
-            onClick={() => setView("today")}
-            className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-              view === "today"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Today's Events
-          </button>
-          <button
-            onClick={() => setView("full")}
-            className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-              view === "full"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Full Events
-          </button>
-        </div>
+        {!hideViewToggle && (
+          <div className="flex items-center h-full">
+            <button
+              onClick={() => setView("today")}
+              className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+                view === "today"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Today's Events
+            </button>
+            <button
+              onClick={() => setView("full")}
+              className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+                view === "full"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Full Events
+            </button>
+          </div>
+        )}
         <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
       </div>
 
