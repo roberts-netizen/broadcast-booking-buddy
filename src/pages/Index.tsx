@@ -4,7 +4,6 @@ import BookingsGrid from "@/components/BookingsGrid";
 import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
 import AdminPage from "./AdminPage";
 import { useCategories } from "@/hooks/useLookups";
-import { Booking } from "@/hooks/useBookings";
 
 type Tab = "events" | "admin";
 
