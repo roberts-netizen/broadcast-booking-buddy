@@ -18,6 +18,8 @@ import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useB
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
 import { DateToCell } from "./DateToCell";
+import { ReportCell } from "./ReportCell";
+import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, BookingReport } from "@/hooks/useBookingReports";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -112,6 +114,9 @@ export default function BookingsGrid({ category }: { category?: string }) {
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
+  const { data: allReports = [] } = useBookingReports(bookingIds);
+  const upsertReport = useUpsertBookingReport();
+  const deleteReport = useDeleteBookingReport();
 
   const assignmentMap = useMemo(() => {
     const map: Record<string, BookingTakerAssignment[]> = {};
@@ -121,6 +126,12 @@ export default function BookingsGrid({ category }: { category?: string }) {
     }
     return map;
   }, [allAssignments]);
+
+  const reportMap = useMemo(() => {
+    const map: Record<string, BookingReport> = {};
+    for (const r of allReports) map[r.booking_id] = r;
+    return map;
+  }, [allReports]);
 
   const createBooking = useCreateBooking();
   const updateBooking = useUpdateBooking();
@@ -161,6 +172,7 @@ export default function BookingsGrid({ category }: { category?: string }) {
         league_name: b.league_id ? leagueMap[b.league_id] ?? "" : "",
         channel_name: b.incoming_channel_id ? channelMap[b.incoming_channel_id] ?? "" : "",
         _dateGroup: dateGroupMap[b.date] ?? 0,
+        _report: reportMap[b.id] ?? null,
         _takersProps: {
           bookingId: b.id,
           bookingLabel: b.event_name || b.date,
@@ -168,114 +180,148 @@ export default function BookingsGrid({ category }: { category?: string }) {
           takerChannelMaps: typedTakerMaps,
         },
       })),
-    [bookings, leagueMap, channelMap, assignmentMap, typedTakerMaps, dateGroupMap]
+    [bookings, leagueMap, channelMap, assignmentMap, typedTakerMaps, dateGroupMap, reportMap]
   );
 
   // ── Column defs ──
   const columnDefs = useMemo<ColDef[]>(
-    () => [
-      {
-        headerName: "Date",
-        field: "date",
-        width: 120,
-        editable: true,
-        cellDataType: "dateString",
-      },
-      {
-        headerName: "Date To",
-        field: "date_to",
-        width: 140,
-        editable: false,
-        sortable: false,
-        cellRenderer: (params: ICellRendererParams) => {
-          if (!params.data?.id) return null;
-          return (
-            <DateToCell
-              value={params.data.date_to ?? null}
-              onChange={(val) => {
-                updateBooking.mutate({ id: params.data.id, date_to: val });
-              }}
-            />
-          );
+    () => {
+      const isMCR = category === "MCR" || !category;
+      const cols: ColDef[] = [
+        {
+          headerName: "Date",
+          field: "date",
+          width: 120,
+          editable: true,
+          cellDataType: "dateString",
         },
-        cellStyle: { padding: 0, display: "flex", alignItems: "center" },
-      },
-      {
-        headerName: "GMT",
-        field: "gmt_time",
-        width: 90,
-        editable: true,
-      },
-      {
-        headerName: "CET",
-        field: "cet_time",
-        width: 90,
-        editable: true,
-      },
-      {
-        headerName: "League",
-        field: "league_name",
-        width: 130,
-        editable: true,
-        cellEditorPopup: false,
-        cellEditorParams: {
-          useFormatter: true,
+        ...(!isMCR
+          ? [
+              {
+                headerName: "Date To",
+                field: "date_to",
+                width: 140,
+                editable: false,
+                sortable: false,
+                cellRenderer: (params: ICellRendererParams) => {
+                  if (!params.data?.id) return null;
+                  return (
+                    <DateToCell
+                      value={params.data.date_to ?? null}
+                      onChange={(val: string | null) => {
+                        updateBooking.mutate({ id: params.data.id, date_to: val });
+                      }}
+                    />
+                  );
+                },
+                cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+              } as ColDef,
+            ]
+          : []),
+        {
+          headerName: "GMT",
+          field: "gmt_time",
+          width: 90,
+          editable: true,
         },
-      },
-      {
-        headerName: "Event Name",
-        field: "event_name",
-        flex: 1,
-        minWidth: 180,
-        editable: true,
-      },
-      {
-        headerName: "Incoming Ch.",
-        field: "channel_name",
-        width: 130,
-        editable: true,
-        cellEditor: "agSelectCellEditor",
-        cellEditorParams: {
-          values: ["", ...channels.map((c) => c.name)],
+        {
+          headerName: "CET",
+          field: "cet_time",
+          width: 90,
+          editable: true,
         },
-      },
-      {
-        headerName: "Work Order",
-        field: "work_order_id",
-        width: 110,
-        editable: true,
-      },
-      {
-        headerName: "Conf.",
-        width: 65,
-        editable: false,
-        cellRenderer: ConfirmationRenderer,
-        sortable: false,
-        filter: false,
-      },
-      {
-        headerName: "Takers",
-        width: 360,
-        editable: false,
-        cellRenderer: TakersCellRenderer,
-        sortable: false,
-        filter: false,
-        autoHeight: false,
-        cellStyle: { padding: 0, display: "flex", alignItems: "center" },
-      },
-      {
-        headerName: "",
-        width: 40,
-        editable: false,
-        sortable: false,
-        filter: false,
-        cellRenderer: DeleteRenderer,
-        cellRendererParams: {
-          onDelete: (id: string) => deleteBooking.mutate(id),
+        {
+          headerName: "League",
+          field: "league_name",
+          width: 130,
+          editable: true,
+          cellEditorPopup: false,
+          cellEditorParams: {
+            useFormatter: true,
+          },
         },
-      },
-    ],
-    [leagues, channels, deleteBooking]
+        {
+          headerName: "Event Name",
+          field: "event_name",
+          flex: 1,
+          minWidth: 180,
+          editable: true,
+        },
+        {
+          headerName: "Incoming Ch.",
+          field: "channel_name",
+          width: 130,
+          editable: true,
+          cellEditor: "agSelectCellEditor",
+          cellEditorParams: {
+            values: ["", ...channels.map((c) => c.name)],
+          },
+        },
+        {
+          headerName: "Work Order",
+          field: "work_order_id",
+          width: 110,
+          editable: true,
+        },
+        {
+          headerName: "Conf.",
+          width: 65,
+          editable: false,
+          cellRenderer: ConfirmationRenderer,
+          sortable: false,
+          filter: false,
+        },
+        {
+          headerName: "Report",
+          width: 65,
+          editable: false,
+          sortable: false,
+          filter: false,
+          cellRenderer: (params: ICellRendererParams) => {
+            if (!params.data?.id) return null;
+            const report = params.data._report;
+            return (
+              <ReportCell
+                impactLevel={report?.impact_level ?? null}
+                description={report?.description ?? ""}
+                onSave={(impact, desc) =>
+                  upsertReport.mutate({
+                    booking_id: params.data.id,
+                    impact_level: impact,
+                    description: desc,
+                  })
+                }
+                onClear={() => deleteReport.mutate(params.data.id)}
+              />
+            );
+          },
+          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+        },
+        {
+          headerName: "Takers",
+          width: 360,
+          editable: false,
+          cellRenderer: TakersCellRenderer,
+          sortable: false,
+          filter: false,
+          autoHeight: false,
+          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+        },
+        {
+          headerName: "",
+          width: 40,
+          editable: false,
+          sortable: false,
+          filter: false,
+          cellRenderer: DeleteRenderer,
+          cellRendererParams: {
+            onDelete: (id: string) => deleteBooking.mutate(id),
+          },
+        },
+      ];
+      return cols;
+    },
+    [leagues, channels, deleteBooking, category, updateBooking, upsertReport, deleteReport]
   );
 
   // ── Handle cell value changes → save to DB ──

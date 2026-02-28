@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_reports: {
+        Row: {
+          booking_id: string
+          created_at: string
+          description: string | null
+          id: string
+          impact_level: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          impact_level?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          impact_level?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_taker_assignments: {
         Row: {
           actual_channel_id: string
