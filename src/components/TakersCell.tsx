@@ -1,7 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Settings2 } from "lucide-react";
-import { TakerAssignment, useCreateTakerAssignment, useUpdateTakerAssignment, useDeleteTakerAssignment } from "@/hooks/useTakerAssignments";
+import {
+  BookingTakerAssignment,
+  useUpsertBookingTakerAssignment,
+  useClearBookingTakerAssignment,
+} from "@/hooks/useBookingTakerAssignments";
 import { TakerAssignmentModal } from "./TakerAssignmentModal";
+// Modal uses its own taker_assignments query when opened
 
 type TakerChannelMap = {
   id: string;
@@ -13,7 +18,7 @@ type TakerChannelMap = {
 type Props = {
   bookingId: string;
   bookingLabel: string;
-  assignments: TakerAssignment[];
+  assignments: BookingTakerAssignment[];
   takerChannelMaps: TakerChannelMap[];
 };
 
@@ -21,14 +26,11 @@ const SLOT_COUNT = 3;
 
 export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelMaps }: Props) {
   const [open, setOpen] = useState(false);
-  const createAssignment = useCreateTakerAssignment();
-  const updateAssignment = useUpdateTakerAssignment();
-  const deleteAssignment = useDeleteTakerAssignment();
+  const upsertAssignment = useUpsertBookingTakerAssignment();
+  const clearAssignment = useClearBookingTakerAssignment();
 
-  const slots = Array.from({ length: SLOT_COUNT }, (_, i) => assignments[i] ?? null);
-
-  // Get unique labels for dropdown display
-  const uniqueLabels = React.useMemo(() => {
+  // Get unique labels
+  const uniqueLabels = useMemo(() => {
     const seen = new Set<string>();
     return takerChannelMaps.filter((m) => {
       if (seen.has(m.label)) return false;
@@ -37,75 +39,118 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
     });
   }, [takerChannelMaps]);
 
-  // Find which label an assignment matches (by taker_id or taker_channel_map_id)
-  const getSlotLabel = (assignment: TakerAssignment | null): string => {
-    if (!assignment) return "";
-    // Try to match by taker_name first
-    if (assignment.taker_name) return assignment.taker_name;
-    // Try taker_id match in maps
-    if (assignment.taker_id) {
-      const map = takerChannelMaps.find((m) => m.taker_id === assignment.taker_id);
-      if (map) return map.label;
-    }
-    return "";
-  };
-
-  const handleSlotChange = useCallback(
-    (slotIndex: number, selectedLabel: string) => {
-      const existing = assignments[slotIndex];
-      if (!selectedLabel) {
-        if (existing) deleteAssignment.mutate(existing.id);
-        return;
-      }
-      // Find first matching taker_channel_map for this label
-      const map = takerChannelMaps.find((m) => m.label === selectedLabel);
-      if (!map) return;
-
-      if (existing) {
-        updateAssignment.mutate({
-          id: existing.id,
-          taker_id: map.taker_id,
-        });
-      } else {
-        createAssignment.mutate({
-          booking_id: bookingId,
-          taker_id: map.taker_id,
-          sort_order: slotIndex,
-          test_status: "not_tested",
-        });
-      }
-    },
-    [assignments, bookingId, takerChannelMaps, createAssignment, updateAssignment, deleteAssignment]
+  // Get channels for a specific label
+  const getChannelsForLabel = useCallback(
+    (label: string) => takerChannelMaps.filter((m) => m.label === label),
+    [takerChannelMaps]
   );
 
-  // Derive takers list for modal compatibility
-  const takers = React.useMemo(() => 
-    uniqueLabels.map((m) => ({ id: m.taker_id ?? m.id, name: m.label })),
+  // Map slot_number to assignment
+  const slotAssignment = useCallback(
+    (slotNum: number) => assignments.find((a) => a.slot_number === slotNum) ?? null,
+    [assignments]
+  );
+
+  // Resolve label from taker_channel_map_id
+  const getAssignmentLabel = useCallback(
+    (a: BookingTakerAssignment | null) => {
+      if (!a?.taker_channel_map_id) return "";
+      const map = takerChannelMaps.find((m) => m.id === a.taker_channel_map_id);
+      return map?.label ?? "";
+    },
+    [takerChannelMaps]
+  );
+
+  const handleLabelChange = useCallback(
+    (slotNum: number, label: string) => {
+      if (!label) {
+        clearAssignment.mutate({ bookingId, slotNumber: slotNum });
+        return;
+      }
+      // Pick the first channel map for this label
+      const map = takerChannelMaps.find((m) => m.label === label);
+      if (!map) return;
+      upsertAssignment.mutate({
+        bookingId,
+        slotNumber: slotNum,
+        takerId: map.taker_id,
+        takerChannelMapId: map.id,
+        actualChannelId: map.actual_channel_id,
+      });
+    },
+    [bookingId, takerChannelMaps, upsertAssignment, clearAssignment]
+  );
+
+  const handleChannelChange = useCallback(
+    (slotNum: number, mapId: string) => {
+      const map = takerChannelMaps.find((m) => m.id === mapId);
+      if (!map) return;
+      upsertAssignment.mutate({
+        bookingId,
+        slotNumber: slotNum,
+        takerId: map.taker_id,
+        takerChannelMapId: map.id,
+        actualChannelId: map.actual_channel_id,
+      });
+    },
+    [bookingId, takerChannelMaps, upsertAssignment]
+  );
+
+  const modalTakers = useMemo(
+    () => uniqueLabels.map((m) => ({ id: m.taker_id ?? m.id, name: m.label })),
     [uniqueLabels]
   );
 
   return (
     <>
-      <div className="flex items-center gap-1 px-1 w-full h-full">
-        {slots.map((slot, i) => (
-          <select
-            key={i}
-            className="flex-1 min-w-0 border border-input rounded px-1 py-0.5 text-[10px] bg-background focus:outline-none focus:ring-1 focus:ring-ring truncate"
-            value={getSlotLabel(slot)}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => {
-              e.stopPropagation();
-              handleSlotChange(i, e.target.value);
-            }}
-          >
-            <option value="">—</option>
-            {uniqueLabels.map((m) => (
-              <option key={m.id} value={m.label}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        ))}
+      <div className="flex items-center gap-0.5 px-0.5 w-full h-full">
+        {Array.from({ length: SLOT_COUNT }, (_, i) => {
+          const slotNum = i + 1; // slot_number is 1-based (1, 2, 3)
+          const assignment = slotAssignment(slotNum);
+          const currentLabel = getAssignmentLabel(assignment);
+          const availableChannels = currentLabel ? getChannelsForLabel(currentLabel) : [];
+          const showChannelPicker = availableChannels.length > 1 && currentLabel;
+
+          return (
+            <div key={i} className="flex flex-col gap-0 flex-1 min-w-0">
+              {/* Label dropdown */}
+              <select
+                className="w-full border border-input rounded-t px-0.5 py-0.5 text-[10px] bg-background focus:outline-none focus:ring-1 focus:ring-ring truncate"
+                value={currentLabel}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  handleLabelChange(slotNum, e.target.value);
+                }}
+              >
+                <option value="">—</option>
+                {uniqueLabels.map((m) => (
+                  <option key={m.id} value={m.label}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              {/* Channel dropdown (shown when label is selected) */}
+              {currentLabel && (
+                <select
+                  className="w-full border border-input border-t-0 rounded-b px-0.5 py-0 text-[9px] text-muted-foreground bg-muted/30 focus:outline-none focus:ring-1 focus:ring-ring truncate"
+                  value={assignment?.taker_channel_map_id ?? ""}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleChannelChange(slotNum, e.target.value);
+                  }}
+                >
+                  {availableChannels.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.actual_channel_id}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          );
+        })}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -123,8 +168,8 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
         onClose={() => setOpen(false)}
         bookingId={bookingId}
         bookingLabel={bookingLabel}
-        assignments={assignments}
-        takers={takers}
+        assignments={[]}
+        takers={modalTakers}
       />
     </>
   );

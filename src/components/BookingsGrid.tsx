@@ -14,7 +14,7 @@ import {
 import { Plus } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/useLookups";
-import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
+import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
 
@@ -36,7 +36,7 @@ function formatTime(t: string | null | undefined): string {
 const gridTheme = themeQuartz.withParams({
   fontSize: 12,
   headerFontSize: 11,
-  rowHeight: 32,
+  rowHeight: 44,
   headerHeight: 34,
   cellHorizontalPadding: 8,
   spacing: 2,
@@ -99,10 +99,10 @@ export default function BookingsGrid() {
   const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
-  const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
+  const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
 
   const assignmentMap = useMemo(() => {
-    const map: Record<string, TakerAssignment[]> = {};
+    const map: Record<string, BookingTakerAssignment[]> = {};
     for (const a of allAssignments) {
       if (!map[a.booking_id]) map[a.booking_id] = [];
       map[a.booking_id].push(a);
