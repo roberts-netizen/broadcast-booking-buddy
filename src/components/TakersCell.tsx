@@ -96,9 +96,6 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
     [bookingId, takerChannelMaps, upsertAssignment]
   );
 
-  // For modal: derive takers list from unique labels
-  const modalBookingIds = useMemo(() => [bookingId], [bookingId]);
-  const { data: takerAssignments = [] } = useTakerAssignments(modalBookingIds);
   const modalTakers = useMemo(
     () => uniqueLabels.map((m) => ({ id: m.taker_id ?? m.id, name: m.label })),
     [uniqueLabels]
