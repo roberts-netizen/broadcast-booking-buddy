@@ -10,6 +10,17 @@ export type Tournament = {
   active: boolean;
   created_at: string;
   updated_at: string;
+  // Advanced fields (ATP/WTA, ONE-OFF)
+  venue_name: string | null;
+  city: string | null;
+  country: string | null;
+  timezone: string | null;
+  pm_name: string | null;
+  pm_contact: string | null;
+  crew_notes: string | null;
+  satellite_info: string | null;
+  encoding_details: string | null;
+  channel_config: string | null;
 };
 
 export const TOURNAMENT_TYPES = ["MCR", "ATP/WTA", "ONE-OFF"] as const;

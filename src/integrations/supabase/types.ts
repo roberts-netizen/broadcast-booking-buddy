@@ -327,33 +327,63 @@ export type Database = {
       tournaments: {
         Row: {
           active: boolean
+          channel_config: string | null
+          city: string | null
+          country: string | null
           created_at: string
+          crew_notes: string | null
           date_from: string | null
           date_to: string | null
+          encoding_details: string | null
           id: string
           name: string
+          pm_contact: string | null
+          pm_name: string | null
+          satellite_info: string | null
+          timezone: string | null
           type: string
           updated_at: string
+          venue_name: string | null
         }
         Insert: {
           active?: boolean
+          channel_config?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          crew_notes?: string | null
           date_from?: string | null
           date_to?: string | null
+          encoding_details?: string | null
           id?: string
           name: string
+          pm_contact?: string | null
+          pm_name?: string | null
+          satellite_info?: string | null
+          timezone?: string | null
           type?: string
           updated_at?: string
+          venue_name?: string | null
         }
         Update: {
           active?: boolean
+          channel_config?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          crew_notes?: string | null
           date_from?: string | null
           date_to?: string | null
+          encoding_details?: string | null
           id?: string
           name?: string
+          pm_contact?: string | null
+          pm_name?: string | null
+          satellite_info?: string | null
+          timezone?: string | null
           type?: string
           updated_at?: string
+          venue_name?: string | null
         }
         Relationships: []
       }
