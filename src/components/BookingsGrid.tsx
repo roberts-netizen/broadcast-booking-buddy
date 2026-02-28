@@ -320,8 +320,9 @@ export default function BookingsGrid({ tournamentId, hideViewToggle }: BookingsG
       cet_time: "01:00",
       event_name: "",
       work_order_id: "",
+      tournament_id: tournamentId ?? null,
     });
-  }, [createBooking]);
+  }, [createBooking, tournamentId]);
 
   // ── Paste handler for multi-row paste ──
   const handlePaste = useCallback(
