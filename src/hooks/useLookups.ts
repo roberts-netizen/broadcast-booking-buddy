@@ -88,6 +88,17 @@ export function useDeleteIncomingChannel() {
   });
 }
 
+export function useBulkInsertIncomingChannels() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+      const { error } = await supabase.from("incoming_channels").insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["incoming_channels"] }),
+  });
+}
+
 // ── Takers ────────────────────────────────────────────────────────────────────
 export function useTakers(activeOnly = false) {
   return useQuery({
