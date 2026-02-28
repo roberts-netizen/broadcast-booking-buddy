@@ -17,7 +17,7 @@ import {
 } from "@/hooks/useProjectTakerEndpoints";
 import { useTakers } from "@/hooks/useLookups";
 
-const PROTOCOLS = ["SRT Pull", "SRT Push", "RTMP", "RTP", "TCP", "Other"];
+const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
 const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
 const TEST_STATUSES: { value: TestStatus; label: string; color: string }[] = [
   { value: "not_tested", label: "Not Tested", color: "text-destructive bg-destructive/10" },
