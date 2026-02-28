@@ -34,8 +34,9 @@ type SimpleTableProps = {
   onBulkImport?: (rows: Record<string, string>[]) => Promise<void>;
 };
 
-function SimpleTable({ title, rows, onUpsert, onDelete }: SimpleTableProps) {
-  const [editing, setEditing] = useState<string | null>(null); // id or "new"
+function SimpleTable({ title, rows, onUpsert, onDelete, onBulkImport }: SimpleTableProps) {
+  const [editing, setEditing] = useState<string | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [draft, setDraft] = useState({ name: "", active: true });
 
   const startNew = () => {
