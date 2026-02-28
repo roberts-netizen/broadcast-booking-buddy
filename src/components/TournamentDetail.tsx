@@ -158,6 +158,16 @@ export default function TournamentDetail({ tournament }: Props) {
           </section>
         </>
       )}
+
+      {/* Bookings for this tournament */}
+      <section className="border-t border-border">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-6 pt-4 pb-2">
+          Bookings
+        </h3>
+        <div className="h-[400px]">
+          <BookingsGrid tournamentId={tournament.id} hideViewToggle />
+        </div>
+      </section>
     </div>
   );
 }

@@ -29,7 +29,7 @@ export default function Index() {
               }`}
             >
               {t === "bookings" ? (
-                <span>Bookings</span>
+                <span>MCR View</span>
               ) : t === "tournaments" ? (
                 <span className="flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5" />Tournaments</span>
               ) : (
