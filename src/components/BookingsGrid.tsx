@@ -17,6 +17,7 @@ import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/us
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
+import { DateToCell } from "./DateToCell";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
