@@ -284,6 +284,8 @@ export default function BookingsGrid() {
         }
       } else if (field === "cet_time") {
         updates.cet_time = event.newValue;
+      } else if (field === "date_to") {
+        updates.date_to = event.newValue || null;
       } else {
         (updates as any)[field] = event.newValue;
       }
