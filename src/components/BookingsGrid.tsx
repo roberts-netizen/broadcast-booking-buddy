@@ -464,10 +464,13 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
           }
         });
 
+        if (category && category !== "MCR" && defaultTournamentId) {
+          (row as any).tournament_id = defaultTournamentId;
+        }
         createBooking.mutate(row);
       }
     },
-    [createBooking, leagueNameToId, channelNameToId]
+    [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]
   );
 
   // ── Column resize persistence ──
