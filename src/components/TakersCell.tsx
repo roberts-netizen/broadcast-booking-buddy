@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Settings2 } from "lucide-react";
+import { SearchableSelect } from "./SearchableSelect";
 import {
   BookingTakerAssignment,
   useUpsertBookingTakerAssignment,
@@ -114,39 +115,22 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
           return (
             <div key={i} className="flex flex-col gap-0 flex-1 min-w-0">
               {/* Label dropdown */}
-              <select
-                className="w-full border border-input rounded-t px-0.5 py-0.5 text-[10px] bg-background focus:outline-none focus:ring-1 focus:ring-ring truncate"
+              <SearchableSelect
+                options={uniqueLabels.map((m) => ({ value: m.label, label: m.label }))}
                 value={currentLabel}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  handleLabelChange(slotNum, e.target.value);
-                }}
-              >
-                <option value="">—</option>
-                {uniqueLabels.map((m) => (
-                  <option key={m.id} value={m.label}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => handleLabelChange(slotNum, val)}
+                placeholder="—"
+                className="rounded-b-none"
+              />
               {/* Channel dropdown (shown when label is selected) */}
               {currentLabel && (
-                <select
-                  className="w-full border border-input border-t-0 rounded-b px-0.5 py-0 text-[9px] text-muted-foreground bg-muted/30 focus:outline-none focus:ring-1 focus:ring-ring truncate"
+                <SearchableSelect
+                  options={availableChannels.map((m) => ({ value: m.id, label: m.actual_channel_id }))}
                   value={assignment?.taker_channel_map_id ?? ""}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    handleChannelChange(slotNum, e.target.value);
-                  }}
-                >
-                  {availableChannels.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.actual_channel_id}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => handleChannelChange(slotNum, val)}
+                  placeholder="ch"
+                  className="[&_button]:border-t-0 [&_button]:rounded-t-none [&_button]:text-[9px] [&_button]:py-0 [&_button]:bg-muted/30 [&_button]:text-muted-foreground"
+                />
               )}
             </div>
           );
