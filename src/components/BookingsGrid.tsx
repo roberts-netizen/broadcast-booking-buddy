@@ -14,7 +14,7 @@ import {
 import { Plus } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/useLookups";
-import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
+import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
 
