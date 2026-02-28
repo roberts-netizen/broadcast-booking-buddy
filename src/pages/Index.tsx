@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { Radio, Settings, Tv, Zap, Trophy } from "lucide-react";
+import { Radio, Settings, Tv, Zap, Trophy, LayoutGrid } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
 import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
 import AdminPage from "./AdminPage";
+import McrPage from "./McrPage";
 import { useCategories } from "@/hooks/useLookups";
 
-type Tab = "events" | "admin";
+type Tab = "events" | "mcr" | "admin";
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   MCR: Tv,
