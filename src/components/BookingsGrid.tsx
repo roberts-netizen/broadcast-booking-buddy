@@ -13,7 +13,7 @@ import {
 } from "ag-grid-community";
 import { Plus } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakers } from "@/hooks/useLookups";
+import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
