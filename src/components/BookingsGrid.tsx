@@ -496,6 +496,7 @@ export default function BookingsGrid({ category }: { category?: string }) {
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           onGridReady={onGridReady}
+          onColumnResized={onColumnResized}
           onCellValueChanged={onCellValueChanged}
           getRowId={(params) => params.data.id}
           getRowStyle={(params) => {

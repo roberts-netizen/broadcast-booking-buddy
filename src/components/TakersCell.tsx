@@ -140,6 +140,16 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
         <button
           onClick={(e) => {
             e.stopPropagation();
+            setSlotCount((c) => c + 1);
+          }}
+          className="flex-shrink-0 p-0.5 text-muted-foreground hover:text-primary transition-colors"
+          title="Add taker slot"
+        >
+          <Plus className="h-3 w-3" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
             setOpen(true);
           }}
           className="flex-shrink-0 p-0.5 text-muted-foreground hover:text-primary transition-colors"
