@@ -8,6 +8,7 @@ export type Booking = {
   gmt_time: string;
   cet_time: string | null;
   league_id: string | null;
+  tournament_id: string | null;
   event_name: string;
   incoming_channel_id: string | null;
   work_order_id: string;
