@@ -26,7 +26,7 @@ const TEST_STATUSES: { value: TestStatus; label: string; color: string }[] = [
 ];
 
 const cellBase = "px-2 py-1.5 border-b border-r border-border text-xs";
-const inputClass = "w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/50";
+const inputClass = "w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/50 hover:bg-muted/30 focus:bg-muted/40 focus:ring-1 focus:ring-ring rounded px-1 py-0.5 cursor-text";
 const selectClass = "w-full bg-transparent text-xs outline-none cursor-pointer";
 const headerCell = "px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground border-b border-r border-border bg-muted/50";
 const labelCell = `${cellBase} bg-muted/30 font-medium text-muted-foreground whitespace-nowrap min-w-[160px]`;
