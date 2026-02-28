@@ -6,7 +6,7 @@ import {
   useClearBookingTakerAssignment,
 } from "@/hooks/useBookingTakerAssignments";
 import { TakerAssignmentModal } from "./TakerAssignmentModal";
-import { useTakerAssignments } from "@/hooks/useTakerAssignments";
+// Modal uses its own taker_assignments query when opened
 
 type TakerChannelMap = {
   id: string;
