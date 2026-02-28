@@ -299,7 +299,7 @@ export default function BookingsGrid({ category }: { category?: string }) {
         },
         {
           headerName: "Takers",
-          width: 360,
+          width: 520,
           editable: false,
           cellRenderer: TakersCellRenderer,
           sortable: false,
