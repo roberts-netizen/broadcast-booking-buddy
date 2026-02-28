@@ -114,6 +114,9 @@ export default function BookingsGrid({ category }: { category?: string }) {
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
+  const { data: allReports = [] } = useBookingReports(bookingIds);
+  const upsertReport = useUpsertBookingReport();
+  const deleteReport = useDeleteBookingReport();
 
   const assignmentMap = useMemo(() => {
     const map: Record<string, BookingTakerAssignment[]> = {};
@@ -123,6 +126,12 @@ export default function BookingsGrid({ category }: { category?: string }) {
     }
     return map;
   }, [allAssignments]);
+
+  const reportMap = useMemo(() => {
+    const map: Record<string, BookingReport> = {};
+    for (const r of allReports) map[r.booking_id] = r;
+    return map;
+  }, [allReports]);
 
   const createBooking = useCreateBooking();
   const updateBooking = useUpdateBooking();
