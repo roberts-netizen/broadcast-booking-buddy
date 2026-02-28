@@ -99,10 +99,10 @@ export default function BookingsGrid() {
   const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
-  const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
+  const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
 
   const assignmentMap = useMemo(() => {
-    const map: Record<string, TakerAssignment[]> = {};
+    const map: Record<string, BookingTakerAssignment[]> = {};
     for (const a of allAssignments) {
       if (!map[a.booking_id]) map[a.booking_id] = [];
       map[a.booking_id].push(a);
