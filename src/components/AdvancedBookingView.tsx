@@ -54,7 +54,9 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   const [ef, setEf] = useState({
     event_name: booking.event_name ?? "",
     date: booking.date ?? "",
+    date_to: (booking as any).date_to ?? "",
     cet_time: booking.cet_time ?? "",
+    cet_time_to: (booking as any).cet_time_to ?? "",
     venue: (booking as any).venue ?? "",
     source: (booking as any).source ?? "",
     audio_setup: (booking as any).audio_setup ?? "CH12:\nCH34:\nCH56:\nCH78:",
