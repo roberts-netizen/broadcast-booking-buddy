@@ -31,6 +31,7 @@ type SimpleTableProps = {
   rows: SimpleRow[];
   onUpsert: (row: { id?: string; name: string; active: boolean }) => void;
   onDelete: (id: string) => void;
+  onBulkImport?: (rows: Record<string, string>[]) => Promise<void>;
 };
 
 function SimpleTable({ title, rows, onUpsert, onDelete }: SimpleTableProps) {
