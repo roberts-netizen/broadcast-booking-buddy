@@ -15,10 +15,21 @@ export type Booking = {
   updated_at: string;
 };
 
-export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leagueId?: string }) {
+export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leagueId?: string; tournamentType?: string }) {
   return useQuery({
     queryKey: ["bookings", filters],
     queryFn: async () => {
+      // If filtering by tournament type, we need to get tournament IDs first
+      let tournamentIds: string[] | null = null;
+      if (filters?.tournamentType) {
+        const { data: tournaments, error: tErr } = await supabase
+          .from("tournaments")
+          .select("id")
+          .eq("type", filters.tournamentType);
+        if (tErr) throw tErr;
+        tournamentIds = tournaments?.map((t) => t.id) ?? [];
+      }
+
       let q = supabase
         .from("bookings")
         .select("*")
@@ -27,6 +38,17 @@ export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leag
       if (filters?.dateFrom) q = q.gte("date", filters.dateFrom);
       if (filters?.dateTo) q = q.lte("date", filters.dateTo);
       if (filters?.leagueId) q = q.eq("league_id", filters.leagueId);
+
+      if (filters?.tournamentType && tournamentIds !== null) {
+        if (filters.tournamentType === "MCR") {
+          // MCR: bookings with MCR tournament OR no tournament
+          q = q.or(`tournament_id.is.null,tournament_id.in.(${tournamentIds.join(",")})`);
+        } else {
+          if (tournamentIds.length === 0) return [] as Booking[];
+          q = q.in("tournament_id", tournamentIds);
+        }
+      }
+
       const { data, error } = await q;
       if (error) throw error;
       return data as Booking[];
