@@ -161,10 +161,12 @@ function TakerChannelMapTable() {
   const { data: takers = [] } = useTakers(true);
   const upsert = useUpsertTakerChannelMap();
   const del = useDeleteTakerChannelMap();
+  const bulkInsert = useBulkInsertTakerChannelMaps();
 
   const blank = { label: "", actual_channel_id: "", taker_id: null as string | null, active: true };
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState(blank);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const startNew = () => { setDraft(blank); setEditing("new"); };
   const startEdit = (r: TCMRow) => { setDraft({ label: r.label, actual_channel_id: r.actual_channel_id, taker_id: r.taker_id, active: r.active }); setEditing(r.id); };
@@ -174,6 +176,19 @@ function TakerChannelMapTable() {
     setEditing(null);
   };
   const cancel = () => setEditing(null);
+
+  const handleBulkImport = async (parsed: Record<string, string>[]) => {
+    const mapped = parsed.map((r) => {
+      const matchedTaker = takers.find((t: any) => t.name.toLowerCase() === r.taker_name?.toLowerCase());
+      return {
+        label: r.label,
+        actual_channel_id: r.actual_channel_id,
+        taker_id: matchedTaker?.id ?? null,
+        active: !r.active || r.active.toLowerCase() !== "no",
+      };
+    });
+    await bulkInsert.mutateAsync(mapped);
+  };
 
   const EditRow = () => (
     <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
@@ -203,7 +218,12 @@ function TakerChannelMapTable() {
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h2 className="text-sm font-semibold">Taker Channel Map</h2>
-        <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"><Plus className="h-3.5 w-3.5" /> Add</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
+            <ClipboardPaste className="h-3.5 w-3.5" /> Paste
+          </button>
+          <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"><Plus className="h-3.5 w-3.5" /> Add</button>
+        </div>
       </div>
       <table className="w-full text-xs">
         <thead>
@@ -240,6 +260,18 @@ function TakerChannelMapTable() {
           )}
         </tbody>
       </table>
+      <BulkPasteDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        title="Taker Channel Map"
+        columns={[
+          { key: "label", label: "Label", required: true },
+          { key: "actual_channel_id", label: "Actual Ch. ID", required: true },
+          { key: "taker_name", label: "Taker Name" },
+          { key: "active", label: "Active (yes/no)" },
+        ]}
+        onImport={handleBulkImport}
+      />
     </div>
   );
 }
