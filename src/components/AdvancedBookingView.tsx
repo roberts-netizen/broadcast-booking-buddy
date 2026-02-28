@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Plus, Save, ArrowLeft } from "lucide-react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Booking, useUpdateBooking } from "@/hooks/useBookings";
 import {
@@ -33,15 +33,16 @@ const labelCell = `${cellBase} bg-muted/30 font-medium text-muted-foreground whi
 const eventLabelCell = `${cellBase} font-semibold text-foreground bg-card whitespace-nowrap`;
 const eventValueCell = `${cellBase} bg-card`;
 
+const DEFAULT_TAKER_COUNT = 3;
+
 type Props = {
   booking: Booking;
-  onBack: () => void;
 };
 
-export function AdvancedBookingView({ booking, onBack }: Props) {
+export function AdvancedBookingView({ booking }: Props) {
   const updateBooking = useUpdateBooking();
   const { data: takers = [] } = useTakers(true);
-  const { data: assignments = [] } = useTakerAssignments([booking.id]);
+  const { data: assignments = [], isLoading: assignmentsLoading } = useTakerAssignments([booking.id]);
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
 
@@ -49,6 +50,19 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   const updateAssignment = useUpdateTakerAssignment();
   const deleteAssignment = useDeleteTakerAssignment();
   const upsertEndpoint = useUpsertEndpoint();
+
+  // Auto-create default 3 takers
+  const hasAutoCreated = useRef(false);
+  useEffect(() => {
+    if (assignmentsLoading || hasAutoCreated.current) return;
+    if (assignments.length < DEFAULT_TAKER_COUNT) {
+      hasAutoCreated.current = true;
+      const toCreate = DEFAULT_TAKER_COUNT - assignments.length;
+      for (let i = 0; i < toCreate; i++) {
+        createAssignment.mutate({ booking_id: booking.id, test_status: "not_tested", sort_order: assignments.length + i });
+      }
+    }
+  }, [assignmentsLoading, assignments.length, booking.id]);
 
   // Local event state
   const [ef, setEf] = useState({
@@ -74,7 +88,8 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   const getEp = (aId: string, type: "primary" | "backup"): Partial<ProjectTakerEndpoint> =>
     endpointMap[`${aId}_${type}`] ?? {};
 
-  const handleSaveEvent = useCallback(() => {
+  // Autosave event on Enter
+  const saveEvent = useCallback(() => {
     updateBooking.mutate({
       id: booking.id,
       event_name: ef.event_name,
@@ -89,6 +104,18 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
       event_notes: ef.event_notes || null,
     } as any);
   }, [booking.id, ef, updateBooking]);
+
+  const handleEventKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      saveEvent();
+    }
+  }, [saveEvent]);
+
+  // Also save on blur for event fields
+  const handleEventBlur = useCallback(() => {
+    saveEvent();
+  }, [saveEvent]);
 
   const handleUpdateAssignment = useCallback(
     (id: string, patch: Partial<TakerAssignment>) => {
@@ -117,17 +144,10 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   );
 
   const handleAddTaker = useCallback(() => {
-    createAssignment.mutate({ booking_id: booking.id, test_status: "not_tested" });
-  }, [booking.id, createAssignment]);
+    createAssignment.mutate({ booking_id: booking.id, test_status: "not_tested", sort_order: assignments.length });
+  }, [booking.id, createAssignment, assignments.length]);
 
   const takerList = useMemo(() => takers.map((t: any) => ({ id: t.id, name: t.name })), [takers]);
-
-  // Determine test status urgency
-  const isUrgent = (a: TakerAssignment) => {
-    if (a.test_status !== "not_tested") return false;
-    const diff = new Date(booking.date).getTime() - Date.now();
-    return diff >= 0 && diff <= 24 * 60 * 60 * 1000;
-  };
 
   // Overall source status
   const overallStatus: TestStatus = useMemo(() => {
@@ -138,7 +158,7 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   }, [assignments]);
 
   // Taker columns (minimum 3 displayed)
-  const displayCount = Math.max(3, assignments.length);
+  const displayCount = Math.max(DEFAULT_TAKER_COUNT, assignments.length);
   const takerCols = Array.from({ length: displayCount }, (_, i) => assignments[i] ?? null);
 
   // Info rows definition
@@ -169,6 +189,8 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
                 className={inputClass}
                 placeholder="Custom name..."
                 value={customName}
+                onKeyDown={(e) => { if (e.key === "Enter") handleUpdateAssignment(a.id, { taker_custom_name: (e.target as HTMLInputElement).value || null } as any); }}
+                onBlur={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
                 onChange={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
               />
             )}
@@ -239,7 +261,6 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
       render: (a) =>
         a ? <input className={inputClass} value={a.communication_notes ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { communication_notes: e.target.value || null })} /> : null,
     },
-    // Separator row for Taker technical info
     {
       label: "Taker:",
       render: (a) =>
@@ -295,7 +316,6 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
         return <input className={inputClass} type="password" value={ep.password ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { password: e.target.value || null })} />;
       },
     },
-    // Backup endpoint rows
     {
       label: "2nd Host/IP",
       render: (a) => {
@@ -330,17 +350,17 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
     },
   ];
 
-  // Event details rows (aligned to info rows)
+  // Event details rows
   const eventLabels: { label: string; rowSpan?: number; render: () => React.ReactNode }[] = [
-    { label: "Event", rowSpan: 2, render: () => <input className={inputClass} value={ef.event_name} onChange={(e) => setEf((f) => ({ ...f, event_name: e.target.value }))} /> },
+    { label: "Event", rowSpan: 2, render: () => <input className={inputClass} value={ef.event_name} onChange={(e) => setEf((f) => ({ ...f, event_name: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
     {
       label: "Date",
       rowSpan: 2,
       render: () => (
         <div className="flex items-center gap-1">
-          <input type="date" className={inputClass} value={ef.date} onChange={(e) => setEf((f) => ({ ...f, date: e.target.value }))} />
+          <input type="date" className={inputClass} value={ef.date} onChange={(e) => { setEf((f) => ({ ...f, date: e.target.value })); }} onBlur={handleEventBlur} />
           <span className="text-[10px] text-muted-foreground shrink-0">to</span>
-          <input type="date" className={inputClass} value={ef.date_to} onChange={(e) => setEf((f) => ({ ...f, date_to: e.target.value }))} />
+          <input type="date" className={inputClass} value={ef.date_to} onChange={(e) => { setEf((f) => ({ ...f, date_to: e.target.value })); }} onBlur={handleEventBlur} />
         </div>
       ),
     },
@@ -349,13 +369,13 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
       rowSpan: 2,
       render: () => (
         <div className="flex items-center gap-1">
-          <input type="time" className={inputClass} value={ef.cet_time?.slice(0, 5) ?? ""} onChange={(e) => setEf((f) => ({ ...f, cet_time: e.target.value }))} />
+          <input type="time" className={inputClass} value={ef.cet_time?.slice(0, 5) ?? ""} onChange={(e) => { setEf((f) => ({ ...f, cet_time: e.target.value })); }} onBlur={handleEventBlur} />
           <span className="text-[10px] text-muted-foreground shrink-0">to</span>
-          <input type="time" className={inputClass} value={ef.cet_time_to?.slice(0, 5) ?? ""} onChange={(e) => setEf((f) => ({ ...f, cet_time_to: e.target.value }))} />
+          <input type="time" className={inputClass} value={ef.cet_time_to?.slice(0, 5) ?? ""} onChange={(e) => { setEf((f) => ({ ...f, cet_time_to: e.target.value })); }} onBlur={handleEventBlur} />
         </div>
       ),
     },
-    { label: "Venue", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} /> },
+    { label: "Venue", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
     {
       label: "Source",
       rowSpan: 2,
@@ -363,7 +383,7 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
         const sm = TEST_STATUSES.find((s) => s.value === overallStatus) ?? TEST_STATUSES[0];
         return (
           <div className="flex flex-col gap-1">
-            <input className={inputClass} value={ef.source} onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} />
+            <input className={inputClass} value={ef.source} onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} />
             <div className="flex items-center gap-1">
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded w-fit ${sm.color}`}>
                 {sm.label}
@@ -384,25 +404,16 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
           className={`${inputClass} font-mono min-h-[100px] resize-none`}
           value={ef.audio_setup}
           onChange={(e) => setEf((f) => ({ ...f, audio_setup: e.target.value }))}
+          onBlur={handleEventBlur}
           placeholder={"CH12:\nCH34:\nCH56:\nCH78:"}
         />
       ),
     },
-    { label: "Project Lead", rowSpan: 1, render: () => <input className={inputClass} value={ef.project_lead} onChange={(e) => setEf((f) => ({ ...f, project_lead: e.target.value }))} /> },
-    { label: "Notes", rowSpan: 3, render: () => <textarea className={`${inputClass} min-h-[60px] resize-none`} value={ef.event_notes} onChange={(e) => setEf((f) => ({ ...f, event_notes: e.target.value }))} /> },
+    { label: "Project Lead", rowSpan: 1, render: () => <input className={inputClass} value={ef.project_lead} onChange={(e) => setEf((f) => ({ ...f, project_lead: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
+    { label: "Notes", rowSpan: 3, render: () => <textarea className={`${inputClass} min-h-[60px] resize-none`} value={ef.event_notes} onChange={(e) => setEf((f) => ({ ...f, event_notes: e.target.value }))} onBlur={handleEventBlur} /> },
   ];
 
   // Map event labels to row indices
-  // We have 20 info rows. Event labels fill from top:
-  // Row 0-1: Event (span 2)
-  // Row 2-3: Date (span 2)
-  // Row 4-5: Time CET (span 2)
-  // Row 6: Venue (span 1)
-  // Row 7-8: Source (span 2)
-  // Row 9-14: Overall Audio setup (span 6)
-  // Row 15: Project Lead (span 1)
-  // Row 16-18: Notes (span 3)
-  // Row 19: empty
   type EventCell = { label: string; rowSpan: number; render: () => React.ReactNode };
   const eventRowMap: Record<number, EventCell> = {};
   const eventSkipRows = new Set<number>();
@@ -415,23 +426,17 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-card shrink-0">
-        <button onClick={onBack} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <ArrowLeft className="h-3 w-3" /> Back
-        </button>
-        <h1 className="text-sm font-bold truncate flex-1">{ef.event_name || "Advanced Project"}</h1>
-        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleAddTaker}>
+    <div className="flex flex-col">
+      {/* Compact header with event name and Add Taker */}
+      <div className="flex items-center gap-3 px-4 py-1.5 border-b border-border bg-muted/30 shrink-0">
+        <h2 className="text-xs font-bold truncate flex-1">{ef.event_name || "Event"}</h2>
+        <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={handleAddTaker}>
           <Plus className="h-3 w-3" /> Add Taker
-        </Button>
-        <Button size="sm" className="h-7 text-xs gap-1" onClick={handleSaveEvent} disabled={updateBooking.isPending}>
-          <Save className="h-3 w-3" /> Save
         </Button>
       </div>
 
       {/* Spreadsheet table */}
-      <div className="flex-1 overflow-auto">
+      <div className="overflow-auto">
         <table className="border-collapse w-full min-w-[800px]">
           <thead>
             <tr>
@@ -460,7 +465,6 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
 
               return (
                 <tr key={ri} className="group">
-                  {/* Event label + value columns */}
                   {!skipEvent && eventCell && (
                     <>
                       <td className={eventLabelCell} rowSpan={eventCell.rowSpan} style={{ whiteSpace: "pre-line" }}>
@@ -477,11 +481,7 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
                       <td className={eventValueCell}></td>
                     </>
                   )}
-
-                  {/* Info label */}
                   <td className={labelCell}>{row.label}</td>
-
-                  {/* Taker columns */}
                   {takerCols.map((a, ti) => (
                     <td key={ti} className={`${cellBase} bg-background`}>
                       {row.render(a, ti)}
