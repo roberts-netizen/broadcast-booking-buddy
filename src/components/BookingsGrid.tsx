@@ -36,7 +36,7 @@ function formatTime(t: string | null | undefined): string {
 const gridTheme = themeQuartz.withParams({
   fontSize: 12,
   headerFontSize: 11,
-  rowHeight: 32,
+  rowHeight: 44,
   headerHeight: 34,
   cellHorizontalPadding: 8,
   spacing: 2,
