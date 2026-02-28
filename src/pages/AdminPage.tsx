@@ -284,10 +284,21 @@ export default function AdminPage() {
 
   const upsertLeague = useUpsertLeague();
   const deleteLeague = useDeleteLeague();
+  const bulkLeagues = useBulkInsertLeagues();
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
+  const bulkChannels = useBulkInsertIncomingChannels();
   const upsertTaker = useUpsertTaker();
   const deleteTaker = useDeleteTaker();
+  const bulkTakers = useBulkInsertTakers();
+
+  const simpleBulk = (mutate: (rows: { name: string; active: boolean }[]) => Promise<any>) =>
+    async (parsed: Record<string, string>[]) => {
+      await mutate(parsed.map((r) => ({
+        name: r.name,
+        active: !r.active || r.active.toLowerCase() !== "no",
+      })));
+    };
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
@@ -297,18 +308,21 @@ export default function AdminPage() {
           rows={leagues}
           onUpsert={(r) => upsertLeague.mutate(r)}
           onDelete={(id) => deleteLeague.mutate(id)}
+          onBulkImport={simpleBulk(bulkLeagues.mutateAsync)}
         />
         <SimpleTable
           title="Incoming Channels"
           rows={channels}
           onUpsert={(r) => upsertChannel.mutate(r)}
           onDelete={(id) => deleteChannel.mutate(id)}
+          onBulkImport={simpleBulk(bulkChannels.mutateAsync)}
         />
         <SimpleTable
           title="Takers"
           rows={takers}
           onUpsert={(r) => upsertTaker.mutate(r)}
           onDelete={(id) => deleteTaker.mutate(id)}
+          onBulkImport={simpleBulk(bulkTakers.mutateAsync)}
         />
         <TakerChannelMapTable />
       </div>
