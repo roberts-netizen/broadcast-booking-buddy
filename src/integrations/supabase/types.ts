@@ -74,6 +74,7 @@ export type Database = {
           cet_time: string | null
           created_at: string
           date: string
+          date_to: string | null
           event_name: string
           gmt_time: string
           id: string
@@ -86,6 +87,7 @@ export type Database = {
           cet_time?: string | null
           created_at?: string
           date?: string
+          date_to?: string | null
           event_name?: string
           gmt_time?: string
           id?: string
@@ -98,6 +100,7 @@ export type Database = {
           cet_time?: string | null
           created_at?: string
           date?: string
+          date_to?: string | null
           event_name?: string
           gmt_time?: string
           id?: string

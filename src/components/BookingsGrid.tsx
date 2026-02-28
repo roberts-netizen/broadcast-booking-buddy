@@ -170,6 +170,18 @@ export default function BookingsGrid() {
         cellDataType: "dateString",
       },
       {
+        headerName: "Date To",
+        field: "date_to",
+        width: 120,
+        editable: true,
+        cellDataType: "dateString",
+        cellStyle: (params: any) => ({
+          color: params.value ? undefined : 'hsl(var(--muted-foreground))',
+          fontStyle: params.value ? undefined : 'italic',
+        }),
+        valueFormatter: (params: any) => params.value || '—',
+      },
+      {
         headerName: "GMT",
         field: "gmt_time",
         width: 90,
@@ -272,6 +284,8 @@ export default function BookingsGrid() {
         }
       } else if (field === "cet_time") {
         updates.cet_time = event.newValue;
+      } else if (field === "date_to") {
+        updates.date_to = event.newValue || null;
       } else {
         (updates as any)[field] = event.newValue;
       }
