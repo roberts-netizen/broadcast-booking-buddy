@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export type Booking = {
   id: string;
   date: string;
+  date_to: string | null;
   gmt_time: string;
   cet_time: string | null;
   league_id: string | null;
