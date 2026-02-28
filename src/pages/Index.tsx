@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Radio, Settings, Tv, Zap, Trophy } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
-import { AdvancedBookingView } from "@/components/AdvancedBookingView";
+import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
 import AdminPage from "./AdminPage";
 import { useCategories } from "@/hooks/useLookups";
 import { Booking } from "@/hooks/useBookings";
