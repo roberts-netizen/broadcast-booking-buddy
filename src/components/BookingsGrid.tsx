@@ -1,16 +1,30 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { Trash2, Plus, Check } from "lucide-react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { AgGridReact } from "ag-grid-react";
+import {
+  ModuleRegistry,
+  AllCommunityModule,
+  type ColDef,
+  type CellValueChangedEvent,
+  type CellEditingStartedEvent,
+  type GridReadyEvent,
+  type GridApi,
+  type ICellRendererParams,
+  themeQuartz,
+} from "ag-grid-community";
+import { Plus } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues, useIncomingChannels, useTakers } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
 
+ModuleRegistry.registerModules([AllCommunityModule]);
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 function addOneHour(time: string): string {
   if (!time) return "";
   const [h, m] = time.split(":").map(Number);
-  const newH = (h + 1) % 24;
-  return `${String(newH).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+  return `${String((h + 1) % 24).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
 }
 
 function formatTime(t: string | null | undefined): string {
@@ -18,164 +32,61 @@ function formatTime(t: string | null | undefined): string {
   return t.slice(0, 5);
 }
 
-type CellSelectProps = {
-  value: string | null;
-  options: { id: string; name: string }[];
-  onChange: (val: string | null) => void;
-  placeholder?: string;
-};
+// ── Custom theme ─────────────────────────────────────────────────────────────
+const gridTheme = themeQuartz.withParams({
+  fontSize: 12,
+  headerFontSize: 11,
+  rowHeight: 32,
+  headerHeight: 34,
+  cellHorizontalPadding: 8,
+  spacing: 2,
+  borderRadius: 0,
+  wrapperBorderRadius: 0,
+});
 
-function CellSelect({ value, options, onChange, placeholder = "—" }: CellSelectProps) {
+// ── Takers cell renderer ─────────────────────────────────────────────────────
+function TakersCellRenderer(props: ICellRendererParams) {
+  const { bookingId, bookingLabel, assignments, takers } = props.data?._takersProps ?? {};
+  if (!bookingId) return null;
   return (
-    <select
-      className="grid-cell-input cursor-pointer"
-      value={value ?? ""}
-      onChange={(e) => onChange(e.target.value || null)}
+    <TakersCell
+      bookingId={bookingId}
+      bookingLabel={bookingLabel}
+      assignments={assignments}
+      takers={takers}
+    />
+  );
+}
+
+// ── Confirmation cell renderer ───────────────────────────────────────────────
+function ConfirmationRenderer(props: ICellRendererParams) {
+  const wo = props.data?.work_order_id ?? "";
+  if (!wo.trim()) return null;
+  return (
+    <span className="inline-flex items-center gap-0.5 text-[hsl(var(--confirmation-yes))] font-semibold text-xs">
+      ✓ yes
+    </span>
+  );
+}
+
+// ── Delete cell renderer ─────────────────────────────────────────────────────
+function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) => void }) {
+  if (!props.data?.id) return null;
+  return (
+    <button
+      onClick={() => props.onDelete(props.data.id)}
+      className="opacity-0 group-hover:opacity-100 hover:text-destructive text-muted-foreground transition-all p-0.5"
+      title="Delete booking"
     >
-      <option value="">{placeholder}</option>
-      {options.map((o) => (
-        <option key={o.id} value={o.id}>{o.name}</option>
-      ))}
-    </select>
+      🗑
+    </button>
   );
 }
 
-// ── Single booking row ───────────────────────────────────────────────────────
-type BookingRowProps = {
-  booking: Booking;
-  leagues: { id: string; name: string }[];
-  channels: { id: string; name: string }[];
-  takers: { id: string; name: string }[];
-  assignments: TakerAssignment[];
-  onDelete: (id: string) => void;
-};
-
-function BookingRow({
-  booking,
-  leagues,
-  channels,
-  takers,
-  assignments,
-  onDelete,
-}: BookingRowProps) {
-  const update = useUpdateBooking();
-  const [local, setLocal] = useState<Partial<Booking>>({});
-  const [cetOverride, setCetOverride] = useState(false);
-
-  const get = <K extends keyof Booking>(key: K): Booking[K] =>
-    (key in local ? (local as Booking)[key] : booking[key]);
-
-  const patch = useCallback(
-    (fields: Partial<Booking>) => {
-      setLocal((prev) => ({ ...prev, ...fields }));
-      update.mutate({ id: booking.id, ...fields });
-    },
-    [booking.id, update]
-  );
-
-  const gmtTime = get("gmt_time");
-  const cetTime = get("cet_time");
-  const workOrderId = get("work_order_id") ?? "";
-  const confirmation = workOrderId.trim() !== "" ? "yes" : "";
-
-  return (
-    <tr className="grid-row group">
-      {/* ── Core booking fields ── */}
-      <td className="px-1 py-0.5 border-r border-border whitespace-nowrap">
-        <input
-          type="date"
-          className="grid-cell-input"
-          value={get("date") ?? ""}
-          onChange={(e) => patch({ date: e.target.value })}
-        />
-      </td>
-      <td className="px-1 py-0.5 border-r border-border">
-        <input
-          type="time"
-          className="grid-cell-input"
-          value={formatTime(get("gmt_time"))}
-          onChange={(e) => {
-            const v = e.target.value;
-            patch({ gmt_time: v, ...(cetOverride ? {} : { cet_time: addOneHour(v) }) });
-          }}
-        />
-      </td>
-      <td className="px-1 py-0.5 border-r border-border">
-        <input
-          type="time"
-          className="grid-cell-input"
-          value={formatTime(cetTime ?? (gmtTime ? addOneHour(gmtTime) : ""))}
-          onChange={(e) => {
-            setCetOverride(true);
-            patch({ cet_time: e.target.value });
-          }}
-        />
-      </td>
-      <td className="px-1 py-0.5 border-r border-border min-w-[110px]">
-        <CellSelect
-          value={get("league_id")}
-          options={leagues}
-          onChange={(v) => patch({ league_id: v })}
-          placeholder="— league —"
-        />
-      </td>
-      <td className="px-1 py-0.5 border-r border-border min-w-[160px]">
-        <input
-          type="text"
-          className="grid-cell-input"
-          value={get("event_name") ?? ""}
-          onChange={(e) => patch({ event_name: e.target.value })}
-          placeholder="Event name…"
-        />
-      </td>
-      <td className="px-1 py-0.5 border-r border-border min-w-[110px]">
-        <CellSelect
-          value={get("incoming_channel_id")}
-          options={channels}
-          onChange={(v) => patch({ incoming_channel_id: v })}
-          placeholder="— channel —"
-        />
-      </td>
-      <td className="px-1 py-0.5 border-r border-border min-w-[90px]">
-        <input
-          type="text"
-          className="grid-cell-input"
-          value={workOrderId}
-          onChange={(e) => patch({ work_order_id: e.target.value })}
-          placeholder="WO-…"
-        />
-      </td>
-      <td className="px-2 py-0.5 border-r border-border text-center w-14">
-        {confirmation && (
-          <span className="inline-flex items-center gap-0.5 text-[hsl(var(--confirmation-yes))] font-semibold text-xs">
-            <Check className="h-3 w-3" /> yes
-          </span>
-        )}
-      </td>
-
-      {/* ── Takers column ── */}
-      <TakersCell
-        bookingId={booking.id}
-        bookingLabel={booking.event_name || booking.date}
-        assignments={assignments}
-        takers={takers}
-      />
-
-      {/* ── Delete ── */}
-      <td className="px-1 py-0.5 text-center w-8">
-        <button
-          onClick={() => onDelete(booking.id)}
-          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5 rounded"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </td>
-    </tr>
-  );
-}
-
-// ── Grid ─────────────────────────────────────────────────────────────────────
+// ── Main Grid ────────────────────────────────────────────────────────────────
 export default function BookingsGrid() {
+  const gridRef = useRef<AgGridReact>(null);
+  const [gridApi, setGridApi] = useState<GridApi | null>(null);
   const [filters, setFilters] = useState<{
     dateFrom?: string;
     dateTo?: string;
@@ -190,7 +101,6 @@ export default function BookingsGrid() {
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
 
-  // Group: bookingId → [assignments]
   const assignmentMap = useMemo(() => {
     const map: Record<string, TakerAssignment[]> = {};
     for (const a of allAssignments) {
@@ -201,9 +111,164 @@ export default function BookingsGrid() {
   }, [allAssignments]);
 
   const createBooking = useCreateBooking();
+  const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
 
-  const handleAddRow = () => {
+  const typedTakers = useMemo(
+    () => (takers as any[]).map((t) => ({ id: t.id as string, name: t.name as string })),
+    [takers]
+  );
+
+  // Lookup maps for display
+  const leagueMap = useMemo(() => Object.fromEntries(leagues.map((l) => [l.id, l.name])), [leagues]);
+  const channelMap = useMemo(() => Object.fromEntries(channels.map((c) => [c.id, c.name])), [channels]);
+  // Reverse maps for paste (name → id)
+  const leagueNameToId = useMemo(() => Object.fromEntries(leagues.map((l) => [l.name.toLowerCase(), l.id])), [leagues]);
+  const channelNameToId = useMemo(() => Object.fromEntries(channels.map((c) => [c.name.toLowerCase(), c.id])), [channels]);
+
+  // ── Row data with taker props injected ──
+  const rowData = useMemo(
+    () =>
+      bookings.map((b) => ({
+        ...b,
+        gmt_time: formatTime(b.gmt_time),
+        cet_time: formatTime(b.cet_time) || addOneHour(formatTime(b.gmt_time)),
+        league_name: b.league_id ? leagueMap[b.league_id] ?? "" : "",
+        channel_name: b.incoming_channel_id ? channelMap[b.incoming_channel_id] ?? "" : "",
+        _takersProps: {
+          bookingId: b.id,
+          bookingLabel: b.event_name || b.date,
+          assignments: assignmentMap[b.id] ?? [],
+          takers: typedTakers,
+        },
+      })),
+    [bookings, leagueMap, channelMap, assignmentMap, typedTakers]
+  );
+
+  // ── Column defs ──
+  const columnDefs = useMemo<ColDef[]>(
+    () => [
+      {
+        headerName: "Date",
+        field: "date",
+        width: 120,
+        editable: true,
+        cellDataType: "dateString",
+      },
+      {
+        headerName: "GMT",
+        field: "gmt_time",
+        width: 90,
+        editable: true,
+      },
+      {
+        headerName: "CET",
+        field: "cet_time",
+        width: 90,
+        editable: true,
+      },
+      {
+        headerName: "League",
+        field: "league_name",
+        width: 130,
+        editable: true,
+        cellEditor: "agSelectCellEditor",
+        cellEditorParams: {
+          values: ["", ...leagues.map((l) => l.name)],
+        },
+      },
+      {
+        headerName: "Event Name",
+        field: "event_name",
+        flex: 1,
+        minWidth: 180,
+        editable: true,
+      },
+      {
+        headerName: "Incoming Ch.",
+        field: "channel_name",
+        width: 130,
+        editable: true,
+        cellEditor: "agSelectCellEditor",
+        cellEditorParams: {
+          values: ["", ...channels.map((c) => c.name)],
+        },
+      },
+      {
+        headerName: "Work Order",
+        field: "work_order_id",
+        width: 110,
+        editable: true,
+      },
+      {
+        headerName: "Conf.",
+        width: 65,
+        editable: false,
+        cellRenderer: ConfirmationRenderer,
+        sortable: false,
+        filter: false,
+      },
+      {
+        headerName: "Takers",
+        width: 200,
+        editable: false,
+        cellRenderer: TakersCellRenderer,
+        sortable: false,
+        filter: false,
+        autoHeight: true,
+        cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+      },
+      {
+        headerName: "",
+        width: 40,
+        editable: false,
+        sortable: false,
+        filter: false,
+        cellRenderer: DeleteRenderer,
+        cellRendererParams: {
+          onDelete: (id: string) => deleteBooking.mutate(id),
+        },
+      },
+    ],
+    [leagues, channels, deleteBooking]
+  );
+
+  // ── Handle cell value changes → save to DB ──
+  const onCellValueChanged = useCallback(
+    (event: CellValueChangedEvent) => {
+      const data = event.data;
+      if (!data?.id) return;
+
+      const field = event.colDef.field;
+      if (!field) return;
+
+      const updates: Partial<Booking> = {};
+
+      if (field === "league_name") {
+        const name = event.newValue as string;
+        updates.league_id = name ? (leagueNameToId[name.toLowerCase()] ?? null) : null;
+      } else if (field === "channel_name") {
+        const name = event.newValue as string;
+        updates.incoming_channel_id = name ? (channelNameToId[name.toLowerCase()] ?? null) : null;
+      } else if (field === "gmt_time") {
+        updates.gmt_time = event.newValue;
+        // Auto-compute CET if not manually overridden
+        if (event.newValue) {
+          updates.cet_time = addOneHour(event.newValue);
+        }
+      } else if (field === "cet_time") {
+        updates.cet_time = event.newValue;
+      } else {
+        (updates as any)[field] = event.newValue;
+      }
+
+      updateBooking.mutate({ id: data.id, ...updates });
+    },
+    [updateBooking, leagueNameToId, channelNameToId]
+  );
+
+  // ── Add new row ──
+  const handleAddRow = useCallback(() => {
     const today = new Date().toISOString().split("T")[0];
     createBooking.mutate({
       date: today,
@@ -212,85 +277,98 @@ export default function BookingsGrid() {
       event_name: "",
       work_order_id: "",
     });
-  };
+  }, [createBooking]);
 
-  const typedTakers = (takers as any[]).map((t) => ({ id: t.id as string, name: t.name as string }));
+  // ── Paste handler for multi-row paste ──
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      const text = e.clipboardData.getData("text/plain");
+      if (!text) return;
 
-  // ── Header helpers ──
-  const TH = ({
-    children,
-    cls = "",
-    style,
-  }: {
-    children?: React.ReactNode;
-    cls?: string;
-    style?: React.CSSProperties;
-  }) => (
-    <th
-      style={style}
-      className={`px-2 py-1.5 text-left text-xs font-semibold tracking-wide border-r border-[rgba(255,255,255,0.15)] last:border-r-0 whitespace-nowrap ${cls}`}
-    >
-      {children}
-    </th>
+      const lines = text.split("\n").filter((l) => l.trim());
+      if (lines.length <= 1) return; // Single cell paste handled by AG Grid
+
+      e.preventDefault();
+
+      // Parse tab-separated rows: Date | GMT | CET | League | Event | Channel | WO
+      const cols = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id"];
+
+      for (const line of lines) {
+        const cells = line.split("\t");
+        const row: Partial<Booking> = {
+          date: new Date().toISOString().split("T")[0],
+          gmt_time: "00:00",
+          cet_time: "01:00",
+          event_name: "",
+          work_order_id: "",
+        };
+
+        cols.forEach((col, i) => {
+          const val = cells[i]?.trim() ?? "";
+          if (!val) return;
+          if (col === "league_name") {
+            row.league_id = leagueNameToId[val.toLowerCase()] ?? null;
+          } else if (col === "channel_name") {
+            row.incoming_channel_id = channelNameToId[val.toLowerCase()] ?? null;
+          } else if (col === "gmt_time") {
+            row.gmt_time = val;
+            if (!cells[2]?.trim()) row.cet_time = addOneHour(val);
+          } else if (col === "cet_time") {
+            row.cet_time = val;
+          } else {
+            (row as any)[col] = val;
+          }
+        });
+
+        createBooking.mutate(row);
+      }
+    },
+    [createBooking, leagueNameToId, channelNameToId]
   );
 
-  const gridHeaderStyle: React.CSSProperties = {
-    background: "hsl(var(--grid-header))",
-    color: "hsl(var(--grid-header-foreground))",
-  };
+  const onGridReady = useCallback((params: GridReadyEvent) => {
+    setGridApi(params.api);
+  }, []);
+
+  const defaultColDef = useMemo<ColDef>(
+    () => ({
+      resizable: true,
+      sortable: true,
+      suppressMovable: true,
+      singleClickEdit: true,
+    }),
+    []
+  );
 
   return (
     <div className="flex flex-col h-full">
       <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
 
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-xs" style={{ minWidth: 900 }}>
-          <thead>
-            <tr style={gridHeaderStyle}>
-              <TH cls="min-w-[100px]">Date</TH>
-              <TH>GMT</TH>
-              <TH>CET</TH>
-              <TH cls="min-w-[110px]">League</TH>
-              <TH cls="min-w-[160px]">Event Name</TH>
-              <TH cls="min-w-[110px]">Incoming Ch.</TH>
-              <TH cls="min-w-[90px]">Work Order</TH>
-              <TH cls="w-14 text-center">Conf.</TH>
-              <TH cls="min-w-[180px] border-l-2 border-[rgba(255,255,255,0.25)]">Takers</TH>
-              <TH cls="w-8 border-r-0"></TH>
-            </tr>
-          </thead>
-
-          <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={10} className="text-center py-10 text-muted-foreground">
-                  Loading…
-                </td>
-              </tr>
-            )}
-            {!isLoading && bookings.length === 0 && (
-              <tr>
-                <td colSpan={10} className="text-center py-10 text-muted-foreground">
-                  No bookings found. Add one below.
-                </td>
-              </tr>
-            )}
-            {bookings.map((b) => (
-              <BookingRow
-                key={b.id}
-                booking={b}
-                leagues={leagues}
-                channels={channels}
-                takers={typedTakers}
-                assignments={assignmentMap[b.id] ?? []}
-                onDelete={(id) => deleteBooking.mutate(id)}
-              />
-            ))}
-          </tbody>
-        </table>
+      <div className="flex-1 overflow-hidden" onPaste={handlePaste}>
+        <AgGridReact
+          ref={gridRef}
+          theme={gridTheme}
+          rowData={rowData}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          onGridReady={onGridReady}
+          onCellValueChanged={onCellValueChanged}
+          getRowId={(params) => params.data.id}
+          animateRows={false}
+          suppressRowHoverHighlight={false}
+          enterNavigatesVertically={true}
+          enterNavigatesVerticallyAfterEdit={true}
+          tabToNextCell={(params) => params.nextCellPosition}
+          loading={isLoading}
+          noRowsOverlayComponent={() => (
+            <div className="text-muted-foreground text-sm py-10">
+              No bookings found. Add one below or paste from a spreadsheet.
+            </div>
+          )}
+        />
       </div>
 
-      <div className="border-t border-border p-2 shrink-0">
+      <div className="border-t border-border p-2 shrink-0 flex items-center gap-4">
         <button
           onClick={handleAddRow}
           disabled={createBooking.isPending}
@@ -299,6 +377,9 @@ export default function BookingsGrid() {
           <Plus className="h-3.5 w-3.5" />
           Add booking
         </button>
+        <span className="text-[10px] text-muted-foreground">
+          Tip: Paste multiple rows from Excel (Date, GMT, CET, League, Event, Channel, WO)
+        </span>
       </div>
     </div>
   );

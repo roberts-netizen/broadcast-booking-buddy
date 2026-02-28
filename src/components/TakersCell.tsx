@@ -26,9 +26,8 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takers }: Pro
 
   return (
     <>
-      <td
-        className="px-2 py-0.5 border-r border-border align-middle cursor-pointer hover:bg-muted/60 transition-colors"
-        style={{ minWidth: 180 }}
+      <div
+        className="px-2 py-0.5 cursor-pointer hover:bg-muted/60 transition-colors w-full h-full flex items-center"
         onClick={() => setOpen(true)}
       >
         {count === 0 ? (
@@ -38,7 +37,6 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takers }: Pro
           </button>
         ) : (
           <div className="flex flex-col gap-0.5">
-            {/* Summary line */}
             <div className="flex items-center gap-1">
               <Users className="h-3 w-3 text-muted-foreground flex-shrink-0" />
               <span className="text-[10px] text-muted-foreground">{count} taker{count !== 1 ? "s" : ""}</span>
@@ -50,7 +48,6 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takers }: Pro
                 ))}
               </span>
             </div>
-            {/* Chips */}
             <div className="flex flex-wrap gap-0.5">
               {assignments.map((a) => (
                 <span
@@ -66,7 +63,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takers }: Pro
             </div>
           </div>
         )}
-      </td>
+      </div>
 
       <TakerAssignmentModal
         open={open}
