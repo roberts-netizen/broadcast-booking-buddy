@@ -308,15 +308,20 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
       label: "Source",
       rowSpan: 2,
       render: () => {
-        const statusMeta = assignments.length > 0
-          ? TEST_STATUSES.find((s) => s.value === assignments[0]?.test_status)
-          : null;
+        // Overall source status: worst status across all takers
+        const overallStatus = useMemo(() => {
+          if (assignments.length === 0) return "not_tested";
+          if (assignments.every((a) => a.test_status === "tested")) return "tested";
+          if (assignments.some((a) => a.test_status === "not_tested")) return "not_tested";
+          return "waiting_for_details";
+        }, [assignments]);
+        const sm = TEST_STATUSES.find((s) => s.value === overallStatus) ?? TEST_STATUSES[0];
         return (
           <div className="flex flex-col gap-1">
             <input className={inputClass} value={ef.source} onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} />
-            {statusMeta && assignments[0]?.test_status === "not_tested" && (
-              <span className="text-[10px] text-destructive font-medium">Not tested ▾</span>
-            )}
+            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded w-fit ${sm.color}`}>
+              {sm.label} ▾
+            </span>
           </div>
         );
       },
