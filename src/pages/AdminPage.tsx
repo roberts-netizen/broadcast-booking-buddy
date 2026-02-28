@@ -5,6 +5,7 @@ import {
   useIncomingChannels, useUpsertIncomingChannel, useDeleteIncomingChannel, useBulkInsertIncomingChannels,
   useTakers, useUpsertTaker, useDeleteTaker, useBulkInsertTakers,
   useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap, useBulkInsertTakerChannelMaps,
+  useCategories, useUpsertCategory, useDeleteCategory,
 } from "@/hooks/useLookups";
 import BulkPasteDialog, { type BulkColumn } from "@/components/BulkPasteDialog";
 
