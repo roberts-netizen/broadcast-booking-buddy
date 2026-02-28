@@ -123,7 +123,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => {
                   e.stopPropagation();
-                  handleLabelChange(i, e.target.value);
+                  handleLabelChange(slotNum, e.target.value);
                 }}
               >
                 <option value="">—</option>
