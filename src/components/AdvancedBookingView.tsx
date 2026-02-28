@@ -188,16 +188,19 @@ export function AdvancedBookingView({ booking, onBack }: Props) {
     },
     {
       label: "Test Status:",
-      render: (a) =>
-        a ? (
+      render: (a) => {
+        if (!a) return null;
+        const sm = TEST_STATUSES.find((s) => s.value === a.test_status) ?? TEST_STATUSES[0];
+        return (
           <select
-            className={`${selectClass} ${isUrgent(a) ? "text-destructive font-semibold" : ""}`}
+            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
             value={a.test_status}
             onChange={(e) => handleUpdateAssignment(a.id, { test_status: e.target.value as TestStatus })}
           >
             {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-        ) : null,
+        );
+      },
     },
     {
       label: "Notes:",
