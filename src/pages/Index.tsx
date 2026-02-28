@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Radio, Settings } from "lucide-react";
+import { Radio, Settings, Trophy } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
 import AdminPage from "./AdminPage";
+import TournamentPage from "./TournamentPage";
 
-type Tab = "bookings" | "admin";
+type Tab = "bookings" | "tournaments" | "admin";
 
 export default function Index() {
   const [tab, setTab] = useState<Tab>("bookings");
@@ -17,7 +18,7 @@ export default function Index() {
           <span className="font-bold text-sm tracking-tight">Broadcast Booking</span>
         </div>
         <nav className="flex items-center h-full gap-0">
-          {(["bookings", "admin"] as Tab[]).map((t) => (
+          {(["bookings", "tournaments", "admin"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -29,6 +30,8 @@ export default function Index() {
             >
               {t === "bookings" ? (
                 <span>Bookings</span>
+              ) : t === "tournaments" ? (
+                <span className="flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5" />Tournaments</span>
               ) : (
                 <span className="flex items-center gap-1.5"><Settings className="h-3.5 w-3.5" />Admin</span>
               )}
@@ -41,6 +44,10 @@ export default function Index() {
       <main className="flex-1 overflow-hidden">
         {tab === "bookings" ? (
           <BookingsGrid />
+        ) : tab === "tournaments" ? (
+          <div className="h-full overflow-auto">
+            <TournamentPage />
+          </div>
         ) : (
           <div className="h-full overflow-auto">
             <AdminPage />

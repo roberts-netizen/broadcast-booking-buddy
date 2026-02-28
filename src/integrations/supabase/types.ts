@@ -80,6 +80,7 @@ export type Database = {
           id: string
           incoming_channel_id: string | null
           league_id: string | null
+          tournament_id: string | null
           updated_at: string
           work_order_id: string
         }
@@ -93,6 +94,7 @@ export type Database = {
           id?: string
           incoming_channel_id?: string | null
           league_id?: string | null
+          tournament_id?: string | null
           updated_at?: string
           work_order_id?: string
         }
@@ -106,6 +108,7 @@ export type Database = {
           id?: string
           incoming_channel_id?: string | null
           league_id?: string | null
+          tournament_id?: string | null
           updated_at?: string
           work_order_id?: string
         }
@@ -122,6 +125,13 @@ export type Database = {
             columns: ["league_id"]
             isOneToOne: false
             referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
             referencedColumns: ["id"]
           },
         ]
@@ -311,6 +321,39 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      tournaments: {
+        Row: {
+          active: boolean
+          created_at: string
+          date_from: string | null
+          date_to: string | null
+          id: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          id?: string
+          name: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
         }
         Relationships: []
       }
