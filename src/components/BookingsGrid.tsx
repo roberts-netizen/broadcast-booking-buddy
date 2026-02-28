@@ -87,11 +87,21 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 export default function BookingsGrid() {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
+  const [view, setView] = useState<"today" | "full">("today");
   const [filters, setFilters] = useState<{
     dateFrom?: string;
     dateTo?: string;
     leagueId?: string;
   }>({});
+
+  // Derive effective filters based on view
+  const effectiveFilters = useMemo(() => {
+    if (view === "today") {
+      const today = new Date().toISOString().split("T")[0];
+      return { ...filters, dateFrom: today, dateTo: today };
+    }
+    return filters;
+  }, [view, filters]);
 
   const { data: bookings = [], isLoading } = useBookings(filters);
   const { data: leagues = [] } = useLeagues(true);
