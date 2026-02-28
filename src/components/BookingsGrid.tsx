@@ -153,10 +153,10 @@ export default function BookingsGrid() {
           bookingId: b.id,
           bookingLabel: b.event_name || b.date,
           assignments: assignmentMap[b.id] ?? [],
-          takers: typedTakers,
+          takerChannelMaps: typedTakerMaps,
         },
       })),
-    [bookings, leagueMap, channelMap, assignmentMap, typedTakers, dateGroupMap]
+    [bookings, leagueMap, channelMap, assignmentMap, typedTakerMaps, dateGroupMap]
   );
 
   // ── Column defs ──
