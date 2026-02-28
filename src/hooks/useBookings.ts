@@ -11,6 +11,11 @@ export type Booking = {
   event_name: string;
   incoming_channel_id: string | null;
   work_order_id: string;
+  venue: string | null;
+  source: string | null;
+  project_lead: string | null;
+  audio_setup: string | null;
+  event_notes: string | null;
   created_at: string;
   updated_at: string;
 };

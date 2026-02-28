@@ -1,20 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Radio, Settings, Tv, Zap, Trophy } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
+import { AdvancedBookingView } from "@/components/AdvancedBookingView";
 import AdminPage from "./AdminPage";
+import { useCategories } from "@/hooks/useLookups";
+import { Booking } from "@/hooks/useBookings";
 
 type Tab = "events" | "admin";
-type Category = "MCR" | "ONE-OFF" | "ATP";
 
-const categories: { key: Category; label: string; icon: React.ElementType }[] = [
-  { key: "MCR", label: "MCR", icon: Tv },
-  { key: "ONE-OFF", label: "ONE-OFF", icon: Zap },
-  { key: "ATP", label: "ATP", icon: Trophy },
-];
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  MCR: Tv,
+  "ONE-OFF": Zap,
+  ATP: Trophy,
+};
 
 export default function Index() {
   const [tab, setTab] = useState<Tab>("events");
-  const [category, setCategory] = useState<Category>("MCR");
+  const [categoryName, setCategoryName] = useState<string>("MCR");
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
+  const { data: categories = [] } = useCategories(true);
+
+  const activeCategory = useMemo(
+    () => categories.find((c) => c.name === categoryName),
+    [categories, categoryName]
+  );
+  const isAdvanced = activeCategory?.type === "advanced";
+
+  // Fallback categories if DB is empty
+  const displayCategories = useMemo(() => {
+    if (categories.length > 0) return categories;
+    return [
+      { id: "mcr", name: "MCR", type: "standard", active: true, created_at: "" },
+      { id: "oneoff", name: "ONE-OFF", type: "advanced", active: true, created_at: "" },
+      { id: "atp", name: "ATP", type: "advanced", active: true, created_at: "" },
+    ];
+  }, [categories]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -31,7 +52,7 @@ export default function Index() {
           ]).map((t) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
+              onClick={() => { setTab(t.key); setSelectedBooking(null); }}
               className={`h-full px-4 text-xs font-medium border-b-2 transition-colors ${
                 tab === t.key
                   ? "border-primary text-primary"
@@ -58,28 +79,43 @@ export default function Index() {
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Categories</span>
               </div>
               <nav className="flex-1 py-1">
-                {categories.map((c) => {
-                  const isActive = category === c.key;
+                {displayCategories.map((c) => {
+                  const isActive = categoryName === c.name;
+                  const Icon = CATEGORY_ICONS[c.name] ?? Zap;
                   return (
                     <button
-                      key={c.key}
-                      onClick={() => setCategory(c.key)}
+                      key={c.id}
+                      onClick={() => { setCategoryName(c.name); setSelectedBooking(null); }}
                       className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors ${
                         isActive
                           ? "bg-primary/10 text-primary border-r-2 border-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       }`}
                     >
-                      <c.icon className="h-3.5 w-3.5" />
-                      {c.label}
+                      <Icon className="h-3.5 w-3.5" />
+                      {c.name}
+                      {c.type === "advanced" && (
+                        <span className="ml-auto text-[9px] bg-primary/15 text-primary px-1 py-0.5 rounded">ADV</span>
+                      )}
                     </button>
                   );
                 })}
               </nav>
             </aside>
-            {/* Grid */}
+
+            {/* Grid or Advanced View */}
             <div className="flex-1 overflow-hidden">
-              <BookingsGrid category={category} />
+              {selectedBooking && isAdvanced ? (
+                <AdvancedBookingView
+                  booking={selectedBooking}
+                  onBack={() => setSelectedBooking(null)}
+                />
+              ) : (
+                <BookingsGrid
+                  category={categoryName}
+                  onBookingClick={isAdvanced ? (booking: Booking) => setSelectedBooking(booking) : undefined}
+                />
+              )}
             </div>
           </>
         ) : (

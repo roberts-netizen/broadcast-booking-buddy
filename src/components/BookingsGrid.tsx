@@ -87,7 +87,7 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 }
 
 // ── Main Grid ────────────────────────────────────────────────────────────────
-export default function BookingsGrid({ category }: { category?: string }) {
+export default function BookingsGrid({ category, onBookingClick }: { category?: string; onBookingClick?: (booking: Booking) => void }) {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
   const [view, setView] = useState<"today" | "full">("today");
@@ -526,6 +526,12 @@ export default function BookingsGrid({ category }: { category?: string }) {
           onGridReady={onGridReady}
           onColumnResized={onColumnResized}
           onCellValueChanged={onCellValueChanged}
+          onRowDoubleClicked={onBookingClick ? (e: any) => {
+            if (e.data?.id) {
+              const { _takersProps, _dateGroup, _report, league_name, channel_name, ...booking } = e.data;
+              onBookingClick(booking);
+            }
+          } : undefined}
           getRowId={(params) => params.data.id}
           getRowStyle={(params) => {
             const group = params.data?._dateGroup ?? 0;
