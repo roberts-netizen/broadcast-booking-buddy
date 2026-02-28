@@ -137,6 +137,18 @@ function SimpleTable({ title, rows, onUpsert, onDelete, onBulkImport }: SimpleTa
           )}
         </tbody>
       </table>
+      {onBulkImport && (
+        <BulkPasteDialog
+          open={bulkOpen}
+          onOpenChange={setBulkOpen}
+          title={title}
+          columns={[
+            { key: "name", label: "Name", required: true },
+            { key: "active", label: "Active (yes/no)" },
+          ]}
+          onImport={onBulkImport}
+        />
+      )}
     </div>
   );
 }
