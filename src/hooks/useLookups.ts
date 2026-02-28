@@ -196,3 +196,41 @@ export function useBulkInsertTakerChannelMaps() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["taker_channel_maps"] }),
   });
 }
+
+// ── Categories ───────────────────────────────────────────────────────────────
+export function useCategories(activeOnly = false) {
+  return useQuery({
+    queryKey: ["categories", activeOnly],
+    queryFn: async () => {
+      let q = supabase.from("categories").select("*").order("name");
+      if (activeOnly) q = q.eq("active", true);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data as { id: string; name: string; type: string; active: boolean; created_at: string }[];
+    },
+  });
+}
+
+export function useUpsertCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id?: string; name: string; type: string; active: boolean }) => {
+      const { error } = row.id
+        ? await supabase.from("categories").update({ name: row.name, type: row.type, active: row.active }).eq("id", row.id)
+        : await supabase.from("categories").insert({ name: row.name, type: row.type, active: row.active });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+}
+
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("categories").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+}
