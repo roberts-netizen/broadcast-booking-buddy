@@ -39,6 +39,17 @@ export function useDeleteLeague() {
   });
 }
 
+export function useBulkInsertLeagues() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+      const { error } = await supabase.from("leagues").insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["leagues"] }),
+  });
+}
+
 // ── Incoming Channels ─────────────────────────────────────────────────────────
 export function useIncomingChannels(activeOnly = false) {
   return useQuery({
