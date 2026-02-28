@@ -337,6 +337,9 @@ export default function BookingsGrid({ category }: { category?: string }) {
       const field = event.colDef.field;
       if (!field) return;
 
+      // Push to undo stack
+      undoStackRef.current.push({ id: data.id, field, oldValue: event.oldValue });
+
       const updates: Partial<Booking> = {};
 
       if (field === "league_name") {
@@ -347,7 +350,6 @@ export default function BookingsGrid({ category }: { category?: string }) {
         updates.incoming_channel_id = name ? (channelNameToId[name.toLowerCase()] ?? null) : null;
       } else if (field === "gmt_time") {
         updates.gmt_time = event.newValue;
-        // Auto-compute CET if not manually overridden
         if (event.newValue) {
           updates.cet_time = addOneHour(event.newValue);
         }
@@ -363,6 +365,28 @@ export default function BookingsGrid({ category }: { category?: string }) {
     },
     [updateBooking, leagueNameToId, channelNameToId]
   );
+
+  // ── Undo handler (Ctrl+Z) ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        const entry = undoStackRef.current.pop();
+        if (!entry || !gridApi) return;
+        e.preventDefault();
+
+        // Update the grid cell visually
+        const rowNode = gridApi.getRowNode(entry.id);
+        if (rowNode) {
+          rowNode.setDataValue(entry.field, entry.oldValue);
+          // setDataValue triggers onCellValueChanged which saves to DB
+          // but we need to remove the undo entry it just pushed (to avoid infinite loop)
+          undoStackRef.current.pop();
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [gridApi]);
 
   // ── Add new row ──
   const handleAddRow = useCallback(() => {
