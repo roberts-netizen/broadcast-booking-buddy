@@ -39,6 +39,17 @@ export function useDeleteLeague() {
   });
 }
 
+export function useBulkInsertLeagues() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+      const { error } = await supabase.from("leagues").insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["leagues"] }),
+  });
+}
+
 // ── Incoming Channels ─────────────────────────────────────────────────────────
 export function useIncomingChannels(activeOnly = false) {
   return useQuery({
@@ -71,6 +82,17 @@ export function useDeleteIncomingChannel() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("incoming_channels").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["incoming_channels"] }),
+  });
+}
+
+export function useBulkInsertIncomingChannels() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+      const { error } = await supabase.from("incoming_channels").insert(rows);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["incoming_channels"] }),
@@ -115,6 +137,17 @@ export function useDeleteTaker() {
   });
 }
 
+export function useBulkInsertTakers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+      const { error } = await supabase.from("takers").insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["takers"] }),
+  });
+}
+
 // ── TakerChannelMap ───────────────────────────────────────────────────────────
 export function useTakerChannelMaps(activeOnly = false) {
   return useQuery({
@@ -147,6 +180,17 @@ export function useDeleteTakerChannelMap() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("taker_channel_maps").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["taker_channel_maps"] }),
+  });
+}
+
+export function useBulkInsertTakerChannelMaps() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { label: string; actual_channel_id: string; taker_id: string | null; active: boolean }[]) => {
+      const { error } = await supabase.from("taker_channel_maps").insert(rows);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["taker_channel_maps"] }),

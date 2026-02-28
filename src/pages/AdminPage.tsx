@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, ClipboardPaste } from "lucide-react";
 import {
-  useLeagues, useUpsertLeague, useDeleteLeague,
-  useIncomingChannels, useUpsertIncomingChannel, useDeleteIncomingChannel,
-  useTakers, useUpsertTaker, useDeleteTaker,
-  useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap,
+  useLeagues, useUpsertLeague, useDeleteLeague, useBulkInsertLeagues,
+  useIncomingChannels, useUpsertIncomingChannel, useDeleteIncomingChannel, useBulkInsertIncomingChannels,
+  useTakers, useUpsertTaker, useDeleteTaker, useBulkInsertTakers,
+  useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap, useBulkInsertTakerChannelMaps,
 } from "@/hooks/useLookups";
+import BulkPasteDialog, { type BulkColumn } from "@/components/BulkPasteDialog";
 
 // ── Generic toggle badge ─────────────────────────────────────────────────────
 function ActiveBadge({ active }: { active: boolean }) {
@@ -30,10 +31,12 @@ type SimpleTableProps = {
   rows: SimpleRow[];
   onUpsert: (row: { id?: string; name: string; active: boolean }) => void;
   onDelete: (id: string) => void;
+  onBulkImport?: (rows: Record<string, string>[]) => Promise<void>;
 };
 
-function SimpleTable({ title, rows, onUpsert, onDelete }: SimpleTableProps) {
-  const [editing, setEditing] = useState<string | null>(null); // id or "new"
+function SimpleTable({ title, rows, onUpsert, onDelete, onBulkImport }: SimpleTableProps) {
+  const [editing, setEditing] = useState<string | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [draft, setDraft] = useState({ name: "", active: true });
 
   const startNew = () => {
@@ -58,12 +61,16 @@ function SimpleTable({ title, rows, onUpsert, onDelete }: SimpleTableProps) {
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h2 className="text-sm font-semibold">{title}</h2>
-        <button
-          onClick={startNew}
-          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"
-        >
-          <Plus className="h-3.5 w-3.5" /> Add
-        </button>
+        <div className="flex items-center gap-2">
+          {onBulkImport && (
+            <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
+              <ClipboardPaste className="h-3.5 w-3.5" /> Paste
+            </button>
+          )}
+          <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium">
+            <Plus className="h-3.5 w-3.5" /> Add
+          </button>
+        </div>
       </div>
       <table className="w-full text-xs">
         <thead>
@@ -130,6 +137,18 @@ function SimpleTable({ title, rows, onUpsert, onDelete }: SimpleTableProps) {
           )}
         </tbody>
       </table>
+      {onBulkImport && (
+        <BulkPasteDialog
+          open={bulkOpen}
+          onOpenChange={setBulkOpen}
+          title={title}
+          columns={[
+            { key: "name", label: "Name", required: true },
+            { key: "active", label: "Active (yes/no)" },
+          ]}
+          onImport={onBulkImport}
+        />
+      )}
     </div>
   );
 }
@@ -142,10 +161,12 @@ function TakerChannelMapTable() {
   const { data: takers = [] } = useTakers(true);
   const upsert = useUpsertTakerChannelMap();
   const del = useDeleteTakerChannelMap();
+  const bulkInsert = useBulkInsertTakerChannelMaps();
 
   const blank = { label: "", actual_channel_id: "", taker_id: null as string | null, active: true };
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState(blank);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const startNew = () => { setDraft(blank); setEditing("new"); };
   const startEdit = (r: TCMRow) => { setDraft({ label: r.label, actual_channel_id: r.actual_channel_id, taker_id: r.taker_id, active: r.active }); setEditing(r.id); };
@@ -155,6 +176,19 @@ function TakerChannelMapTable() {
     setEditing(null);
   };
   const cancel = () => setEditing(null);
+
+  const handleBulkImport = async (parsed: Record<string, string>[]) => {
+    const mapped = parsed.map((r) => {
+      const matchedTaker = takers.find((t: any) => t.name.toLowerCase() === r.taker_name?.toLowerCase());
+      return {
+        label: r.label,
+        actual_channel_id: r.actual_channel_id,
+        taker_id: matchedTaker?.id ?? null,
+        active: !r.active || r.active.toLowerCase() !== "no",
+      };
+    });
+    await bulkInsert.mutateAsync(mapped);
+  };
 
   const EditRow = () => (
     <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
@@ -184,7 +218,12 @@ function TakerChannelMapTable() {
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h2 className="text-sm font-semibold">Taker Channel Map</h2>
-        <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"><Plus className="h-3.5 w-3.5" /> Add</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
+            <ClipboardPaste className="h-3.5 w-3.5" /> Paste
+          </button>
+          <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"><Plus className="h-3.5 w-3.5" /> Add</button>
+        </div>
       </div>
       <table className="w-full text-xs">
         <thead>
@@ -221,6 +260,18 @@ function TakerChannelMapTable() {
           )}
         </tbody>
       </table>
+      <BulkPasteDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        title="Taker Channel Map"
+        columns={[
+          { key: "label", label: "Label", required: true },
+          { key: "actual_channel_id", label: "Actual Ch. ID", required: true },
+          { key: "taker_name", label: "Taker Name" },
+          { key: "active", label: "Active (yes/no)" },
+        ]}
+        onImport={handleBulkImport}
+      />
     </div>
   );
 }
@@ -233,10 +284,21 @@ export default function AdminPage() {
 
   const upsertLeague = useUpsertLeague();
   const deleteLeague = useDeleteLeague();
+  const bulkLeagues = useBulkInsertLeagues();
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
+  const bulkChannels = useBulkInsertIncomingChannels();
   const upsertTaker = useUpsertTaker();
   const deleteTaker = useDeleteTaker();
+  const bulkTakers = useBulkInsertTakers();
+
+  const simpleBulk = (mutate: (rows: { name: string; active: boolean }[]) => Promise<any>) =>
+    async (parsed: Record<string, string>[]) => {
+      await mutate(parsed.map((r) => ({
+        name: r.name,
+        active: !r.active || r.active.toLowerCase() !== "no",
+      })));
+    };
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
@@ -246,18 +308,21 @@ export default function AdminPage() {
           rows={leagues}
           onUpsert={(r) => upsertLeague.mutate(r)}
           onDelete={(id) => deleteLeague.mutate(id)}
+          onBulkImport={simpleBulk(bulkLeagues.mutateAsync)}
         />
         <SimpleTable
           title="Incoming Channels"
           rows={channels}
           onUpsert={(r) => upsertChannel.mutate(r)}
           onDelete={(id) => deleteChannel.mutate(id)}
+          onBulkImport={simpleBulk(bulkChannels.mutateAsync)}
         />
         <SimpleTable
           title="Takers"
           rows={takers}
           onUpsert={(r) => upsertTaker.mutate(r)}
           onDelete={(id) => deleteTaker.mutate(id)}
+          onBulkImport={simpleBulk(bulkTakers.mutateAsync)}
         />
         <TakerChannelMapTable />
       </div>
