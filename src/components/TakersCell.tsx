@@ -113,14 +113,14 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
           const showChannelPicker = availableChannels.length > 1 && currentLabel;
 
           return (
-            <div key={i} className="flex flex-col gap-0 flex-1 min-w-0">
+            <div key={i} className="flex flex-row gap-0.5 flex-1 min-w-0 items-center">
               {/* Label dropdown */}
               <SearchableSelect
                 options={uniqueLabels.map((m) => ({ value: m.label, label: m.label }))}
                 value={currentLabel}
                 onChange={(val) => handleLabelChange(slotNum, val)}
                 placeholder="—"
-                className="rounded-b-none"
+                className="flex-1 min-w-0"
               />
               {/* Channel dropdown (shown when label is selected) */}
               {currentLabel && (
@@ -129,7 +129,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
                   value={assignment?.taker_channel_map_id ?? ""}
                   onChange={(val) => handleChannelChange(slotNum, val)}
                   placeholder="ch"
-                  className="[&_button]:border-t-0 [&_button]:rounded-t-none [&_button]:text-[9px] [&_button]:py-0 [&_button]:bg-muted/30 [&_button]:text-muted-foreground"
+                  className="min-w-[50px] max-w-[70px] [&_button]:text-[9px] [&_button]:py-0 [&_button]:bg-muted/30 [&_button]:text-muted-foreground"
                 />
               )}
             </div>
