@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ModuleRegistry,
   AllCommunityModule,
