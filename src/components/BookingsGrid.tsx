@@ -92,7 +92,7 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 export default function BookingsGrid({ category, onBookingClick }: { category?: string; onBookingClick?: (booking: Booking) => void }) {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
-  const [view, setView] = useState<"today" | "full">("today");
+  const [view, setView] = useState<"today" | "full" | "past">("today");
   const [filters, setFilters] = useState<{
     dateFrom?: string;
     dateTo?: string;
