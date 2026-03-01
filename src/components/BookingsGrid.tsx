@@ -552,6 +552,16 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
           >
             Full Events
           </button>
+          <button
+            onClick={() => setView("past")}
+            className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+              view === "past"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Past Events
+          </button>
         </div>
         <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
       </div>
