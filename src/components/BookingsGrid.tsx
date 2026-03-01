@@ -110,6 +110,10 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
       const today = new Date().toISOString().split("T")[0];
       return { ...base, dateFrom: today, dateTo: today };
     }
+    if (view === "past") {
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+      return { ...base, dateTo: yesterday };
+    }
     return base;
   }, [view, filters, category]);
 
