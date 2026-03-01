@@ -14,11 +14,11 @@ export default function McrPage() {
   const [dateTo, setDateTo] = useState("");
   const [showAll, setShowAll] = useState(false);
 
-  // Fetch ALL bookings (no category filter) 
+  // Fetch ALL bookings (no category filter) — no date filter so past events are included
   const filters = useMemo(() => {
     if (showAll) return {};
-    return { dateFrom };
-  }, [showAll, dateFrom]);
+    return {};
+  }, [showAll]);
 
   const { data: bookings = [], isLoading } = useBookings(filters);
   const { data: leagues = [] } = useLeagues(true);

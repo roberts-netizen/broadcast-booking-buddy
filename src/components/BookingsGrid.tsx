@@ -92,7 +92,7 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 export default function BookingsGrid({ category, onBookingClick }: { category?: string; onBookingClick?: (booking: Booking) => void }) {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
-  const [view, setView] = useState<"today" | "full">("today");
+  const [view, setView] = useState<"today" | "full" | "past">("today");
   const [filters, setFilters] = useState<{
     dateFrom?: string;
     dateTo?: string;
@@ -109,6 +109,10 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
     if (view === "today") {
       const today = new Date().toISOString().split("T")[0];
       return { ...base, dateFrom: today, dateTo: today };
+    }
+    if (view === "past") {
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+      return { ...base, dateTo: yesterday };
     }
     return base;
   }, [view, filters, category]);
@@ -547,6 +551,16 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
             }`}
           >
             Full Events
+          </button>
+          <button
+            onClick={() => setView("past")}
+            className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+              view === "past"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Past Events
           </button>
         </div>
         <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
