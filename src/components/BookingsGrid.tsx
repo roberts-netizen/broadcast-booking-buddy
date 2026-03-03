@@ -89,7 +89,7 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 }
 
 // ── Main Grid ────────────────────────────────────────────────────────────────
-export default function BookingsGrid({ category, onBookingClick }: { category?: string; onBookingClick?: (booking: Booking) => void }) {
+export default function BookingsGrid({ category, onBookingClick, highlightBookingId, onHighlightHandled }: { category?: string; onBookingClick?: (booking: Booking) => void; highlightBookingId?: string | null; onHighlightHandled?: () => void }) {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
   const [view, setView] = useState<"today" | "full" | "past">("today");
@@ -98,6 +98,7 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
     dateTo?: string;
     leagueId?: string;
   }>({});
+
 
   // ── Undo stack ──
   type UndoEntry = { id: string; field: string; oldValue: any };
@@ -121,6 +122,24 @@ export default function BookingsGrid({ category, onBookingClick }: { category?: 
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
   const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
+
+  // ── Highlight booking from MCR shortcut ──
+  useEffect(() => {
+    if (!highlightBookingId || !gridApi) return;
+    setView("full");
+  }, [highlightBookingId, gridApi]);
+
+  useEffect(() => {
+    if (!highlightBookingId || !gridApi || view !== "full") return;
+    setTimeout(() => {
+      const rowNode = gridApi.getRowNode(highlightBookingId);
+      if (rowNode) {
+        gridApi.ensureNodeVisible(rowNode, "middle");
+        gridApi.flashCells({ rowNodes: [rowNode] });
+      }
+      onHighlightHandled?.();
+    }, 500);
+  }, [highlightBookingId, gridApi, view, bookings, onHighlightHandled]);
 
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);

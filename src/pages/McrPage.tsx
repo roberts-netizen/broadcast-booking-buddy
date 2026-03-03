@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink, X } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
@@ -21,7 +21,7 @@ const TEST_STATUS_MAP: Record<string, { label: string; dot: string }> = {
 
 type Section = "today" | "upcoming" | "past";
 
-export default function McrPage() {
+export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?: (bookingId: string, category: string) => void }) {
   const [expandedSections, setExpandedSections] = useState<Set<Section>>(new Set(["today", "upcoming"]));
   const [selectedTaker, setSelectedTaker] = useState<TakerAssignment | null>(null);
 
@@ -272,14 +272,15 @@ export default function McrPage() {
                   <th className="px-3 py-1.5 text-left font-semibold w-[140px] border border-border">Event</th>
                   <th className="px-3 py-1.5 text-left font-semibold w-[80px] border border-border">League</th>
                   <th className="px-3 py-1.5 text-left font-semibold border border-border">Takers</th>
+                  <th className="px-1 py-1.5 text-left font-semibold w-[30px] border border-border"></th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 ? (
-                  <tr><td colSpan={7} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
+                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
                 ) : (
-                  items.map((b) => {
-                    const cat = (b as any)._category || "MCR";
+                  items.map((b: any) => {
+                    const cat = b._category || "MCR";
                     const isAdv = cat !== "MCR";
                     return (
                       <tr key={b.id} className="hover:bg-muted/20 transition-colors">
@@ -301,6 +302,17 @@ export default function McrPage() {
                         <td className="px-3 py-1.5 text-xs font-medium truncate max-w-[140px] border border-border" title={b.event_name}>{b.event_name}</td>
                         <td className="px-3 py-1.5 text-xs text-muted-foreground border border-border">{b.league_id ? leagueMap[b.league_id] ?? "" : ""}</td>
                         <td className="px-3 py-1.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
+                        <td className="px-1 py-1.5 border border-border w-[30px]">
+                          {onNavigateToBooking && (
+                            <button
+                              onClick={() => onNavigateToBooking(b.id, cat)}
+                              className="p-0.5 text-muted-foreground hover:text-primary transition-colors"
+                              title="Open in Events view"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     );
                   })

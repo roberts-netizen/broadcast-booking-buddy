@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
@@ -8,11 +8,13 @@ import BookingFilters from "./BookingFilters";
 
 type Props = {
   category: string;
+  highlightBookingId?: string | null;
+  onHighlightHandled?: () => void;
 };
 
 type TimeTab = "today" | "upcoming" | "past";
 
-export function AdvancedCategoryView({ category }: Props) {
+export function AdvancedCategoryView({ category, highlightBookingId, onHighlightHandled }: Props) {
   const [filters, setFilters] = useState<{ dateFrom?: string; dateTo?: string; leagueId?: string }>({});
   const [timeTab, setTimeTab] = useState<TimeTab>("today");
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
@@ -20,6 +22,22 @@ export function AdvancedCategoryView({ category }: Props) {
   const createBooking = useCreateBooking();
 
   const today = new Date().toISOString().slice(0, 10);
+
+  // Highlight & scroll to booking from MCR shortcut
+  useEffect(() => {
+    if (!highlightBookingId || !bookings.length) return;
+    // Switch to the tab that contains the booking
+    const b = bookings.find((bk) => bk.id === highlightBookingId);
+    if (!b) return;
+    const endDate = b.date_to || b.date;
+    if (b.date <= today && endDate >= today) setTimeTab("today");
+    else if (b.date > today) setTimeTab("upcoming");
+    else setTimeTab("past");
+    setTimeout(() => {
+      document.getElementById(`booking-${highlightBookingId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => onHighlightHandled?.(), 2000);
+    }, 300);
+  }, [highlightBookingId, bookings, today, onHighlightHandled]);
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
@@ -88,7 +106,11 @@ export function AdvancedCategoryView({ category }: Props) {
         ) : (
           <div className="divide-y divide-border">
             {filteredBookings.map((booking) => (
-              <div key={booking.id}>
+              <div
+                key={booking.id}
+                id={`booking-${booking.id}`}
+                className={highlightBookingId === booking.id ? "ring-2 ring-primary bg-primary/5 transition-all" : ""}
+              >
                 <AdvancedBookingView booking={booking} />
               </div>
             ))}
