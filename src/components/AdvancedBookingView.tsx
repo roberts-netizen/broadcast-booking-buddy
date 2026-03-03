@@ -371,7 +371,7 @@ export function AdvancedBookingView({ booking }: Props) {
     { label: "Venue", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
     {
       label: "Source",
-      rowSpan: 2,
+      rowSpan: 1,
       render: () => (
         <select
           className={`${selectClass} px-1 py-0.5`}
@@ -385,6 +385,22 @@ export function AdvancedBookingView({ booking }: Props) {
           {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       ),
+    },
+    {
+      label: "Status",
+      rowSpan: 1,
+      render: () => {
+        const tested = assignments.filter(a => a.test_status === "tested").length;
+        const total = assignments.length;
+        const overall: TestStatus = total === 0 ? "not_tested" : tested === total ? "tested" : assignments.some(a => a.test_status === "not_tested") ? "not_tested" : "waiting_for_details";
+        const sm = TEST_STATUSES.find((s) => s.value === overall) ?? TEST_STATUSES[0];
+        return (
+          <div className={`flex items-center gap-1.5 px-1 py-0.5 rounded ${sm.color}`}>
+            <span className="text-[10px] font-semibold">{sm.label}</span>
+            <span className="text-[9px] opacity-70">({tested}/{total})</span>
+          </div>
+        );
+      },
     },
     {
       label: "Overall\nAudio setup",
