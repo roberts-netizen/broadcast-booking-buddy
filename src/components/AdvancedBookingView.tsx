@@ -54,6 +54,9 @@ export function AdvancedBookingView({ booking }: Props) {
   const deleteAssignment = useDeleteTakerAssignment();
   const upsertEndpoint = useUpsertEndpoint();
 
+  // Track "save as permanent" checkbox per assignment
+  const [savePermanent, setSavePermanent] = useState<Record<string, boolean>>({});
+
   // Auto-create default 3 takers
   const hasAutoCreated = useRef(false);
   useEffect(() => {
