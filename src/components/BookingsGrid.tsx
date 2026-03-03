@@ -123,6 +123,24 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   const { data: channels = [] } = useIncomingChannels(true);
   const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
+  // ── Highlight booking from MCR shortcut ──
+  useEffect(() => {
+    if (!highlightBookingId || !gridApi) return;
+    setView("full");
+  }, [highlightBookingId, gridApi]);
+
+  useEffect(() => {
+    if (!highlightBookingId || !gridApi || view !== "full") return;
+    setTimeout(() => {
+      const rowNode = gridApi.getRowNode(highlightBookingId);
+      if (rowNode) {
+        gridApi.ensureNodeVisible(rowNode, "middle");
+        gridApi.flashCells({ rowNodes: [rowNode] });
+      }
+      onHighlightHandled?.();
+    }, 500);
+  }, [highlightBookingId, gridApi, view, bookings, onHighlightHandled]);
+
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useBookingTakerAssignments(bookingIds);
   const { data: allReports = [] } = useBookingReports(bookingIds);
