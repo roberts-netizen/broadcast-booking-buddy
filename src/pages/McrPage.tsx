@@ -4,6 +4,7 @@ import { useBookings, Booking } from "@/hooks/useBookings";
 import { useLeagues, useCategories } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
+import { useProjectTakerEndpoints, ProjectTakerEndpoint } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
 
 type Section = "today" | "upcoming" | "past";
