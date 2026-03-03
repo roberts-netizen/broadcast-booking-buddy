@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, X } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
-import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
+import { useTakerAssignments, TakerAssignment, TestStatus, useUpdateTakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
-import { useProjectTakerEndpoints, ProjectTakerEndpoint } from "@/hooks/useProjectTakerEndpoints";
+import { useProjectTakerEndpoints, ProjectTakerEndpoint, useUpsertEndpoint } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
