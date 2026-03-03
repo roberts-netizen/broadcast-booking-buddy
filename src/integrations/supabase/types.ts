@@ -112,6 +112,7 @@ export type Database = {
           league_id: string | null
           project_lead: string | null
           source: string | null
+          source_status: string
           tournament_id: string | null
           updated_at: string
           venue: string | null
@@ -132,6 +133,7 @@ export type Database = {
           league_id?: string | null
           project_lead?: string | null
           source?: string | null
+          source_status?: string
           tournament_id?: string | null
           updated_at?: string
           venue?: string | null
@@ -152,6 +154,7 @@ export type Database = {
           league_id?: string | null
           project_lead?: string | null
           source?: string | null
+          source_status?: string
           tournament_id?: string | null
           updated_at?: string
           venue?: string | null

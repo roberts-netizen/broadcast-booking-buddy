@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN source_status text NOT NULL DEFAULT 'not_tested';

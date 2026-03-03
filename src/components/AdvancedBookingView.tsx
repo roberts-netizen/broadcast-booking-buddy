@@ -18,7 +18,7 @@ import {
 import { useTakers } from "@/hooks/useLookups";
 
 const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
-const SOURCES = ["Satellite", "IP/Fiber", "Cloud", "Local", "Other"];
+const SOURCES_UNUSED = null; // removed
 const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
 const TEST_STATUSES: { value: TestStatus; label: string; color: string }[] = [
   { value: "not_tested", label: "Not Tested", color: "text-destructive bg-destructive/10" },
@@ -74,6 +74,7 @@ export function AdvancedBookingView({ booking }: Props) {
     cet_time_to: (booking as any).cet_time_to ?? "",
     venue: (booking as any).venue ?? "",
     source: (booking as any).source ?? "",
+    source_status: (booking as any).source_status ?? "not_tested",
     audio_setup: (booking as any).audio_setup ?? "CH12:\nCH34:\nCH56:\nCH78:",
     project_lead: (booking as any).project_lead ?? "",
     event_notes: (booking as any).event_notes ?? "",
@@ -373,32 +374,26 @@ export function AdvancedBookingView({ booking }: Props) {
       label: "Source",
       rowSpan: 1,
       render: () => (
-        <select
-          className={`${selectClass} px-1 py-0.5`}
-          value={ef.source}
-          onChange={(e) => {
-            setEf((f) => ({ ...f, source: e.target.value }));
-            updateBooking.mutate({ id: booking.id, source: e.target.value || null } as any);
-          }}
-        >
-          <option value="">— Select source —</option>
-          {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <input className={inputClass} value={ef.source} placeholder="Describe source..." onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} />
       ),
     },
     {
-      label: "Status",
+      label: "Source Status",
       rowSpan: 1,
       render: () => {
-        const tested = assignments.filter(a => a.test_status === "tested").length;
-        const total = assignments.length;
-        const overall: TestStatus = total === 0 ? "not_tested" : tested === total ? "tested" : assignments.some(a => a.test_status === "not_tested") ? "not_tested" : "waiting_for_details";
-        const sm = TEST_STATUSES.find((s) => s.value === overall) ?? TEST_STATUSES[0];
+        const currentStatus = (ef as any).source_status ?? "not_tested";
+        const sm = TEST_STATUSES.find((s) => s.value === currentStatus) ?? TEST_STATUSES[0];
         return (
-          <div className={`flex items-center gap-1.5 px-1 py-0.5 rounded ${sm.color}`}>
-            <span className="text-[10px] font-semibold">{sm.label}</span>
-            <span className="text-[9px] opacity-70">({tested}/{total})</span>
-          </div>
+          <select
+            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
+            value={currentStatus}
+            onChange={(e) => {
+              setEf((f) => ({ ...f, source_status: e.target.value }));
+              updateBooking.mutate({ id: booking.id, source_status: e.target.value } as any);
+            }}
+          >
+            {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
         );
       },
     },
