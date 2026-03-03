@@ -183,22 +183,23 @@ export default function McrPage() {
             }
 
             return (
-              <div key={a.id} className="text-[10px] leading-tight">
-                <span className="font-medium text-foreground">{name}</span>
+              <div
+                key={a.id}
+                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setSelectedTaker(a); }}
+                title="Click to view full details"
+              >
+                <span className="font-medium text-primary underline decoration-dotted">{name}</span>
                 {connections.length > 0 && (
-                  <div className="ml-2 flex flex-col gap-0">
-                    {connections.map((c, ci) => (
-                      <div key={ci} className="flex items-center gap-1 text-muted-foreground">
-                        {c.proto && <span className="font-mono text-[9px] font-semibold">{c.proto}</span>}
-                        {c.host && (
-                          <span className="font-mono text-[9px]">
-                            {c.host}{c.port ? `:${c.port}` : ""}
-                          </span>
-                        )}
-                        {c.key && <span className="font-mono text-[9px]">key:{c.key}</span>}
-                      </div>
-                    ))}
-                  </div>
+                  <span className="ml-1 text-muted-foreground font-mono text-[9px]">
+                    {connections.map((c, ci) => {
+                      const parts: string[] = [];
+                      if (c.proto) parts.push(c.proto);
+                      if (c.host) parts.push(c.host + (c.port ? `:${c.port}` : ""));
+                      if (c.key) parts.push(`key:${c.key}`);
+                      return parts.join(" ");
+                    }).join(" | ")}
+                  </span>
                 )}
               </div>
             );
