@@ -39,7 +39,8 @@ export function useBookings(filters?: { dateFrom?: string; dateTo?: string; leag
         .from("bookings")
         .select("*")
         .order("date", { ascending: true })
-        .order("gmt_time", { ascending: true });
+        .order("gmt_time", { ascending: true })
+        .order("id", { ascending: true });
       if (filters?.dateFrom) q = q.gte("date", filters.dateFrom);
       if (filters?.dateTo) q = q.lte("date", filters.dateTo);
       if (filters?.leagueId) q = q.eq("league_id", filters.leagueId);
