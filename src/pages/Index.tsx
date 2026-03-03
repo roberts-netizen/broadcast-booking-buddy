@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Radio, Settings, Tv, Zap, Trophy, LayoutGrid } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
 import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
@@ -17,6 +17,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 export default function Index() {
   const [tab, setTab] = useState<Tab>("events");
   const [categoryName, setCategoryName] = useState<string>("MCR");
+  const [highlightBookingId, setHighlightBookingId] = useState<string | null>(null);
   
 
   const { data: categories = [] } = useCategories(true);
@@ -36,6 +37,12 @@ export default function Index() {
       { id: "atp", name: "ATP", type: "advanced", active: true, created_at: "" },
     ];
   }, [categories]);
+
+  const handleNavigateToBooking = useCallback((bookingId: string, category: string) => {
+    setCategoryName(category);
+    setHighlightBookingId(bookingId);
+    setTab("events");
+  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -107,15 +114,15 @@ export default function Index() {
             {/* Grid or Advanced View */}
             <div className="flex-1 overflow-hidden">
               {isAdvanced ? (
-                <AdvancedCategoryView category={categoryName} />
+                <AdvancedCategoryView category={categoryName} highlightBookingId={highlightBookingId} onHighlightHandled={() => setHighlightBookingId(null)} />
               ) : (
-                <BookingsGrid category={categoryName} />
+                <BookingsGrid category={categoryName} highlightBookingId={highlightBookingId} onHighlightHandled={() => setHighlightBookingId(null)} />
               )}
             </div>
           </>
         ) : tab === "mcr" ? (
           <div className="h-full overflow-auto flex-1">
-            <McrPage />
+            <McrPage onNavigateToBooking={handleNavigateToBooking} />
           </div>
         ) : (
           <div className="h-full overflow-auto flex-1">
