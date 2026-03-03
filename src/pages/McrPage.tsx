@@ -14,11 +14,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const TEST_STATUS_MAP: Record<string, { label: string; dot: string }> = {
-  not_tested: { label: "Not Tested", dot: "🔴" },
-  waiting_for_details: { label: "Waiting for details", dot: "🟡" },
-  tested: { label: "Tested", dot: "🟢" },
-};
+const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
+const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
+const TEST_STATUSES: { value: TestStatus; label: string; dot: string; color: string }[] = [
+  { value: "not_tested", label: "Not Tested", dot: "🔴", color: "text-destructive bg-destructive/10" },
+  { value: "waiting_for_details", label: "Waiting for details", dot: "🟡", color: "text-yellow-600 bg-yellow-500/10" },
+  { value: "tested", label: "Tested", dot: "🟢", color: "text-green-600 bg-green-500/10" },
+];
+
+const fieldClass = "w-full border border-input rounded px-2 py-1 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-ring";
+const selectField = "w-full border border-input rounded px-2 py-1 text-xs bg-background focus:outline-none cursor-pointer";
 
 type Section = "today" | "upcoming" | "past";
 
