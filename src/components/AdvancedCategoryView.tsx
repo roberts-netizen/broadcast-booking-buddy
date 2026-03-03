@@ -8,11 +8,13 @@ import BookingFilters from "./BookingFilters";
 
 type Props = {
   category: string;
+  highlightBookingId?: string | null;
+  onHighlightHandled?: () => void;
 };
 
 type TimeTab = "today" | "upcoming" | "past";
 
-export function AdvancedCategoryView({ category }: Props) {
+export function AdvancedCategoryView({ category, highlightBookingId, onHighlightHandled }: Props) {
   const [filters, setFilters] = useState<{ dateFrom?: string; dateTo?: string; leagueId?: string }>({});
   const [timeTab, setTimeTab] = useState<TimeTab>("today");
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
