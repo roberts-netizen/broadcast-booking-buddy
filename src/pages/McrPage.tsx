@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, X } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
-import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
+import { useTakerAssignments, TakerAssignment, TestStatus, useUpdateTakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
-import { useProjectTakerEndpoints, ProjectTakerEndpoint } from "@/hooks/useProjectTakerEndpoints";
+import { useProjectTakerEndpoints, ProjectTakerEndpoint, useUpsertEndpoint } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,11 +14,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const TEST_STATUS_MAP: Record<string, { label: string; dot: string }> = {
-  not_tested: { label: "Not Tested", dot: "🔴" },
-  waiting_for_details: { label: "Waiting for details", dot: "🟡" },
-  tested: { label: "Tested", dot: "🟢" },
-};
+const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
+const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
+const TEST_STATUSES: { value: TestStatus; label: string; dot: string; color: string }[] = [
+  { value: "not_tested", label: "Not Tested", dot: "🔴", color: "text-destructive bg-destructive/10" },
+  { value: "waiting_for_details", label: "Waiting for details", dot: "🟡", color: "text-yellow-600 bg-yellow-500/10" },
+  { value: "tested", label: "Tested", dot: "🟢", color: "text-green-600 bg-green-500/10" },
+];
+
+const fieldClass = "w-full border border-input rounded px-2 py-1 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-ring";
+const selectField = "w-full border border-input rounded px-2 py-1 text-xs bg-background focus:outline-none cursor-pointer";
 
 type Section = "today" | "upcoming" | "past";
 
@@ -327,22 +333,44 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
 
   const isLoading = mcrLoading;
 
+  const updateAssignment = useUpdateTakerAssignment();
+  const upsertEndpoint = useUpsertEndpoint();
+
+  const handleUpdateField = useCallback(
+    (id: string, patch: Partial<TakerAssignment>) => {
+      const { taker_name, ...rest } = patch as any;
+      updateAssignment.mutate({ id, ...rest });
+    },
+    [updateAssignment]
+  );
+
+  const handleUpdateEndpoint = useCallback(
+    (assignmentId: string, type: "primary" | "backup", patch: Partial<ProjectTakerEndpoint>) => {
+      const currentEps = endpointsByAssignment[assignmentId] ?? [];
+      const existing = currentEps.find((e) => e.endpoint_type === type) ?? {};
+      const updated = { ...existing, ...patch };
+      upsertEndpoint.mutate({
+        taker_assignment_id: assignmentId,
+        endpoint_type: type,
+        protocol: updated.protocol ?? null,
+        host: updated.host ?? null,
+        port: updated.port ?? null,
+        stream_key: updated.stream_key ?? null,
+        username: updated.username ?? null,
+        password: updated.password ?? null,
+      });
+    },
+    [endpointsByAssignment, upsertEndpoint]
+  );
+
   const renderTakerDetailDialog = () => {
     if (!selectedTaker) return null;
     const a = selectedTaker;
     const name = a.taker_name || (a as any).taker_custom_name || "Taker";
-    const status = TEST_STATUS_MAP[a.test_status] ?? TEST_STATUS_MAP.not_tested;
+    const status = TEST_STATUSES.find((s) => s.value === a.test_status) ?? TEST_STATUSES[0];
     const eps = endpointsByAssignment[a.id] ?? [];
-
-    const DetailRow = ({ label, value }: { label: string; value: string | null | undefined }) => {
-      if (!value) return null;
-      return (
-        <div className="flex items-start gap-2 py-1 border-b border-border/50 last:border-b-0">
-          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground w-[120px] shrink-0">{label}</span>
-          <span className="text-xs text-foreground font-mono break-all">{value}</span>
-        </div>
-      );
-    };
+    const primaryEp = eps.find((e) => e.endpoint_type === "primary") ?? ({} as Partial<ProjectTakerEndpoint>);
+    const backupEp = eps.find((e) => e.endpoint_type === "backup") ?? ({} as Partial<ProjectTakerEndpoint>);
 
     const SectionLabel = ({ children }: { children: React.ReactNode }) => (
       <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground border-b border-border pb-0.5 mb-1 mt-3 first:mt-0">
@@ -350,60 +378,122 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       </div>
     );
 
+    const FieldRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+      <div className="grid grid-cols-[120px_1fr] gap-2 items-center py-0.5">
+        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+        {children}
+      </div>
+    );
+
     return (
       <Dialog open={!!selectedTaker} onOpenChange={() => setSelectedTaker(null)}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm">
               <span>{status.dot}</span>
               <span>{name}</span>
-              {a.protocol && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{a.protocol}</Badge>}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-0">
-            <SectionLabel>Technical Details</SectionLabel>
-            <DetailRow label="Protocol" value={a.protocol} />
-            <DetailRow label="Host / IP" value={a.host} />
-            <DetailRow label="Port" value={a.port} />
-            <DetailRow label="Stream Key" value={a.stream_key_or_channel_id} />
-            <DetailRow label="Username" value={a.username} />
-            <DetailRow label="Password" value={a.password ? "••••••••" : null} />
-            <DetailRow label="Quality" value={a.quality} />
-            <DetailRow label="Audio" value={a.audio} />
+            {/* Taker */}
+            <SectionLabel>Taker</SectionLabel>
+            <FieldRow label="Taker">
+              <select className={selectField} value={a.taker_id ?? ""} onChange={(e) => handleUpdateField(a.id, { taker_id: e.target.value || null })}>
+                <option value="">—</option>
+                {takers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </FieldRow>
+            <FieldRow label="Custom Name">
+              <input className={fieldClass} value={(a as any).taker_custom_name ?? ""} onChange={(e) => handleUpdateField(a.id, { taker_custom_name: e.target.value || null } as any)} />
+            </FieldRow>
 
-            {eps.length > 0 && (
-              <>
-                <SectionLabel>Endpoints</SectionLabel>
-                {eps.map((ep) => (
-                  <div key={ep.id} className="bg-muted/30 rounded p-2 mb-1">
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">{ep.endpoint_type}</span>
-                    <DetailRow label="Protocol" value={ep.protocol} />
-                    <DetailRow label="Host" value={ep.host} />
-                    <DetailRow label="Port" value={ep.port} />
-                    <DetailRow label="Stream Key" value={ep.stream_key} />
-                    <DetailRow label="Username" value={ep.username} />
-                    <DetailRow label="Password" value={ep.password ? "••••••••" : null} />
-                  </div>
-                ))}
-              </>
-            )}
-
+            {/* Communication */}
             <SectionLabel>Communication</SectionLabel>
-            <DetailRow label="Method" value={a.communication_method} />
-            <DetailRow label="WhatsApp" value={a.whatsapp_details} />
-            <DetailRow label="Email Subject" value={a.email_subject} />
-            <DetailRow label="Phone" value={(a as any).phone_number} />
-            <DetailRow label="Notes" value={a.communication_notes} />
+            <FieldRow label="Method">
+              <select className={selectField} value={a.communication_method ?? ""} onChange={(e) => handleUpdateField(a.id, { communication_method: e.target.value || null })}>
+                <option value="">—</option>
+                {COMM_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </FieldRow>
+            <FieldRow label="Email Subject">
+              <input className={fieldClass} value={a.email_subject ?? ""} onChange={(e) => handleUpdateField(a.id, { email_subject: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="Phone">
+              <input className={fieldClass} value={(a as any).phone_number ?? ""} onChange={(e) => handleUpdateField(a.id, { phone_number: e.target.value || null } as any)} />
+            </FieldRow>
+            <FieldRow label="WhatsApp">
+              <input className={fieldClass} value={a.whatsapp_details ?? ""} onChange={(e) => handleUpdateField(a.id, { whatsapp_details: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="Notes">
+              <input className={fieldClass} value={a.communication_notes ?? ""} onChange={(e) => handleUpdateField(a.id, { communication_notes: e.target.value || null })} />
+            </FieldRow>
 
+            {/* Technical - Assignment level */}
+            <SectionLabel>Technical Details</SectionLabel>
+            <FieldRow label="Req. Quality">
+              <input className={fieldClass} value={a.quality ?? ""} onChange={(e) => handleUpdateField(a.id, { quality: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="Req. Audio">
+              <input className={fieldClass} value={a.audio ?? ""} onChange={(e) => handleUpdateField(a.id, { audio: e.target.value || null })} />
+            </FieldRow>
+
+            {/* Primary Endpoint */}
+            <SectionLabel>Primary Endpoint</SectionLabel>
+            <FieldRow label="Protocol">
+              <select className={selectField} value={(primaryEp as any).protocol ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { protocol: e.target.value || null })}>
+                <option value="">—</option>
+                {PROTOCOLS.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </FieldRow>
+            <FieldRow label="Host / IP">
+              <input className={fieldClass} value={(primaryEp as any).host ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { host: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="StreamKey/Port">
+              <input className={fieldClass} value={(primaryEp as any).stream_key ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { stream_key: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="User / StreamID">
+              <input className={fieldClass} value={(primaryEp as any).username ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { username: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="Password">
+              <input type="password" className={fieldClass} value={(primaryEp as any).password ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { password: e.target.value || null })} />
+            </FieldRow>
+
+            {/* Backup Endpoint */}
+            <SectionLabel>Backup Endpoint</SectionLabel>
+            <FieldRow label="Host / IP">
+              <input className={fieldClass} value={(backupEp as any).host ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { host: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="StreamKey/Port">
+              <input className={fieldClass} value={(backupEp as any).stream_key ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { stream_key: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="User / StreamID">
+              <input className={fieldClass} value={(backupEp as any).username ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { username: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="Password">
+              <input type="password" className={fieldClass} value={(backupEp as any).password ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { password: e.target.value || null })} />
+            </FieldRow>
+
+            {/* Testing */}
             <SectionLabel>Testing</SectionLabel>
-            <div className="flex items-start gap-2 py-1 border-b border-border/50">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground w-[120px] shrink-0">Status</span>
-              <span className="text-xs">{status.dot} {status.label}</span>
-            </div>
-            <DetailRow label="Tested By" value={a.tested_by} />
-            <DetailRow label="Test Date" value={a.test_datetime ? new Date(a.test_datetime).toLocaleString() : null} />
-            <DetailRow label="Test Notes" value={a.test_notes} />
+            <FieldRow label="Status">
+              <select
+                className={`${selectField} font-semibold ${status.color} rounded`}
+                value={a.test_status}
+                onChange={(e) => handleUpdateField(a.id, { test_status: e.target.value as TestStatus })}
+              >
+                {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.dot} {s.label}</option>)}
+              </select>
+            </FieldRow>
+            <FieldRow label="Tested By">
+              <input className={fieldClass} value={a.tested_by ?? ""} onChange={(e) => handleUpdateField(a.id, { tested_by: e.target.value || null })} />
+            </FieldRow>
+            <FieldRow label="Test Date">
+              <input type="datetime-local" className={fieldClass} value={a.test_datetime ? a.test_datetime.slice(0, 16) : ""} onChange={(e) => handleUpdateField(a.id, { test_datetime: e.target.value ? new Date(e.target.value).toISOString() : null })} />
+            </FieldRow>
+            <FieldRow label="Test Notes">
+              <input className={fieldClass} value={a.test_notes ?? ""} onChange={(e) => handleUpdateField(a.id, { test_notes: e.target.value || null })} />
+            </FieldRow>
           </div>
         </DialogContent>
       </Dialog>
