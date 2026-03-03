@@ -16,6 +16,8 @@ import {
   useUpsertEndpoint,
 } from "@/hooks/useProjectTakerEndpoints";
 import { useTakers } from "@/hooks/useLookups";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 
 const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
 const SOURCES_UNUSED = null; // removed
@@ -51,6 +53,9 @@ export function AdvancedBookingView({ booking }: Props) {
   const updateAssignment = useUpdateTakerAssignment();
   const deleteAssignment = useDeleteTakerAssignment();
   const upsertEndpoint = useUpsertEndpoint();
+
+  // Track "save as permanent" checkbox per assignment
+  const [savePermanent, setSavePermanent] = useState<Record<string, boolean>>({});
 
   // Auto-create default 3 takers
   const hasAutoCreated = useRef(false);
@@ -165,6 +170,22 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const customName = (a as any).taker_custom_name ?? "";
+        const isPermanentChecked = savePermanent[a.id] ?? false;
+
+        const handleSavePermanent = async (name: string) => {
+          if (!name.trim()) return;
+          // Insert into takers table
+          const { data, error } = await supabase
+            .from("takers")
+            .insert({ name: name.trim(), active: true })
+            .select()
+            .single();
+          if (error || !data) return;
+          // Update assignment to use the new taker_id and clear custom name
+          handleUpdateAssignment(a.id, { taker_id: data.id, taker_custom_name: null } as any);
+          setSavePermanent((prev) => ({ ...prev, [a.id]: false }));
+        };
+
         return (
           <div className="flex flex-col gap-0.5">
             <select
@@ -179,14 +200,29 @@ export function AdvancedBookingView({ booking }: Props) {
               {takerList.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
             {!a.taker_id && (
-              <input
-                className={inputClass}
-                placeholder="Custom name..."
-                value={customName}
-                onKeyDown={(e) => { if (e.key === "Enter") handleUpdateAssignment(a.id, { taker_custom_name: (e.target as HTMLInputElement).value || null } as any); }}
-                onBlur={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
-                onChange={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
-              />
+              <>
+                <input
+                  className={inputClass}
+                  placeholder="Custom name..."
+                  value={customName}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleUpdateAssignment(a.id, { taker_custom_name: (e.target as HTMLInputElement).value || null } as any); }}
+                  onBlur={(e) => {
+                    handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any);
+                    if (isPermanentChecked && e.target.value?.trim()) {
+                      handleSavePermanent(e.target.value);
+                    }
+                  }}
+                  onChange={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
+                />
+                <label className="flex items-center gap-1.5 mt-0.5 cursor-pointer">
+                  <Checkbox
+                    checked={isPermanentChecked}
+                    onCheckedChange={(checked) => setSavePermanent((prev) => ({ ...prev, [a.id]: !!checked }))}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-[10px] text-muted-foreground">Save as permanent taker</span>
+                </label>
+              </>
             )}
           </div>
         );
