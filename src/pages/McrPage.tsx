@@ -111,18 +111,77 @@ export default function McrPage() {
     return <Badge variant="destructive" className="text-[9px] px-1 py-0">Not tested</Badge>;
   };
 
-  const getTakerNames = (bookingId: string) => {
+  const renderTakerDetails = (bookingId: string, isAdv: boolean) => {
     const ta = takersByBooking[bookingId] ?? [];
     const bta = btaByBooking[bookingId] ?? [];
-    const names: string[] = [];
-    for (const a of ta) {
-      const n = a.taker_name || (a as any).taker_custom_name;
-      if (n) names.push(n);
+
+    if (ta.length === 0 && bta.length === 0) {
+      return <span className="text-muted-foreground">—</span>;
     }
-    for (const a of bta) {
-      if ((a as any).taker_name) names.push((a as any).taker_name);
+
+    // ADV events: show taker name + protocol host:port or stream key
+    if (isAdv && ta.length > 0) {
+      return (
+        <div className="flex flex-col gap-0.5">
+          {ta.map((a, i) => {
+            const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+            const proto = a.protocol || "";
+            const host = a.host || "";
+            const port = a.port || "";
+            const streamKey = a.stream_key_or_channel_id || "";
+            let detail = "";
+            if (host && port) detail = `${host}:${port}`;
+            else if (host) detail = host;
+            else if (streamKey) detail = streamKey;
+            return (
+              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+                <span className="font-medium text-foreground">{name}</span>
+                {(proto || detail) && (
+                  <span className="text-muted-foreground">
+                    {proto && <span className="font-mono">{proto}</span>}
+                    {detail && <span className="font-mono ml-0.5">{detail}</span>}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
     }
-    return names;
+
+    // MCR events: show taker name + actual_channel_id
+    if (bta.length > 0) {
+      return (
+        <div className="flex flex-col gap-0.5">
+          {bta.map((a, i) => {
+            const name = (a as any).taker_name || `Slot ${a.slot_number}`;
+            const chId = a.actual_channel_id || "";
+            return (
+              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+                <span className="font-medium text-foreground">{name}</span>
+                {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Fallback: taker_assignments for MCR
+    return (
+      <div className="flex flex-col gap-0.5">
+        {ta.map((a, i) => {
+          const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+          const chId = a.stream_key_or_channel_id || "";
+          return (
+            <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+              <span className="font-medium text-foreground">{name}</span>
+              {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   const renderSection = (title: string, key: Section, items: typeof allBookings, color: string) => {
@@ -144,23 +203,21 @@ export default function McrPage() {
                 <tr className="bg-muted/30 text-[10px] uppercase tracking-wide text-muted-foreground">
                   <th className="px-3 py-1.5 text-left font-semibold w-[55px]">Type</th>
                   <th className="px-3 py-1.5 text-left font-semibold w-[95px]">Date</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[60px]">GMT</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[60px]">CET</th>
-                  <th className="px-3 py-1.5 text-left font-semibold">Event</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[100px]">League</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[90px]">Venue</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[130px]">Takers</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[50px]">GMT</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[50px]">CET</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[140px]">Event</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[80px]">League</th>
+                  <th className="px-3 py-1.5 text-left font-semibold">Takers</th>
                   <th className="px-3 py-1.5 text-left font-semibold w-[90px]">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {items.length === 0 ? (
-                  <tr><td colSpan={9} className="px-3 py-4 text-center text-xs text-muted-foreground">No events</td></tr>
+                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">No events</td></tr>
                 ) : (
                   items.map((b) => {
                     const cat = (b as any)._category || "MCR";
                     const isAdv = cat !== "MCR";
-                    const takerNames = getTakerNames(b.id);
                     return (
                       <tr key={b.id} className="hover:bg-muted/20 transition-colors">
                         <td className="px-3 py-1.5">
@@ -178,16 +235,9 @@ export default function McrPage() {
                         </td>
                         <td className="px-3 py-1.5 text-xs whitespace-nowrap">{b.gmt_time?.slice(0, 5)}</td>
                         <td className="px-3 py-1.5 text-xs whitespace-nowrap">{b.cet_time?.slice(0, 5) ?? ""}</td>
-                        <td className="px-3 py-1.5 text-xs font-medium">{b.event_name}</td>
+                        <td className="px-3 py-1.5 text-xs font-medium truncate max-w-[140px]" title={b.event_name}>{b.event_name}</td>
                         <td className="px-3 py-1.5 text-xs text-muted-foreground">{b.league_id ? leagueMap[b.league_id] ?? "" : ""}</td>
-                        <td className="px-3 py-1.5 text-xs text-muted-foreground">{b.venue ?? ""}</td>
-                        <td className="px-3 py-1.5 text-xs">
-                          {takerNames.length > 0 ? (
-                            <span className="truncate block max-w-[120px]" title={takerNames.join(", ")}>{takerNames.join(", ")}</span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
+                        <td className="px-3 py-1.5">{renderTakerDetails(b.id, isAdv)}</td>
                         <td className="px-3 py-1.5">{getStatusBadge(b.id)}</td>
                       </tr>
                     );
