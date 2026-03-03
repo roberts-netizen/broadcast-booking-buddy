@@ -16,6 +16,8 @@ import {
   useUpsertEndpoint,
 } from "@/hooks/useProjectTakerEndpoints";
 import { useTakers } from "@/hooks/useLookups";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 
 const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
 const SOURCES_UNUSED = null; // removed
