@@ -1,16 +1,29 @@
 import React, { useState, useMemo } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { useProjectTakerEndpoints, ProjectTakerEndpoint } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const TEST_STATUS_MAP: Record<string, { label: string; dot: string }> = {
+  not_tested: { label: "Not Tested", dot: "🔴" },
+  waiting_for_details: { label: "Waiting for details", dot: "🟡" },
+  tested: { label: "Tested", dot: "🟢" },
+};
 
 type Section = "today" | "upcoming" | "past";
 
 export default function McrPage() {
   const [expandedSections, setExpandedSections] = useState<Set<Section>>(new Set(["today", "upcoming"]));
+  const [selectedTaker, setSelectedTaker] = useState<TakerAssignment | null>(null);
 
   const { data: categories = [] } = useCategories(true);
   const { data: leagues = [] } = useLeagues(true);
@@ -170,22 +183,23 @@ export default function McrPage() {
             }
 
             return (
-              <div key={a.id} className="text-[10px] leading-tight">
-                <span className="font-medium text-foreground">{name}</span>
+              <div
+                key={a.id}
+                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setSelectedTaker(a); }}
+                title="Click to view full details"
+              >
+                <span className="font-medium text-primary underline decoration-dotted">{name}</span>
                 {connections.length > 0 && (
-                  <div className="ml-2 flex flex-col gap-0">
-                    {connections.map((c, ci) => (
-                      <div key={ci} className="flex items-center gap-1 text-muted-foreground">
-                        {c.proto && <span className="font-mono text-[9px] font-semibold">{c.proto}</span>}
-                        {c.host && (
-                          <span className="font-mono text-[9px]">
-                            {c.host}{c.port ? `:${c.port}` : ""}
-                          </span>
-                        )}
-                        {c.key && <span className="font-mono text-[9px]">key:{c.key}</span>}
-                      </div>
-                    ))}
-                  </div>
+                  <span className="ml-1 text-muted-foreground font-mono text-[9px]">
+                    {connections.map((c, ci) => {
+                      const parts: string[] = [];
+                      if (c.proto) parts.push(c.proto);
+                      if (c.host) parts.push(c.host + (c.port ? `:${c.port}` : ""));
+                      if (c.key) parts.push(`key:${c.key}`);
+                      return parts.join(" ");
+                    }).join(" | ")}
+                  </span>
                 )}
               </div>
             );
@@ -298,6 +312,89 @@ export default function McrPage() {
 
   const isLoading = mcrLoading;
 
+  const renderTakerDetailDialog = () => {
+    if (!selectedTaker) return null;
+    const a = selectedTaker;
+    const name = a.taker_name || (a as any).taker_custom_name || "Taker";
+    const status = TEST_STATUS_MAP[a.test_status] ?? TEST_STATUS_MAP.not_tested;
+    const eps = endpointsByAssignment[a.id] ?? [];
+
+    const DetailRow = ({ label, value }: { label: string; value: string | null | undefined }) => {
+      if (!value) return null;
+      return (
+        <div className="flex items-start gap-2 py-1 border-b border-border/50 last:border-b-0">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground w-[120px] shrink-0">{label}</span>
+          <span className="text-xs text-foreground font-mono break-all">{value}</span>
+        </div>
+      );
+    };
+
+    const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground border-b border-border pb-0.5 mb-1 mt-3 first:mt-0">
+        {children}
+      </div>
+    );
+
+    return (
+      <Dialog open={!!selectedTaker} onOpenChange={() => setSelectedTaker(null)}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <span>{status.dot}</span>
+              <span>{name}</span>
+              {a.protocol && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{a.protocol}</Badge>}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-0">
+            <SectionLabel>Technical Details</SectionLabel>
+            <DetailRow label="Protocol" value={a.protocol} />
+            <DetailRow label="Host / IP" value={a.host} />
+            <DetailRow label="Port" value={a.port} />
+            <DetailRow label="Stream Key" value={a.stream_key_or_channel_id} />
+            <DetailRow label="Username" value={a.username} />
+            <DetailRow label="Password" value={a.password ? "••••••••" : null} />
+            <DetailRow label="Quality" value={a.quality} />
+            <DetailRow label="Audio" value={a.audio} />
+
+            {eps.length > 0 && (
+              <>
+                <SectionLabel>Endpoints</SectionLabel>
+                {eps.map((ep) => (
+                  <div key={ep.id} className="bg-muted/30 rounded p-2 mb-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase">{ep.endpoint_type}</span>
+                    <DetailRow label="Protocol" value={ep.protocol} />
+                    <DetailRow label="Host" value={ep.host} />
+                    <DetailRow label="Port" value={ep.port} />
+                    <DetailRow label="Stream Key" value={ep.stream_key} />
+                    <DetailRow label="Username" value={ep.username} />
+                    <DetailRow label="Password" value={ep.password ? "••••••••" : null} />
+                  </div>
+                ))}
+              </>
+            )}
+
+            <SectionLabel>Communication</SectionLabel>
+            <DetailRow label="Method" value={a.communication_method} />
+            <DetailRow label="WhatsApp" value={a.whatsapp_details} />
+            <DetailRow label="Email Subject" value={a.email_subject} />
+            <DetailRow label="Phone" value={(a as any).phone_number} />
+            <DetailRow label="Notes" value={a.communication_notes} />
+
+            <SectionLabel>Testing</SectionLabel>
+            <div className="flex items-start gap-2 py-1 border-b border-border/50">
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground w-[120px] shrink-0">Status</span>
+              <span className="text-xs">{status.dot} {status.label}</span>
+            </div>
+            <DetailRow label="Tested By" value={a.tested_by} />
+            <DetailRow label="Test Date" value={a.test_datetime ? new Date(a.test_datetime).toLocaleString() : null} />
+            <DetailRow label="Test Notes" value={a.test_notes} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-card shrink-0">
@@ -315,6 +412,7 @@ export default function McrPage() {
           </>
         )}
       </div>
+      {renderTakerDetailDialog()}
     </div>
   );
 }
