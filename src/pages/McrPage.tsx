@@ -1,16 +1,29 @@
 import React, { useState, useMemo } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
 import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { useProjectTakerEndpoints, ProjectTakerEndpoint } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const TEST_STATUS_MAP: Record<string, { label: string; dot: string }> = {
+  not_tested: { label: "Not Tested", dot: "🔴" },
+  waiting_for_details: { label: "Waiting for details", dot: "🟡" },
+  tested: { label: "Tested", dot: "🟢" },
+};
 
 type Section = "today" | "upcoming" | "past";
 
 export default function McrPage() {
   const [expandedSections, setExpandedSections] = useState<Set<Section>>(new Set(["today", "upcoming"]));
+  const [selectedTaker, setSelectedTaker] = useState<TakerAssignment | null>(null);
 
   const { data: categories = [] } = useCategories(true);
   const { data: leagues = [] } = useLeagues(true);
