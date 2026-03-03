@@ -42,9 +42,9 @@ function AdvCollapsedSection({ category }: { category: string }) {
     return m;
   }, [leagues]);
 
-  // Only show today + upcoming
+  // Only show today + upcoming (use date_to for multi-day events)
   const relevantBookings = useMemo(
-    () => bookings.filter((b) => b.date >= today).slice(0, 20),
+    () => bookings.filter((b) => (b.date_to || b.date) >= today).slice(0, 20),
     [bookings, today]
   );
 
@@ -60,7 +60,7 @@ function AdvCollapsedSection({ category }: { category: string }) {
     return map;
   }, [assignments]);
 
-  const todayCount = relevantBookings.filter((b) => b.date === today).length;
+  const todayCount = relevantBookings.filter((b) => b.date <= today && (b.date_to || b.date) >= today).length;
   const upcomingCount = relevantBookings.filter((b) => b.date > today).length;
 
   return (

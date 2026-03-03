@@ -23,10 +23,11 @@ export function AdvancedCategoryView({ category }: Props) {
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
-      const d = b.date;
-      if (timeTab === "today") return d === today;
-      if (timeTab === "upcoming") return d > today;
-      if (timeTab === "past") return d < today;
+      const startDate = b.date;
+      const endDate = b.date_to || b.date;
+      if (timeTab === "today") return startDate <= today && endDate >= today;
+      if (timeTab === "upcoming") return startDate > today;
+      if (timeTab === "past") return endDate < today;
       return true;
     });
   }, [bookings, timeTab, today]);
@@ -41,9 +42,9 @@ export function AdvancedCategoryView({ category }: Props) {
   };
 
   const tabs: { key: TimeTab; label: string; count: number }[] = [
-    { key: "today", label: "Today", count: bookings.filter((b) => b.date === today).length },
+    { key: "today", label: "Today", count: bookings.filter((b) => b.date <= today && (b.date_to || b.date) >= today).length },
     { key: "upcoming", label: "Upcoming", count: bookings.filter((b) => b.date > today).length },
-    { key: "past", label: "Past Events", count: bookings.filter((b) => b.date < today).length },
+    { key: "past", label: "Past Events", count: bookings.filter((b) => (b.date_to || b.date) < today).length },
   ];
 
   return (
