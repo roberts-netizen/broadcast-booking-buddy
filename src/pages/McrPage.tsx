@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
-import { useLeagues, useCategories } from "@/hooks/useLookups";
+import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { useProjectTakerEndpoints, ProjectTakerEndpoint } from "@/hooks/useProjectTakerEndpoints";
@@ -82,6 +82,14 @@ export default function McrPage() {
     return map;
   }, [btaAssignments]);
 
+  const { data: takers = [] } = useTakers(true);
+
+  const takerNameMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const t of takers) m[t.id] = t.name;
+    return m;
+  }, [takers]);
+
   const leagueMap = useMemo(() => {
     const m: Record<string, string> = {};
     for (const l of leagues) m[l.id] = l.name;
@@ -136,7 +144,7 @@ export default function McrPage() {
     // ADV events: show taker name + host/IP + key/port from assignments & endpoints
     if (isAdv && ta.length > 0) {
       return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
           {ta.map((a, i) => {
             const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
             const eps = endpointsByAssignment[a.id] ?? [];
@@ -189,9 +197,9 @@ export default function McrPage() {
     // MCR events: show taker name + actual_channel_id
     if (bta.length > 0) {
       return (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
           {bta.map((a, i) => {
-            const name = (a as any).taker_name || `Slot ${a.slot_number}`;
+            const name = a.taker_id ? (takerNameMap[a.taker_id] || `Taker ${i + 1}`) : `Taker ${i + 1}`;
             const chId = a.actual_channel_id || "";
             return (
               <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
@@ -206,7 +214,7 @@ export default function McrPage() {
 
     // Fallback: taker_assignments for MCR
     return (
-      <div className="flex flex-col gap-0.5">
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
         {ta.map((a, i) => {
           const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
           const chId = a.stream_key_or_channel_id || "";
