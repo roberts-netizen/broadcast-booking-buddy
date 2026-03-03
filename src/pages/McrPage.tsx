@@ -4,6 +4,7 @@ import { useBookings, Booking } from "@/hooks/useBookings";
 import { useLeagues, useCategories } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
+import { useProjectTakerEndpoints, ProjectTakerEndpoint } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
 
 type Section = "today" | "upcoming" | "past";
@@ -49,6 +50,19 @@ export default function McrPage() {
   const allIds = useMemo(() => allBookings.map((b) => b.id), [allBookings]);
   const { data: takerAssignments = [] } = useTakerAssignments(allIds);
   const { data: btaAssignments = [] } = useBookingTakerAssignments(allIds);
+
+  // Fetch project_taker_endpoints for ADV taker details
+  const takerAssignmentIds = useMemo(() => takerAssignments.map((a) => a.id), [takerAssignments]);
+  const { data: endpoints = [] } = useProjectTakerEndpoints(takerAssignmentIds);
+
+  const endpointsByAssignment = useMemo(() => {
+    const map: Record<string, ProjectTakerEndpoint[]> = {};
+    for (const e of endpoints) {
+      if (!map[e.taker_assignment_id]) map[e.taker_assignment_id] = [];
+      map[e.taker_assignment_id].push(e);
+    }
+    return map;
+  }, [endpoints]);
 
   const takersByBooking = useMemo(() => {
     const map: Record<string, TakerAssignment[]> = {};
@@ -119,28 +133,51 @@ export default function McrPage() {
       return <span className="text-muted-foreground">—</span>;
     }
 
-    // ADV events: show taker name + protocol host:port or stream key
+    // ADV events: show taker name + host/IP + key/port from assignments & endpoints
     if (isAdv && ta.length > 0) {
       return (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-1">
           {ta.map((a, i) => {
             const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
-            const proto = a.protocol || "";
-            const host = a.host || "";
-            const port = a.port || "";
-            const streamKey = a.stream_key_or_channel_id || "";
-            let detail = "";
-            if (host && port) detail = `${host}:${port}`;
-            else if (host) detail = host;
-            else if (streamKey) detail = streamKey;
+            const eps = endpointsByAssignment[a.id] ?? [];
+            // Use assignment-level fields as fallback
+            const aProto = a.protocol || "";
+            const aHost = a.host || "";
+            const aPort = a.port || "";
+            const aKey = a.stream_key_or_channel_id || "";
+
+            // Collect all connection info (from endpoints first, then assignment fields)
+            const connections: { proto: string; host: string; port: string; key: string }[] = [];
+            if (eps.length > 0) {
+              for (const ep of eps) {
+                connections.push({
+                  proto: ep.protocol || "",
+                  host: ep.host || "",
+                  port: ep.port || "",
+                  key: ep.stream_key || "",
+                });
+              }
+            } else if (aHost || aKey || aProto) {
+              connections.push({ proto: aProto, host: aHost, port: aPort, key: aKey });
+            }
+
             return (
-              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+              <div key={a.id} className="text-[10px] leading-tight">
                 <span className="font-medium text-foreground">{name}</span>
-                {(proto || detail) && (
-                  <span className="text-muted-foreground">
-                    {proto && <span className="font-mono">{proto}</span>}
-                    {detail && <span className="font-mono ml-0.5">{detail}</span>}
-                  </span>
+                {connections.length > 0 && (
+                  <div className="ml-2 flex flex-col gap-0">
+                    {connections.map((c, ci) => (
+                      <div key={ci} className="flex items-center gap-1 text-muted-foreground">
+                        {c.proto && <span className="font-mono text-[9px] font-semibold">{c.proto}</span>}
+                        {c.host && (
+                          <span className="font-mono text-[9px]">
+                            {c.host}{c.port ? `:${c.port}` : ""}
+                          </span>
+                        )}
+                        {c.key && <span className="font-mono text-[9px]">key:{c.key}</span>}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             );
