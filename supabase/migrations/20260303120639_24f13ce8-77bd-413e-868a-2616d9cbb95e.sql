@@ -1,0 +1,1 @@
+UPDATE bookings SET date_to = '2026-03-23' WHERE id = 'ce030256-8a16-4167-8232-9a703d030858';
