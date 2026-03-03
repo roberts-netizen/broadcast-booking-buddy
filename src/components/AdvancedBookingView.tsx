@@ -18,7 +18,7 @@ import {
 import { useTakers } from "@/hooks/useLookups";
 
 const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
-const SOURCES = ["Satellite", "IP/Fiber", "Cloud", "Local", "Other"];
+const SOURCES_UNUSED = null; // removed
 const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
 const TEST_STATUSES: { value: TestStatus; label: string; color: string }[] = [
   { value: "not_tested", label: "Not Tested", color: "text-destructive bg-destructive/10" },
