@@ -111,18 +111,77 @@ export default function McrPage() {
     return <Badge variant="destructive" className="text-[9px] px-1 py-0">Not tested</Badge>;
   };
 
-  const getTakerNames = (bookingId: string) => {
+  const renderTakerDetails = (bookingId: string, isAdv: boolean) => {
     const ta = takersByBooking[bookingId] ?? [];
     const bta = btaByBooking[bookingId] ?? [];
-    const names: string[] = [];
-    for (const a of ta) {
-      const n = a.taker_name || (a as any).taker_custom_name;
-      if (n) names.push(n);
+
+    if (ta.length === 0 && bta.length === 0) {
+      return <span className="text-muted-foreground">—</span>;
     }
-    for (const a of bta) {
-      if ((a as any).taker_name) names.push((a as any).taker_name);
+
+    // ADV events: show taker name + protocol host:port or stream key
+    if (isAdv && ta.length > 0) {
+      return (
+        <div className="flex flex-col gap-0.5">
+          {ta.map((a, i) => {
+            const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+            const proto = a.protocol || "";
+            const host = a.host || "";
+            const port = a.port || "";
+            const streamKey = a.stream_key_or_channel_id || "";
+            let detail = "";
+            if (host && port) detail = `${host}:${port}`;
+            else if (host) detail = host;
+            else if (streamKey) detail = streamKey;
+            return (
+              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+                <span className="font-medium text-foreground">{name}</span>
+                {(proto || detail) && (
+                  <span className="text-muted-foreground">
+                    {proto && <span className="font-mono">{proto}</span>}
+                    {detail && <span className="font-mono ml-0.5">{detail}</span>}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
     }
-    return names;
+
+    // MCR events: show taker name + actual_channel_id
+    if (bta.length > 0) {
+      return (
+        <div className="flex flex-col gap-0.5">
+          {bta.map((a, i) => {
+            const name = (a as any).taker_name || `Slot ${a.slot_number}`;
+            const chId = a.actual_channel_id || "";
+            return (
+              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+                <span className="font-medium text-foreground">{name}</span>
+                {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Fallback: taker_assignments for MCR
+    return (
+      <div className="flex flex-col gap-0.5">
+        {ta.map((a, i) => {
+          const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+          const chId = a.stream_key_or_channel_id || "";
+          return (
+            <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+              <span className="font-medium text-foreground">{name}</span>
+              {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   const renderSection = (title: string, key: Section, items: typeof allBookings, color: string) => {
