@@ -373,32 +373,26 @@ export function AdvancedBookingView({ booking }: Props) {
       label: "Source",
       rowSpan: 1,
       render: () => (
-        <select
-          className={`${selectClass} px-1 py-0.5`}
-          value={ef.source}
-          onChange={(e) => {
-            setEf((f) => ({ ...f, source: e.target.value }));
-            updateBooking.mutate({ id: booking.id, source: e.target.value || null } as any);
-          }}
-        >
-          <option value="">— Select source —</option>
-          {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <input className={inputClass} value={ef.source} placeholder="Describe source..." onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} />
       ),
     },
     {
-      label: "Status",
+      label: "Source Status",
       rowSpan: 1,
       render: () => {
-        const tested = assignments.filter(a => a.test_status === "tested").length;
-        const total = assignments.length;
-        const overall: TestStatus = total === 0 ? "not_tested" : tested === total ? "tested" : assignments.some(a => a.test_status === "not_tested") ? "not_tested" : "waiting_for_details";
-        const sm = TEST_STATUSES.find((s) => s.value === overall) ?? TEST_STATUSES[0];
+        const currentStatus = (ef as any).source_status ?? "not_tested";
+        const sm = TEST_STATUSES.find((s) => s.value === currentStatus) ?? TEST_STATUSES[0];
         return (
-          <div className={`flex items-center gap-1.5 px-1 py-0.5 rounded ${sm.color}`}>
-            <span className="text-[10px] font-semibold">{sm.label}</span>
-            <span className="text-[9px] opacity-70">({tested}/{total})</span>
-          </div>
+          <select
+            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
+            value={currentStatus}
+            onChange={(e) => {
+              setEf((f) => ({ ...f, source_status: e.target.value }));
+              updateBooking.mutate({ id: booking.id, source_status: e.target.value } as any);
+            }}
+          >
+            {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
         );
       },
     },
