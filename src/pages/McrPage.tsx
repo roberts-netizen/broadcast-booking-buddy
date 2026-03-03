@@ -272,30 +272,17 @@ export default function McrPage() {
                   <th className="px-3 py-1.5 text-left font-semibold w-[140px] border border-border">Event</th>
                   <th className="px-3 py-1.5 text-left font-semibold w-[80px] border border-border">League</th>
                   <th className="px-3 py-1.5 text-left font-semibold border border-border">Takers</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[90px] border border-border">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 ? (
-                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
+                  <tr><td colSpan={7} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
                 ) : (
                   items.map((b) => {
                     const cat = (b as any)._category || "MCR";
                     const isAdv = cat !== "MCR";
-                    // Determine row bg based on test status
-                    const ta = takersByBooking[b.id] ?? [];
-                    const bta = btaByBooking[b.id] ?? [];
-                    const totalTakers = ta.length + bta.length;
-                    const tested = ta.filter((a) => a.test_status === "tested").length;
-                    const waiting = ta.filter((a) => a.test_status === "waiting_for_details").length;
-                    let rowBg = "";
-                    if (totalTakers > 0 && ta.length > 0) {
-                      if (tested === ta.length) rowBg = "bg-[hsl(142,71%,45%,0.1)]";
-                      else if (waiting > 0) rowBg = "bg-[hsl(45,93%,47%,0.1)]";
-                      else rowBg = "bg-[hsl(0,72%,51%,0.08)]";
-                    }
                     return (
-                      <tr key={b.id} className={`hover:bg-muted/20 transition-colors ${rowBg}`}>
+                      <tr key={b.id} className="hover:bg-muted/20 transition-colors">
                         <td className="px-3 py-1.5 border border-border">
                           {isAdv ? (
                             <Badge variant="outline" className="text-[9px] px-1 py-0">{cat}</Badge>
@@ -314,7 +301,6 @@ export default function McrPage() {
                         <td className="px-3 py-1.5 text-xs font-medium truncate max-w-[140px] border border-border" title={b.event_name}>{b.event_name}</td>
                         <td className="px-3 py-1.5 text-xs text-muted-foreground border border-border">{b.league_id ? leagueMap[b.league_id] ?? "" : ""}</td>
                         <td className="px-3 py-1.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
-                        <td className="px-3 py-1.5 border border-border">{getStatusBadge(b.id)}</td>
                       </tr>
                     );
                   })
