@@ -51,6 +51,19 @@ export default function McrPage() {
   const { data: takerAssignments = [] } = useTakerAssignments(allIds);
   const { data: btaAssignments = [] } = useBookingTakerAssignments(allIds);
 
+  // Fetch project_taker_endpoints for ADV taker details
+  const takerAssignmentIds = useMemo(() => takerAssignments.map((a) => a.id), [takerAssignments]);
+  const { data: endpoints = [] } = useProjectTakerEndpoints(takerAssignmentIds);
+
+  const endpointsByAssignment = useMemo(() => {
+    const map: Record<string, ProjectTakerEndpoint[]> = {};
+    for (const e of endpoints) {
+      if (!map[e.taker_assignment_id]) map[e.taker_assignment_id] = [];
+      map[e.taker_assignment_id].push(e);
+    }
+    return map;
+  }, [endpoints]);
+
   const takersByBooking = useMemo(() => {
     const map: Record<string, TakerAssignment[]> = {};
     for (const a of takerAssignments) {
