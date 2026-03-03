@@ -257,47 +257,59 @@ export default function McrPage() {
         </button>
         {isExpanded && (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
+            <table className="w-full min-w-[900px] border-collapse">
               <thead>
                 <tr className="bg-muted/30 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <th className="px-3 py-1.5 text-left font-semibold w-[55px]">Type</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[95px]">Date</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[50px]">GMT</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[50px]">CET</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[140px]">Event</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[80px]">League</th>
-                  <th className="px-3 py-1.5 text-left font-semibold">Takers</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[90px]">Status</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[55px] border border-border">Type</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[95px] border border-border">Date</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[50px] border border-border">GMT</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[50px] border border-border">CET</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[140px] border border-border">Event</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[80px] border border-border">League</th>
+                  <th className="px-3 py-1.5 text-left font-semibold border border-border">Takers</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[90px] border border-border">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody>
                 {items.length === 0 ? (
-                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">No events</td></tr>
+                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
                 ) : (
                   items.map((b) => {
                     const cat = (b as any)._category || "MCR";
                     const isAdv = cat !== "MCR";
+                    // Determine row bg based on test status
+                    const ta = takersByBooking[b.id] ?? [];
+                    const bta = btaByBooking[b.id] ?? [];
+                    const totalTakers = ta.length + bta.length;
+                    const tested = ta.filter((a) => a.test_status === "tested").length;
+                    const waiting = ta.filter((a) => a.test_status === "waiting_for_details").length;
+                    let rowBg = "";
+                    if (totalTakers > 0 && ta.length > 0) {
+                      if (tested === ta.length) rowBg = "bg-[hsl(142,71%,45%,0.1)]";
+                      else if (waiting > 0) rowBg = "bg-[hsl(45,93%,47%,0.1)]";
+                      else rowBg = "bg-[hsl(0,72%,51%,0.08)]";
+                    }
                     return (
-                      <tr key={b.id} className="hover:bg-muted/20 transition-colors">
-                        <td className="px-3 py-1.5">
+                      <tr key={b.id} className={`hover:bg-muted/20 transition-colors ${rowBg}`}>
+                        <td className="px-3 py-1.5 border border-border">
                           {isAdv ? (
                             <Badge variant="outline" className="text-[9px] px-1 py-0">{cat}</Badge>
                           ) : (
                             <span className="text-[9px] text-muted-foreground">MCR</span>
                           )}
                         </td>
-                        <td className="px-3 py-1.5 text-xs whitespace-nowrap">
+                        <td className="px-3 py-1.5 text-xs whitespace-nowrap border border-border">
                           {b.date}
                           {(b as any).date_to && (b as any).date_to !== b.date && (
                             <span className="text-muted-foreground ml-0.5">→{(b as any).date_to.slice(5)}</span>
                           )}
                         </td>
-                        <td className="px-3 py-1.5 text-xs whitespace-nowrap">{b.gmt_time?.slice(0, 5)}</td>
-                        <td className="px-3 py-1.5 text-xs whitespace-nowrap">{b.cet_time?.slice(0, 5) ?? ""}</td>
-                        <td className="px-3 py-1.5 text-xs font-medium truncate max-w-[140px]" title={b.event_name}>{b.event_name}</td>
-                        <td className="px-3 py-1.5 text-xs text-muted-foreground">{b.league_id ? leagueMap[b.league_id] ?? "" : ""}</td>
-                        <td className="px-3 py-1.5">{renderTakerDetails(b.id, isAdv)}</td>
-                        <td className="px-3 py-1.5">{getStatusBadge(b.id)}</td>
+                        <td className="px-3 py-1.5 text-xs whitespace-nowrap border border-border">{b.gmt_time?.slice(0, 5)}</td>
+                        <td className="px-3 py-1.5 text-xs whitespace-nowrap border border-border">{b.cet_time?.slice(0, 5) ?? ""}</td>
+                        <td className="px-3 py-1.5 text-xs font-medium truncate max-w-[140px] border border-border" title={b.event_name}>{b.event_name}</td>
+                        <td className="px-3 py-1.5 text-xs text-muted-foreground border border-border">{b.league_id ? leagueMap[b.league_id] ?? "" : ""}</td>
+                        <td className="px-3 py-1.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
+                        <td className="px-3 py-1.5 border border-border">{getStatusBadge(b.id)}</td>
                       </tr>
                     );
                   })
