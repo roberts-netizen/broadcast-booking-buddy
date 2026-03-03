@@ -18,6 +18,7 @@ import {
 import { useTakers } from "@/hooks/useLookups";
 
 const PROTOCOLS = ["RTMP", "SRT", "TCP", "Bifrost", "SRT Pull", "RTMP 2", "SRT 2", "TCP 2", "Bifrost 2", "SRT Pull 2"];
+const SOURCES = ["Satellite", "IP/Fiber", "Cloud", "Local", "Other"];
 const COMM_METHODS = ["WhatsApp", "Email", "Both", "Other"];
 const TEST_STATUSES: { value: TestStatus; label: string; color: string }[] = [
   { value: "not_tested", label: "Not Tested", color: "text-destructive bg-destructive/10" },
@@ -379,22 +380,19 @@ export function AdvancedBookingView({ booking }: Props) {
     {
       label: "Source",
       rowSpan: 2,
-      render: () => {
-        const sm = TEST_STATUSES.find((s) => s.value === overallStatus) ?? TEST_STATUSES[0];
-        return (
-          <div className="flex flex-col gap-1">
-            <input className={inputClass} value={ef.source} onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} />
-            <div className="flex items-center gap-1">
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded w-fit ${sm.color}`}>
-                {sm.label}
-              </span>
-              <span className="text-[9px] text-muted-foreground italic">
-                ({assignments.filter(a => a.test_status === "tested").length}/{assignments.length} tested)
-              </span>
-            </div>
-          </div>
-        );
-      },
+      render: () => (
+        <select
+          className={`${selectClass} px-1 py-0.5`}
+          value={ef.source}
+          onChange={(e) => {
+            setEf((f) => ({ ...f, source: e.target.value }));
+            updateBooking.mutate({ id: booking.id, source: e.target.value || null } as any);
+          }}
+        >
+          <option value="">— Select source —</option>
+          {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      ),
     },
     {
       label: "Overall\nAudio setup",
