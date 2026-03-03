@@ -60,7 +60,7 @@ function AdvCollapsedSection({ category }: { category: string }) {
     return map;
   }, [assignments]);
 
-  const todayCount = relevantBookings.filter((b) => b.date === today).length;
+  const todayCount = relevantBookings.filter((b) => b.date <= today && (b.date_to || b.date) >= today).length;
   const upcomingCount = relevantBookings.filter((b) => b.date > today).length;
 
   return (
