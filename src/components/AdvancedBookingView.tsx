@@ -74,6 +74,7 @@ export function AdvancedBookingView({ booking }: Props) {
     cet_time_to: (booking as any).cet_time_to ?? "",
     venue: (booking as any).venue ?? "",
     source: (booking as any).source ?? "",
+    source_status: (booking as any).source_status ?? "not_tested",
     audio_setup: (booking as any).audio_setup ?? "CH12:\nCH34:\nCH56:\nCH78:",
     project_lead: (booking as any).project_lead ?? "",
     event_notes: (booking as any).event_notes ?? "",
