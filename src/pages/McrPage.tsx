@@ -203,23 +203,21 @@ export default function McrPage() {
                 <tr className="bg-muted/30 text-[10px] uppercase tracking-wide text-muted-foreground">
                   <th className="px-3 py-1.5 text-left font-semibold w-[55px]">Type</th>
                   <th className="px-3 py-1.5 text-left font-semibold w-[95px]">Date</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[60px]">GMT</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[60px]">CET</th>
-                  <th className="px-3 py-1.5 text-left font-semibold">Event</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[100px]">League</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[90px]">Venue</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[130px]">Takers</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[50px]">GMT</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[50px]">CET</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[140px]">Event</th>
+                  <th className="px-3 py-1.5 text-left font-semibold w-[80px]">League</th>
+                  <th className="px-3 py-1.5 text-left font-semibold">Takers</th>
                   <th className="px-3 py-1.5 text-left font-semibold w-[90px]">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {items.length === 0 ? (
-                  <tr><td colSpan={9} className="px-3 py-4 text-center text-xs text-muted-foreground">No events</td></tr>
+                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">No events</td></tr>
                 ) : (
                   items.map((b) => {
                     const cat = (b as any)._category || "MCR";
                     const isAdv = cat !== "MCR";
-                    const takerNames = getTakerNames(b.id);
                     return (
                       <tr key={b.id} className="hover:bg-muted/20 transition-colors">
                         <td className="px-3 py-1.5">
@@ -237,16 +235,9 @@ export default function McrPage() {
                         </td>
                         <td className="px-3 py-1.5 text-xs whitespace-nowrap">{b.gmt_time?.slice(0, 5)}</td>
                         <td className="px-3 py-1.5 text-xs whitespace-nowrap">{b.cet_time?.slice(0, 5) ?? ""}</td>
-                        <td className="px-3 py-1.5 text-xs font-medium">{b.event_name}</td>
+                        <td className="px-3 py-1.5 text-xs font-medium truncate max-w-[140px]" title={b.event_name}>{b.event_name}</td>
                         <td className="px-3 py-1.5 text-xs text-muted-foreground">{b.league_id ? leagueMap[b.league_id] ?? "" : ""}</td>
-                        <td className="px-3 py-1.5 text-xs text-muted-foreground">{b.venue ?? ""}</td>
-                        <td className="px-3 py-1.5 text-xs">
-                          {takerNames.length > 0 ? (
-                            <span className="truncate block max-w-[120px]" title={takerNames.join(", ")}>{takerNames.join(", ")}</span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
+                        <td className="px-3 py-1.5">{renderTakerDetails(b.id, isAdv)}</td>
                         <td className="px-3 py-1.5">{getStatusBadge(b.id)}</td>
                       </tr>
                     );
