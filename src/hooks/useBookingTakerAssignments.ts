@@ -10,6 +10,8 @@ export type BookingTakerAssignment = {
   actual_channel_id: string;
   created_at: string;
   updated_at: string;
+  // Joined from taker_channel_maps
+  taker_channel_map_label?: string | null;
 };
 
 export function useBookingTakerAssignments(bookingIds: string[]) {
@@ -19,10 +21,13 @@ export function useBookingTakerAssignments(bookingIds: string[]) {
       if (!bookingIds.length) return [] as BookingTakerAssignment[];
       const { data, error } = await supabase
         .from("booking_taker_assignments")
-        .select("*")
+        .select("*, taker_channel_maps(label)")
         .in("booking_id", bookingIds);
       if (error) throw error;
-      return data as BookingTakerAssignment[];
+      return (data as any[]).map((row) => ({
+        ...row,
+        taker_channel_map_label: row.taker_channel_maps?.label ?? null,
+      })) as BookingTakerAssignment[];
     },
     enabled: bookingIds.length > 0,
   });

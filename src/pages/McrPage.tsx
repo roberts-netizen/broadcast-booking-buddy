@@ -199,11 +199,11 @@ export default function McrPage() {
       return (
         <div className="flex flex-wrap gap-x-3 gap-y-0.5">
           {bta.map((a, i) => {
-            const name = a.taker_id ? (takerNameMap[a.taker_id] || `Taker ${i + 1}`) : `Taker ${i + 1}`;
+            const label = a.taker_channel_map_label || `Taker ${i + 1}`;
             const chId = a.actual_channel_id || "";
             return (
               <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
-                <span className="font-medium text-foreground">{name}</span>
+                <span className="font-medium text-foreground">{label}</span>
                 {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
               </div>
             );
