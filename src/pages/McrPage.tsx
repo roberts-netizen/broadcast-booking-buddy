@@ -42,9 +42,9 @@ function AdvCollapsedSection({ category }: { category: string }) {
     return m;
   }, [leagues]);
 
-  // Only show today + upcoming
+  // Only show today + upcoming (use date_to for multi-day events)
   const relevantBookings = useMemo(
-    () => bookings.filter((b) => b.date >= today).slice(0, 20),
+    () => bookings.filter((b) => (b.date_to || b.date) >= today).slice(0, 20),
     [bookings, today]
   );
 
