@@ -157,26 +157,24 @@ export default function McrPage() {
     // ADV events: show taker name + host/IP + key/port from assignments & endpoints
     if (isAdv && ta.length > 0) {
       return (
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
+        <div className="flex divide-x divide-border">
           {ta.map((a, i) => {
             const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+            const statusColor = a.test_status === "tested"
+              ? "bg-[hsl(142,71%,45%)]"
+              : a.test_status === "waiting_for_details"
+              ? "bg-[hsl(45,93%,47%)]"
+              : "bg-[hsl(0,72%,51%)]";
             const eps = endpointsByAssignment[a.id] ?? [];
-            // Use assignment-level fields as fallback
             const aProto = a.protocol || "";
             const aHost = a.host || "";
             const aPort = a.port || "";
             const aKey = a.stream_key_or_channel_id || "";
 
-            // Collect all connection info (from endpoints first, then assignment fields)
             const connections: { proto: string; host: string; port: string; key: string }[] = [];
             if (eps.length > 0) {
               for (const ep of eps) {
-                connections.push({
-                  proto: ep.protocol || "",
-                  host: ep.host || "",
-                  port: ep.port || "",
-                  key: ep.stream_key || "",
-                });
+                connections.push({ proto: ep.protocol || "", host: ep.host || "", port: ep.port || "", key: ep.stream_key || "" });
               }
             } else if (aHost || aKey || aProto) {
               connections.push({ proto: aProto, host: aHost, port: aPort, key: aKey });
@@ -185,14 +183,15 @@ export default function McrPage() {
             return (
               <div
                 key={a.id}
-                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
+                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-2 py-0.5 transition-colors flex items-center gap-1.5 first:pl-0"
                 onClick={(e) => { e.stopPropagation(); setSelectedTaker(a); }}
                 title="Click to view full details"
               >
+                <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
                 <span className="font-medium text-primary underline decoration-dotted">{name}</span>
                 {connections.length > 0 && (
-                  <span className="ml-1 text-muted-foreground font-mono text-[9px]">
-                    {connections.map((c, ci) => {
+                  <span className="text-muted-foreground font-mono text-[9px]">
+                    {connections.map((c) => {
                       const parts: string[] = [];
                       if (c.proto) parts.push(c.proto);
                       if (c.host) parts.push(c.host + (c.port ? `:${c.port}` : ""));
@@ -208,15 +207,15 @@ export default function McrPage() {
       );
     }
 
-    // MCR events: show taker name + actual_channel_id
+    // MCR events: show taker label + actual_channel_id
     if (bta.length > 0) {
       return (
-        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+        <div className="flex divide-x divide-border">
           {bta.map((a, i) => {
             const label = a.taker_channel_map_label || `Taker ${i + 1}`;
             const chId = a.actual_channel_id || "";
             return (
-              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-2 first:pl-0">
                 <span className="font-medium text-foreground">{label}</span>
                 {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
               </div>
@@ -228,12 +227,18 @@ export default function McrPage() {
 
     // Fallback: taker_assignments for MCR
     return (
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+      <div className="flex divide-x divide-border">
         {ta.map((a, i) => {
           const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+          const statusColor = a.test_status === "tested"
+            ? "bg-[hsl(142,71%,45%)]"
+            : a.test_status === "waiting_for_details"
+            ? "bg-[hsl(45,93%,47%)]"
+            : "bg-[hsl(0,72%,51%)]";
           const chId = a.stream_key_or_channel_id || "";
           return (
-            <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight">
+            <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-2 first:pl-0">
+              <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
               <span className="font-medium text-foreground">{name}</span>
               {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
             </div>
