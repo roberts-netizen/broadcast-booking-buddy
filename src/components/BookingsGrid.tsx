@@ -99,26 +99,6 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     leagueId?: string;
   }>({});
 
-  // ── Highlight booking from MCR shortcut ──
-  useEffect(() => {
-    if (!highlightBookingId || !gridApi) return;
-    // Switch to full view so the booking is visible
-    setView("full");
-  }, [highlightBookingId, gridApi]);
-
-  // Scroll to highlighted booking after data loads
-  useEffect(() => {
-    if (!highlightBookingId || !gridApi || view !== "full") return;
-    // Wait for data to render
-    setTimeout(() => {
-      const rowNode = gridApi.getRowNode(highlightBookingId);
-      if (rowNode) {
-        gridApi.ensureNodeVisible(rowNode, "middle");
-        gridApi.flashCells({ rowNodes: [rowNode] });
-      }
-      onHighlightHandled?.();
-    }, 500);
-  }, [highlightBookingId, gridApi, view, bookings, onHighlightHandled]);
 
   // ── Undo stack ──
   type UndoEntry = { id: string; field: string; oldValue: any };
