@@ -113,13 +113,36 @@ export function useTakers(activeOnly = false) {
   });
 }
 
+export type TakerRecord = {
+  id?: string;
+  name: string;
+  active: boolean;
+  email_subject?: string | null;
+  communication_method?: string | null;
+  phone_number?: string | null;
+  quality?: string | null;
+  audio?: string | null;
+  protocol?: string | null;
+  host?: string | null;
+  port?: string | null;
+  stream_key?: string | null;
+  username?: string | null;
+  password?: string | null;
+  backup_host?: string | null;
+  backup_port?: string | null;
+  backup_stream_key?: string | null;
+  backup_username?: string | null;
+  backup_password?: string | null;
+};
+
 export function useUpsertTaker() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: { id?: string; name: string; active: boolean }) => {
-      const { error } = row.id
-        ? await supabase.from("takers").update({ name: row.name, active: row.active }).eq("id", row.id)
-        : await supabase.from("takers").insert({ name: row.name, active: row.active });
+    mutationFn: async (row: TakerRecord) => {
+      const { id, ...rest } = row;
+      const { error } = id
+        ? await supabase.from("takers").update(rest).eq("id", id)
+        : await supabase.from("takers").insert(rest);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["takers"] }),

@@ -6,7 +6,9 @@ import {
   useTakers, useUpsertTaker, useDeleteTaker, useBulkInsertTakers,
   useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap, useBulkInsertTakerChannelMaps,
   useCategories, useUpsertCategory, useDeleteCategory,
+  type TakerRecord,
 } from "@/hooks/useLookups";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import BulkPasteDialog, { type BulkColumn } from "@/components/BulkPasteDialog";
 
 // ── Generic toggle badge ─────────────────────────────────────────────────────
