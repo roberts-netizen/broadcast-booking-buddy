@@ -211,9 +211,41 @@ export function AdvancedBookingView({ booking }: Props) {
             <select
               className={selectClass}
               value={a.taker_id ?? ""}
-              onChange={(e) => {
+              onChange={async (e) => {
                 const val = e.target.value || null;
                 handleUpdateAssignment(a.id, { taker_id: val, taker_custom_name: val ? null : customName } as any);
+                // Autofill from taker defaults
+                if (val) {
+                  const { data: taker } = await supabase.from("takers").select("*").eq("id", val).single();
+                  if (taker) {
+                    handleUpdateAssignment(a.id, {
+                      email_subject: taker.email_subject || null,
+                      communication_method: taker.communication_method || null,
+                      phone_number: taker.phone_number || null,
+                      quality: taker.quality || null,
+                      audio: taker.audio || null,
+                    } as any);
+                    if (taker.protocol || taker.host || taker.port || taker.stream_key || taker.username || taker.password) {
+                      handleUpdateEndpoint(a.id, "primary", {
+                        protocol: taker.protocol || null,
+                        host: taker.host || null,
+                        port: taker.port || null,
+                        stream_key: taker.stream_key || null,
+                        username: taker.username || null,
+                        password: taker.password || null,
+                      });
+                    }
+                    if (taker.backup_host || taker.backup_port || taker.backup_stream_key || taker.backup_username || taker.backup_password) {
+                      handleUpdateEndpoint(a.id, "backup", {
+                        host: taker.backup_host || null,
+                        port: taker.backup_port || null,
+                        stream_key: taker.backup_stream_key || null,
+                        username: taker.backup_username || null,
+                        password: taker.backup_password || null,
+                      });
+                    }
+                  }
+                }
               }}
             >
               <option value="">— Select or type below —</option>
