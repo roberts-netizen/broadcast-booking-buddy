@@ -1,0 +1,17 @@
+ALTER TABLE public.takers
+  ADD COLUMN IF NOT EXISTS email_subject text,
+  ADD COLUMN IF NOT EXISTS communication_method text,
+  ADD COLUMN IF NOT EXISTS phone_number text,
+  ADD COLUMN IF NOT EXISTS quality text,
+  ADD COLUMN IF NOT EXISTS audio text,
+  ADD COLUMN IF NOT EXISTS protocol text,
+  ADD COLUMN IF NOT EXISTS host text,
+  ADD COLUMN IF NOT EXISTS port text,
+  ADD COLUMN IF NOT EXISTS stream_key text,
+  ADD COLUMN IF NOT EXISTS username text,
+  ADD COLUMN IF NOT EXISTS password text,
+  ADD COLUMN IF NOT EXISTS backup_host text,
+  ADD COLUMN IF NOT EXISTS backup_port text,
+  ADD COLUMN IF NOT EXISTS backup_stream_key text,
+  ADD COLUMN IF NOT EXISTS backup_username text,
+  ADD COLUMN IF NOT EXISTS backup_password text;
