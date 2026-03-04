@@ -592,7 +592,6 @@ function CategoriesTable() {
 export default function AdminPage() {
   const { data: leagues = [] } = useLeagues(false);
   const { data: channels = [] } = useIncomingChannels(false);
-  const { data: takers = [] } = useTakers(false);
 
   const upsertLeague = useUpsertLeague();
   const deleteLeague = useDeleteLeague();
@@ -600,9 +599,6 @@ export default function AdminPage() {
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
   const bulkChannels = useBulkInsertIncomingChannels();
-  const upsertTaker = useUpsertTaker();
-  const deleteTaker = useDeleteTaker();
-  const bulkTakers = useBulkInsertTakers();
 
   const simpleBulk = (mutate: (rows: { name: string; active: boolean }[]) => Promise<any>) =>
     async (parsed: Record<string, string>[]) => {
@@ -629,13 +625,7 @@ export default function AdminPage() {
           onDelete={(id) => deleteChannel.mutate(id)}
           onBulkImport={simpleBulk(bulkChannels.mutateAsync)}
         />
-        <SimpleTable
-          title="Takers"
-          rows={takers}
-          onUpsert={(r) => upsertTaker.mutate(r)}
-          onDelete={(id) => deleteTaker.mutate(id)}
-          onBulkImport={simpleBulk(bulkTakers.mutateAsync)}
-        />
+        <TakersTable />
         <CategoriesTable />
         <TakerChannelMapTable />
       </div>
