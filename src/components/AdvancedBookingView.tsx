@@ -174,9 +174,31 @@ export function AdvancedBookingView({ booking }: Props) {
 
         const handleSavePermanent = async (name: string) => {
           if (!name.trim()) return;
+          // Gather endpoint data for this assignment
+          const primaryEp = getEp(a.id, "primary");
+          const backupEp = getEp(a.id, "backup");
           const { data, error } = await supabase
             .from("takers")
-            .insert({ name: name.trim(), active: true })
+            .insert({
+              name: name.trim(),
+              active: true,
+              email_subject: a.email_subject || null,
+              communication_method: a.communication_method || null,
+              phone_number: (a as any).phone_number || null,
+              quality: a.quality || null,
+              audio: a.audio || null,
+              protocol: primaryEp.protocol || null,
+              host: primaryEp.host || null,
+              port: primaryEp.port || null,
+              stream_key: primaryEp.stream_key || null,
+              username: primaryEp.username || null,
+              password: primaryEp.password || null,
+              backup_host: backupEp.host || null,
+              backup_port: backupEp.port || null,
+              backup_stream_key: backupEp.stream_key || null,
+              backup_username: backupEp.username || null,
+              backup_password: backupEp.password || null,
+            })
             .select()
             .single();
           if (error || !data) return;
