@@ -434,21 +434,69 @@ export type Database = {
       takers: {
         Row: {
           active: boolean
+          audio: string | null
+          backup_host: string | null
+          backup_password: string | null
+          backup_port: string | null
+          backup_stream_key: string | null
+          backup_username: string | null
+          communication_method: string | null
           created_at: string
+          email_subject: string | null
+          host: string | null
           id: string
           name: string
+          password: string | null
+          phone_number: string | null
+          port: string | null
+          protocol: string | null
+          quality: string | null
+          stream_key: string | null
+          username: string | null
         }
         Insert: {
           active?: boolean
+          audio?: string | null
+          backup_host?: string | null
+          backup_password?: string | null
+          backup_port?: string | null
+          backup_stream_key?: string | null
+          backup_username?: string | null
+          communication_method?: string | null
           created_at?: string
+          email_subject?: string | null
+          host?: string | null
           id?: string
           name: string
+          password?: string | null
+          phone_number?: string | null
+          port?: string | null
+          protocol?: string | null
+          quality?: string | null
+          stream_key?: string | null
+          username?: string | null
         }
         Update: {
           active?: boolean
+          audio?: string | null
+          backup_host?: string | null
+          backup_password?: string | null
+          backup_port?: string | null
+          backup_stream_key?: string | null
+          backup_username?: string | null
+          communication_method?: string | null
           created_at?: string
+          email_subject?: string | null
+          host?: string | null
           id?: string
           name?: string
+          password?: string | null
+          phone_number?: string | null
+          port?: string | null
+          protocol?: string | null
+          quality?: string | null
+          stream_key?: string | null
+          username?: string | null
         }
         Relationships: []
       }
