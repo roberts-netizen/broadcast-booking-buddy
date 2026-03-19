@@ -271,12 +271,12 @@ export function AdvancedBookingView({ booking }: Props) {
             {!a.taker_id && (
               <div className="flex items-center gap-1">
                 <input
-                  className={`${inputClass} flex-1`}
-                  placeholder="Custom name..."
-                  value={customName}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleUpdateAssignment(a.id, { taker_custom_name: (e.target as HTMLInputElement).value || null } as any); }}
-                  onBlur={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
-                  onChange={(e) => handleUpdateAssignment(a.id, { taker_custom_name: e.target.value || null } as any)}
+                   className={`${inputClass} flex-1`}
+                   placeholder="Custom name..."
+                   value={getLocal(`${a.id}_custom_name`, customName)}
+                   onKeyDown={(e) => { if (e.key === "Enter") flushLocal(`${a.id}_custom_name`, a.id, "taker_custom_name"); }}
+                   onBlur={() => flushLocal(`${a.id}_custom_name`, a.id, "taker_custom_name")}
+                   onChange={(e) => setLocal(`${a.id}_custom_name`, e.target.value)}
                 />
                 {customName.trim() && (
                   <button
