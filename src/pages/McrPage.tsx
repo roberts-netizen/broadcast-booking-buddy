@@ -171,20 +171,12 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
               : a.test_status === "waiting_for_details"
               ? "bg-[hsl(45,93%,47%)]"
               : "bg-[hsl(0,72%,51%)]";
+            const qualAudio = [a.quality, a.audio].filter(Boolean).join(" / ");
             const eps = endpointsByAssignment[a.id] ?? [];
-            const aProto = a.protocol || "";
-            const aHost = a.host || "";
-            const aPort = a.port || "";
-            const aKey = a.stream_key_or_channel_id || "";
-
-            const connections: { proto: string; host: string; port: string; key: string }[] = [];
-            if (eps.length > 0) {
-              for (const ep of eps) {
-                connections.push({ proto: ep.protocol || "", host: ep.host || "", port: ep.port || "", key: ep.stream_key || "" });
-              }
-            } else if (aHost || aKey || aProto) {
-              connections.push({ proto: aProto, host: aHost, port: aPort, key: aKey });
-            }
+            const proto = eps.length > 0
+              ? eps.map(e => e.protocol).filter(Boolean).join(", ")
+              : a.protocol || "";
+            const notes = a.communication_notes || a.test_notes || "";
 
             return (
               <div
@@ -195,17 +187,9 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
               >
                 <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
                 <span className="font-medium text-primary underline decoration-dotted">{name}</span>
-                {connections.length > 0 && (
-                  <span className="text-muted-foreground font-mono text-[9px]">
-                    {connections.map((c) => {
-                      const parts: string[] = [];
-                      if (c.proto) parts.push(c.proto);
-                      if (c.host) parts.push(c.host + (c.port ? `:${c.port}` : ""));
-                      if (c.key) parts.push(`key:${c.key}`);
-                      return parts.join(" ");
-                    }).join(" | ")}
-                  </span>
-                )}
+                {qualAudio && <span className="text-muted-foreground">({qualAudio})</span>}
+                {proto && <span className="text-muted-foreground font-mono text-[9px]">[{proto}]</span>}
+                {notes && <span className="text-muted-foreground italic truncate max-w-[150px]" title={notes}>{notes}</span>}
               </div>
             );
           })}
