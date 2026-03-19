@@ -353,7 +353,7 @@ export function AdvancedBookingView({ booking }: Props) {
     {
       label: "Notes:",
       render: (a) =>
-        a ? <input className={inputClass} value={a.communication_notes ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { communication_notes: e.target.value || null })} /> : null,
+        a ? <input className={inputClass} value={getLocal(`${a.id}_notes`, a.communication_notes ?? "")} onChange={(e) => setLocal(`${a.id}_notes`, e.target.value)} onBlur={() => flushLocal(`${a.id}_notes`, a.id, "communication_notes")} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(`${a.id}_notes`, a.id, "communication_notes"); }} /> : null,
     },
     {
       label: "Taker:",
