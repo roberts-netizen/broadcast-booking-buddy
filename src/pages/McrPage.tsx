@@ -165,7 +165,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       return (
         <div className="flex divide-x divide-border">
           {ta.map((a, i) => {
-            const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+            const name = a.taker_name || (a as any).taker_custom_name || "";
             const statusColor = a.test_status === "tested"
               ? "bg-[hsl(142,71%,45%)]"
               : a.test_status === "waiting_for_details"
