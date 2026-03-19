@@ -295,7 +295,7 @@ export function AdvancedBookingView({ booking }: Props) {
     {
       label: "Email / e-subject:",
       render: (a) =>
-        a ? <input className={inputClass} value={a.email_subject ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { email_subject: e.target.value || null })} /> : null,
+        a ? <input className={inputClass} value={getLocal(`${a.id}_email`, a.email_subject ?? "")} onChange={(e) => setLocal(`${a.id}_email`, e.target.value)} onBlur={() => flushLocal(`${a.id}_email`, a.id, "email_subject")} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(`${a.id}_email`, a.id, "email_subject"); }} /> : null,
     },
     {
       label: "Communication platform:",
