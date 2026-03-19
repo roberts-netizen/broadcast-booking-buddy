@@ -310,7 +310,7 @@ export function AdvancedBookingView({ booking }: Props) {
     {
       label: "Phone number:",
       render: (a) =>
-        a ? <input className={inputClass} value={(a as any).phone_number ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { phone_number: e.target.value || null } as any)} /> : null,
+        a ? <input className={inputClass} value={getLocal(`${a.id}_phone`, (a as any).phone_number ?? "")} onChange={(e) => setLocal(`${a.id}_phone`, e.target.value)} onBlur={() => flushLocal(`${a.id}_phone`, a.id, "phone_number")} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(`${a.id}_phone`, a.id, "phone_number"); }} /> : null,
     },
     {
       label: "Requested Quality:",
