@@ -383,7 +383,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "primary");
-        return <input className={inputClass} value={ep.host ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { host: e.target.value || null })} />;
+        const k = `${a.id}_p_host`;
+        return <input className={inputClass} value={getLocal(k, ep.host ?? "")} onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "host", { assignmentId: a.id, type: "primary" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "host", { assignmentId: a.id, type: "primary" }); }} />;
       },
     },
     {
@@ -391,7 +392,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "primary");
-        return <input className={inputClass} value={ep.stream_key ?? ""} placeholder="key / port" onChange={(e) => handleUpdateEndpoint(a.id, "primary", { stream_key: e.target.value || null })} />;
+        const k = `${a.id}_p_stream`;
+        return <input className={inputClass} value={getLocal(k, ep.stream_key ?? "")} placeholder="key / port" onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "stream_key", { assignmentId: a.id, type: "primary" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "stream_key", { assignmentId: a.id, type: "primary" }); }} />;
       },
     },
     {
@@ -399,7 +401,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "primary");
-        return <input className={inputClass} value={ep.username ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { username: e.target.value || null })} />;
+        const k = `${a.id}_p_user`;
+        return <input className={inputClass} value={getLocal(k, ep.username ?? "")} onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "username", { assignmentId: a.id, type: "primary" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "username", { assignmentId: a.id, type: "primary" }); }} />;
       },
     },
     {
@@ -407,7 +410,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "primary");
-        return <input className={inputClass} type="password" value={ep.password ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { password: e.target.value || null })} />;
+        const k = `${a.id}_p_pass`;
+        return <input className={inputClass} type="password" value={getLocal(k, ep.password ?? "")} onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "password", { assignmentId: a.id, type: "primary" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "password", { assignmentId: a.id, type: "primary" }); }} />;
       },
     },
     {
@@ -415,7 +419,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
-        return <input className={inputClass} value={ep.host ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { host: e.target.value || null })} />;
+        const k = `${a.id}_b_host`;
+        return <input className={inputClass} value={getLocal(k, ep.host ?? "")} onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "host", { assignmentId: a.id, type: "backup" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "host", { assignmentId: a.id, type: "backup" }); }} />;
       },
     },
     {
@@ -423,7 +428,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
-        return <input className={inputClass} value={ep.stream_key ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { stream_key: e.target.value || null })} />;
+        const k = `${a.id}_b_stream`;
+        return <input className={inputClass} value={getLocal(k, ep.stream_key ?? "")} onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "stream_key", { assignmentId: a.id, type: "backup" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "stream_key", { assignmentId: a.id, type: "backup" }); }} />;
       },
     },
     {
@@ -431,7 +437,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
-        return <input className={inputClass} value={ep.username ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { username: e.target.value || null })} />;
+        const k = `${a.id}_b_user`;
+        return <input className={inputClass} value={getLocal(k, ep.username ?? "")} onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "username", { assignmentId: a.id, type: "backup" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "username", { assignmentId: a.id, type: "backup" }); }} />;
       },
     },
     {
@@ -439,7 +446,8 @@ export function AdvancedBookingView({ booking }: Props) {
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
-        return <input className={inputClass} type="password" value={ep.password ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "backup", { password: e.target.value || null })} />;
+        const k = `${a.id}_b_pass`;
+        return <input className={inputClass} type="password" value={getLocal(k, ep.password ?? "")} onChange={(e) => setLocal(k, e.target.value)} onBlur={() => flushLocal(k, a.id, "password", { assignmentId: a.id, type: "backup" })} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(k, a.id, "password", { assignmentId: a.id, type: "backup" }); }} />;
       },
     },
   ];
