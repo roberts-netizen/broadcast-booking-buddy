@@ -57,6 +57,23 @@ export function AdvancedBookingView({ booking }: Props) {
   // Track "save as permanent" checkbox per assignment
   const [savePermanent, setSavePermanent] = useState<Record<string, boolean>>({});
 
+  // Local state for text inputs to avoid per-keystroke DB writes
+  const [localValues, setLocalValues] = useState<Record<string, string>>({});
+  const getLocal = (key: string, serverVal: string) =>
+    key in localValues ? localValues[key] : serverVal;
+  const setLocal = (key: string, val: string) =>
+    setLocalValues((prev) => ({ ...prev, [key]: val }));
+  const flushLocal = (key: string, id: string, field: string, isEndpoint?: { assignmentId: string; type: "primary" | "backup" }) => {
+    if (!(key in localValues)) return;
+    const val = localValues[key] || null;
+    if (isEndpoint) {
+      handleUpdateEndpoint(isEndpoint.assignmentId, isEndpoint.type, { [field]: val } as any);
+    } else {
+      handleUpdateAssignment(id, { [field]: val } as any);
+    }
+    setLocalValues((prev) => { const n = { ...prev }; delete n[key]; return n; });
+  };
+
   // Auto-create default 3 takers
   const hasAutoCreated = useRef(false);
   useEffect(() => {
