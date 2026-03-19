@@ -315,7 +315,7 @@ export function AdvancedBookingView({ booking }: Props) {
     {
       label: "Requested Quality:",
       render: (a) =>
-        a ? <input className={inputClass} value={a.quality ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { quality: e.target.value || null })} /> : null,
+        a ? <input className={inputClass} value={getLocal(`${a.id}_quality`, a.quality ?? "")} onChange={(e) => setLocal(`${a.id}_quality`, e.target.value)} onBlur={() => flushLocal(`${a.id}_quality`, a.id, "quality")} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(`${a.id}_quality`, a.id, "quality"); }} /> : null,
     },
     {
       label: "Requested Audio:",
