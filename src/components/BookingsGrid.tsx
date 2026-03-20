@@ -395,13 +395,16 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           editable: false,
           cellRenderer: (params: ICellRendererParams) => {
             if (!params.data?.id) return null;
+            const bookingId = params.data.id as string;
+            const rowNode = params.node;
+            const currentValue = (params.value as string) ?? "";
             return (
               <SearchableSelect
                 options={leagues.map((l) => ({ value: l.name, label: l.name }))}
-                value={(params.value as string) ?? ""}
+                value={currentValue}
                 onChange={(next) => {
-                  params.node?.setDataValue("league_name", next);
-                  void saveLeagueValue(params.data.id, next);
+                  rowNode?.setDataValue("league_name", next);
+                  void saveLeagueValue(bookingId, next);
                 }}
                 freeText
                 compact
@@ -426,13 +429,16 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           editable: false,
           cellRenderer: (params: ICellRendererParams) => {
             if (!params.data?.id) return null;
+            const bookingId = params.data.id as string;
+            const rowNode = params.node;
+            const currentValue = (params.value as string) ?? "";
             return (
               <SearchableSelect
                 options={channels.map((c) => ({ value: c.name, label: c.name }))}
-                value={(params.value as string) ?? ""}
+                value={currentValue}
                 onChange={(next) => {
-                  params.node?.setDataValue("channel_name", next);
-                  void saveChannelValue(params.data.id, next);
+                  rowNode?.setDataValue("channel_name", next);
+                  void saveChannelValue(bookingId, next);
                 }}
                 freeText
                 compact
