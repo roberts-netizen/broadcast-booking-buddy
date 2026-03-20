@@ -26,6 +26,8 @@ import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, Book
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+const BULK_IMPORT_COLUMNS = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id"] as const;
+
 function addOneHour(time: string): string {
   if (!time) return "";
   const [h, m] = time.split(":").map(Number);
@@ -35,6 +37,41 @@ function addOneHour(time: string): string {
 function formatTime(t: string | null | undefined): string {
   if (!t) return "";
   return t.slice(0, 5);
+}
+
+function normalizeDate(value: string): string {
+  const v = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const dmy = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  return v;
+}
+
+function extractRowsFromRawText(raw: string): string[][] {
+  const rows = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.split("\t"));
+
+  if (rows.some((r) => r.length > 1)) return rows;
+
+  const compactRows: string[][] = [];
+  const compactPattern = /(\d{2}\/\d{2}\/\d{4})\s*(\d{2}:\d{2})\s*([\s\S]*?)\s*(\d{2}:\d{2})\s*([\s\S]*?)\s*([A-Za-z]{2,}-\d+)(?=\d{2}\/\d{2}\/\d{4}\s*\d{2}:\d{2}|$)/g;
+
+  for (const match of raw.matchAll(compactPattern)) {
+    compactRows.push([
+      match[1]?.trim() ?? "",
+      match[2]?.trim() ?? "",
+      match[4]?.trim() ?? "",
+      match[3]?.trim() ?? "",
+      match[5]?.trim() ?? "",
+      "",
+      match[6]?.trim() ?? "",
+    ]);
+  }
+
+  return compactRows.length > 0 ? compactRows : rows;
 }
 
 // ── Custom theme ─────────────────────────────────────────────────────────────
@@ -456,16 +493,13 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     createBooking.mutate(payload);
   }, [createBooking, category, defaultTournamentId]);
 
-  // ── Paste handler for multi-row paste via AG Grid's clipboard API ──
-  const processDataFromClipboard = useCallback(
-    (params: { data: string[][] }): string[][] | null => {
-      const lines = params.data.filter((row) => row.some((cell) => cell.trim()));
-      if (lines.length <= 1) return params.data; // Single row: let AG Grid handle normally
+  // ── Paste handler for multi-row paste via AG Grid + inline editor fallback ──
+  const importRowsFromClipboard = useCallback(
+    (rawRows: string[][]) => {
+      const rows = rawRows.filter((r) => r.some((c) => c.trim()));
+      if (!rows.length) return false;
 
-      // Parse tab-separated rows: Date | GMT | CET | League | Event | Channel | WO
-      const cols = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id"];
-
-      for (const cells of lines) {
+      for (const cells of rows) {
         const row: Partial<Booking> = {
           date: new Date().toISOString().split("T")[0],
           gmt_time: "00:00",
@@ -474,18 +508,21 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           work_order_id: "",
         };
 
-        cols.forEach((col, i) => {
+        BULK_IMPORT_COLUMNS.forEach((col, i) => {
           const val = cells[i]?.trim() ?? "";
           if (!val) return;
-          if (col === "league_name") {
+
+          if (col === "date") {
+            row.date = normalizeDate(val);
+          } else if (col === "league_name") {
             row.league_id = leagueNameToId[val.toLowerCase()] ?? null;
           } else if (col === "channel_name") {
             row.incoming_channel_id = channelNameToId[val.toLowerCase()] ?? null;
           } else if (col === "gmt_time") {
-            row.gmt_time = val;
-            if (!cells[2]?.trim()) row.cet_time = addOneHour(val);
+            row.gmt_time = val.slice(0, 5);
+            if (!cells[2]?.trim()) row.cet_time = addOneHour(val.slice(0, 5));
           } else if (col === "cet_time") {
-            row.cet_time = val;
+            row.cet_time = val.slice(0, 5);
           } else {
             (row as any)[col] = val;
           }
@@ -497,11 +534,45 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         createBooking.mutate(row);
       }
 
-      // Return null to prevent AG Grid from also pasting into cells
-      return null;
+      return true;
     },
     [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]
   );
+
+  const processDataFromClipboard = useCallback(
+    (params: { data: string[][] }): string[][] | null => {
+      const raw = params.data.map((r) => r.join("\t")).join("\n");
+      const rows = extractRowsFromRawText(raw);
+      if (rows.filter((r) => r.some((c) => c.trim())).length <= 1) return params.data;
+
+      importRowsFromClipboard(rows);
+      return null;
+    },
+    [importRowsFromClipboard]
+  );
+
+  useEffect(() => {
+    const handleEditorPaste = (e: ClipboardEvent) => {
+      const active = document.activeElement as HTMLElement | null;
+      if (!active) return;
+
+      const inGrid = !!active.closest(".ag-root-wrapper");
+      if (!inGrid) return;
+
+      const text = e.clipboardData?.getData("text/plain") ?? "";
+      if (!text) return;
+
+      const rows = extractRowsFromRawText(text).filter((r) => r.some((c) => c.trim()));
+      if (rows.length <= 1) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      importRowsFromClipboard(rows);
+    };
+
+    document.addEventListener("paste", handleEditorPaste, true);
+    return () => document.removeEventListener("paste", handleEditorPaste, true);
+  }, [importRowsFromClipboard]);
 
   // ── Column resize persistence ──
   const COLUMN_WIDTH_KEY = `col-widths-${category ?? "default"}`;
