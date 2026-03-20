@@ -508,16 +508,15 @@ export function AdvancedBookingView({ booking }: Props) {
         const currentStatus = (ef as any).source_status ?? "not_tested";
         const sm = TEST_STATUSES.find((s) => s.value === currentStatus) ?? TEST_STATUSES[0];
         return (
-          <select
-            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
+          <SearchableSelect
+            compact
+            options={TEST_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
             value={currentStatus}
-            onChange={(e) => {
-              setEf((f) => ({ ...f, source_status: e.target.value }));
-              updateBooking.mutate({ id: booking.id, source_status: e.target.value } as any);
+            onChange={(val) => {
+              setEf((f) => ({ ...f, source_status: val || "not_tested" }));
+              updateBooking.mutate({ id: booking.id, source_status: val || "not_tested" } as any);
             }}
-          >
-            {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-          </select>
+          />
         );
       },
     },
