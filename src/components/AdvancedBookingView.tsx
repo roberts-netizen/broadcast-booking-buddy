@@ -309,10 +309,13 @@ export function AdvancedBookingView({ booking }: Props) {
       label: "Communication platform:",
       render: (a) =>
         a ? (
-          <select className={selectClass} value={a.communication_method ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { communication_method: e.target.value || null })}>
-            <option value="">—</option>
-            {COMM_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
+          <SearchableSelect
+            compact
+            freeText
+            options={COMM_METHODS.map((m) => ({ value: m, label: m }))}
+            value={a.communication_method ?? ""}
+            onChange={(val) => handleUpdateAssignment(a.id, { communication_method: val || null })}
+          />
         ) : null,
     },
     {
