@@ -154,6 +154,10 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       const today = new Date().toISOString().split("T")[0];
       return { ...base, dateFrom: today, dateTo: today };
     }
+    if (view === "upcoming") {
+      const today = new Date().toISOString().split("T")[0];
+      return { ...base, dateFrom: today };
+    }
     if (view === "past") {
       const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
       return { ...base, dateTo: yesterday };
