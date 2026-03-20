@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, AlertTriangle, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { SearchableSelect } from "./SearchableSelect";
 import {
   Dialog,
   DialogContent,
