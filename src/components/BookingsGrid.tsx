@@ -729,14 +729,14 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
             Today's Events
           </button>
           <button
-            onClick={() => setView("full")}
+            onClick={() => setView("upcoming")}
             className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-              view === "full"
+              view === "upcoming"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Full Events
+            Upcoming Events
           </button>
           <button
             onClick={() => setView("past")}
