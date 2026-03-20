@@ -26,6 +26,8 @@ import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, Book
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+const BULK_IMPORT_COLUMNS = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id"] as const;
+
 function addOneHour(time: string): string {
   if (!time) return "";
   const [h, m] = time.split(":").map(Number);
@@ -35,6 +37,41 @@ function addOneHour(time: string): string {
 function formatTime(t: string | null | undefined): string {
   if (!t) return "";
   return t.slice(0, 5);
+}
+
+function normalizeDate(value: string): string {
+  const v = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const dmy = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  return v;
+}
+
+function extractRowsFromRawText(raw: string): string[][] {
+  const rows = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.split("\t"));
+
+  if (rows.some((r) => r.length > 1)) return rows;
+
+  const compactRows: string[][] = [];
+  const compactPattern = /(\d{2}\/\d{2}\/\d{4})\s*(\d{2}:\d{2})\s*([\s\S]*?)\s*(\d{2}:\d{2})\s*([\s\S]*?)\s*([A-Za-z]{2,}-\d+)(?=\d{2}\/\d{2}\/\d{4}\s*\d{2}:\d{2}|$)/g;
+
+  for (const match of raw.matchAll(compactPattern)) {
+    compactRows.push([
+      match[1]?.trim() ?? "",
+      match[2]?.trim() ?? "",
+      match[4]?.trim() ?? "",
+      match[3]?.trim() ?? "",
+      match[5]?.trim() ?? "",
+      "",
+      match[6]?.trim() ?? "",
+    ]);
+  }
+
+  return compactRows.length > 0 ? compactRows : rows;
 }
 
 // ── Custom theme ─────────────────────────────────────────────────────────────
