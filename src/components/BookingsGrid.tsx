@@ -156,6 +156,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     return base;
   }, [view, filters, category]);
 
+  const queryClient = useQueryClient();
   const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
