@@ -351,13 +351,12 @@ export function AdvancedBookingView({ booking }: Props) {
         if (!a) return null;
         const sm = TEST_STATUSES.find((s) => s.value === a.test_status) ?? TEST_STATUSES[0];
         return (
-          <select
-            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
+          <SearchableSelect
+            compact
+            options={TEST_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
             value={a.test_status}
-            onChange={(e) => handleUpdateAssignment(a.id, { test_status: e.target.value as TestStatus })}
-          >
-            {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-          </select>
+            onChange={(val) => handleUpdateAssignment(a.id, { test_status: (val || "not_tested") as TestStatus })}
+          />
         );
       },
     },
