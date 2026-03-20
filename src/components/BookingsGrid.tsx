@@ -436,8 +436,28 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       const updates: Partial<Booking> = {};
 
       if (field === "league_name") {
-        const name = event.newValue as string;
-        updates.league_id = name ? (leagueNameToId[name.toLowerCase()] ?? null) : null;
+        const name = (event.newValue as string)?.trim();
+        if (!name) {
+          updates.league_id = null;
+        } else {
+          const existingId = leagueNameToId[name.toLowerCase()];
+          if (existingId) {
+            updates.league_id = existingId;
+          } else {
+            // Auto-create the league, then update the booking
+            const { data: newLeague, error } = await supabase
+              .from("leagues")
+              .insert({ name, active: true })
+              .select("id")
+              .single();
+            if (!error && newLeague) {
+              updates.league_id = newLeague.id;
+              queryClient.invalidateQueries({ queryKey: ["leagues"] });
+            } else {
+              updates.league_id = null;
+            }
+          }
+        }
       } else if (field === "channel_name") {
         const name = event.newValue as string;
         updates.incoming_channel_id = name ? (channelNameToId[name.toLowerCase()] ?? null) : null;
