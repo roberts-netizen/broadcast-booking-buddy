@@ -174,11 +174,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   // ── Highlight booking from MCR shortcut ──
   useEffect(() => {
     if (!highlightBookingId || !gridApi) return;
-    setView("full");
+    setView("upcoming");
   }, [highlightBookingId, gridApi]);
 
   useEffect(() => {
-    if (!highlightBookingId || !gridApi || view !== "full") return;
+    if (!highlightBookingId || !gridApi || view !== "upcoming") return;
     setTimeout(() => {
       const rowNode = gridApi.getRowNode(highlightBookingId);
       if (rowNode) {
