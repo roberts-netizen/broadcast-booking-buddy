@@ -384,10 +384,13 @@ export function AdvancedBookingView({ booking }: Props) {
         if (!a) return null;
         const ep = getEp(a.id, "primary");
         return (
-          <select className={selectClass} value={ep.protocol ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { protocol: e.target.value || null })}>
-            <option value="">—</option>
-            {PROTOCOLS.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <SearchableSelect
+            compact
+            freeText
+            options={PROTOCOLS.map((p) => ({ value: p, label: p }))}
+            value={ep.protocol ?? ""}
+            onChange={(val) => handleUpdateEndpoint(a.id, "primary", { protocol: val || null })}
+          />
         );
       },
     },
