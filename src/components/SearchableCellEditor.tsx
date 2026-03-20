@@ -83,7 +83,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
           <button
             type="button"
             onPointerDown={(e) => handlePointerSelect(e, "")}
-            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!getCommittedValue() ? "bg-accent text-accent-foreground" : ""}`}
+            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!committedRef.current ? "bg-accent text-accent-foreground" : ""}`}
           >
             —
           </button>
