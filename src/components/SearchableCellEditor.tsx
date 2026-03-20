@@ -11,15 +11,23 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const [search, setSearch] = useState(props.freeText ? (props.value || "") : "");
   const [selected, setSelected] = useState(props.value || "");
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Use refs to always have current values available for getValue()
+  const searchRef = useRef(search);
+  const selectedRef = useRef(selected);
+  searchRef.current = search;
+  selectedRef.current = selected;
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useImperativeHandle(ref, () => ({
-    getValue: () => props.freeText ? search : selected,
+    getValue: () => {
+      return props.freeText ? searchRef.current : selectedRef.current;
+    },
     isCancelAfterEnd: () => false,
-  }), [search, selected, props.freeText]);
+  }));
 
   const filtered = search
     ? props.values.filter((v) => v.toLowerCase().includes(search.toLowerCase()))
@@ -28,8 +36,10 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const handleSelect = (val: string) => {
     if (props.freeText) {
       setSearch(val);
+      searchRef.current = val;
     } else {
       setSelected(val);
+      selectedRef.current = val;
     }
     setTimeout(() => props.stopEditing(), 0);
   };
@@ -39,12 +49,14 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
       <input
         ref={inputRef}
         value={props.freeText ? search : search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          searchRef.current = e.target.value;
+        }}
         onKeyDown={(e) => {
           if (e.key === "Escape") props.stopEditing();
           if (e.key === "Enter") {
             if (props.freeText) {
-              // Accept typed value as-is
               setTimeout(() => props.stopEditing(), 0);
             } else if (filtered.length === 1) {
               handleSelect(filtered[0]);
