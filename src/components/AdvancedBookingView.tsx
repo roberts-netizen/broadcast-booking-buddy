@@ -226,13 +226,20 @@ export function AdvancedBookingView({ booking }: Props) {
 
         return (
           <div className="flex flex-col gap-0.5">
-            <select
-              className={selectClass}
+            <SearchableSelect
+              compact
+              freeText
+              options={takerList.map((t) => ({ value: t.id, label: t.name }))}
               value={a.taker_id ?? ""}
-              onChange={async (e) => {
-                const val = e.target.value || null;
-                handleUpdateAssignment(a.id, { taker_id: val, taker_custom_name: val ? null : customName } as any);
-                if (val) {
+              onChange={async (val) => {
+                // Check if val is an existing taker id
+                const isExistingId = takerList.some((t) => t.id === val);
+                if (!val) {
+                  handleUpdateAssignment(a.id, { taker_id: null, taker_custom_name: null } as any);
+                  return;
+                }
+                if (isExistingId) {
+                  handleUpdateAssignment(a.id, { taker_id: val, taker_custom_name: null } as any);
                   const { data: taker } = await supabase.from("takers").select("*").eq("id", val).single();
                   if (taker) {
                     handleUpdateAssignment(a.id, {
@@ -262,12 +269,13 @@ export function AdvancedBookingView({ booking }: Props) {
                       });
                     }
                   }
+                } else {
+                  // Free text - set as custom name
+                  handleUpdateAssignment(a.id, { taker_id: null, taker_custom_name: val } as any);
                 }
               }}
-            >
-              <option value="">— Select or type below —</option>
-              {takerList.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+              placeholder="— Select or type —"
+            />
             {!a.taker_id && (
               <div className="flex items-center gap-1">
                 <input
