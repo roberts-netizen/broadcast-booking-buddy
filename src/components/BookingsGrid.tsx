@@ -592,7 +592,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         <BookingFilters leagues={leagues} filters={filters} onChange={setFilters} />
       </div>
 
-      <div className="flex-1 overflow-hidden" onPaste={handlePaste}>
+      <div className="flex-1 overflow-hidden">
         <AgGridReact
           ref={gridRef}
           theme={gridTheme}
