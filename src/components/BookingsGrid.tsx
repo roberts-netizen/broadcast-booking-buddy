@@ -117,8 +117,12 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
   if (!props.data?.id) return null;
   return (
     <button
-      onClick={() => props.onDelete(props.data.id)}
-      className="opacity-0 group-hover:opacity-100 hover:text-destructive text-muted-foreground transition-all p-0.5"
+      onClick={() => {
+        if (window.confirm("Delete this event?")) {
+          props.onDelete(props.data.id);
+        }
+      }}
+      className="opacity-30 hover:opacity-100 hover:text-destructive text-muted-foreground transition-all p-0.5"
       title="Delete booking"
     >
       🗑
