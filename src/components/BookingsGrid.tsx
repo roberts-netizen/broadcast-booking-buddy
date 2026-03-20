@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,7 @@ import BookingFilters from "./BookingFilters";
 import { DateToCell } from "./DateToCell";
 import { ReportCell } from "./ReportCell";
 import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, BookingReport } from "@/hooks/useBookingReports";
+import { SearchableCellEditor } from "@/components/SearchableCellEditor";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -328,9 +329,10 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "league_name",
           width: 130,
           editable: true,
-          cellEditorPopup: false,
+          cellEditor: SearchableCellEditor,
+          cellEditorPopup: true,
           cellEditorParams: {
-            useFormatter: true,
+            values: leagues.map((l) => l.name),
           },
         },
         {
@@ -345,9 +347,10 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "channel_name",
           width: 130,
           editable: true,
-          cellEditor: "agSelectCellEditor",
+          cellEditor: SearchableCellEditor,
+          cellEditorPopup: true,
           cellEditorParams: {
-            values: ["", ...channels.map((c) => c.name)],
+            values: channels.map((c) => c.name),
           },
         },
         {
