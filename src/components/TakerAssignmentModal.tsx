@@ -223,14 +223,13 @@ function AssignmentForm({ form, takers, onChange, onSave, onDelete, isSaving, is
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Method</Label>
-              <select
-                className={fieldClass()}
+              <SearchableSelect
+                freeText
+                options={COMM_METHODS.map((m) => ({ value: m, label: m }))}
                 value={form.communication_method ?? ""}
-                onChange={(e) => onChange({ communication_method: e.target.value || null })}
-              >
-                <option value="">— select —</option>
-                {COMM_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
+                onChange={(val) => onChange({ communication_method: val || null })}
+                placeholder="— select —"
+              />
             </div>
             <div>
               <Label>WhatsApp Details</Label>
