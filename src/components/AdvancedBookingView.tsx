@@ -366,19 +366,6 @@ export function AdvancedBookingView({ booking }: Props) {
         a ? <input className={inputClass} value={getLocal(`${a.id}_notes`, a.communication_notes ?? "")} onChange={(e) => setLocal(`${a.id}_notes`, e.target.value)} onBlur={() => flushLocal(`${a.id}_notes`, a.id, "communication_notes")} onKeyDown={(e) => { if (e.key === "Enter") flushLocal(`${a.id}_notes`, a.id, "communication_notes"); }} /> : null,
     },
     {
-      label: "Taker:",
-      render: (a) =>
-        a ? (
-          <SearchableSelect
-            compact
-            freeText
-            options={takerList.map((t) => ({ value: t.id, label: t.name }))}
-            value={a.taker_id ?? ""}
-            onChange={(val) => handleUpdateAssignment(a.id, { taker_id: val || null })}
-          />
-        ) : null,
-    },
-    {
       label: "Protocol",
       render: (a) => {
         if (!a) return null;
