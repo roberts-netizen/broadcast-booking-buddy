@@ -456,27 +456,16 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     createBooking.mutate(payload);
   }, [createBooking, category, defaultTournamentId]);
 
-  // ── Paste handler for multi-row paste (document-level to bypass AG Grid) ──
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      // Only handle if focus is inside our grid container
-      const container = gridRef.current?.api ? document.querySelector('.ag-root-wrapper') : null;
-      if (!container?.contains(document.activeElement) && document.activeElement !== document.body) return;
-
-      const text = e.clipboardData?.getData("text/plain");
-      if (!text) return;
-
-      const lines = text.split("\n").filter((l) => l.trim());
-      if (lines.length <= 1) return; // Single cell paste handled by AG Grid
-
-      e.preventDefault();
-      e.stopPropagation();
+  // ── Paste handler for multi-row paste via AG Grid's clipboard API ──
+  const processDataFromClipboard = useCallback(
+    (params: { data: string[][] }): string[][] | null => {
+      const lines = params.data.filter((row) => row.some((cell) => cell.trim()));
+      if (lines.length <= 1) return params.data; // Single row: let AG Grid handle normally
 
       // Parse tab-separated rows: Date | GMT | CET | League | Event | Channel | WO
       const cols = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id"];
 
-      for (const line of lines) {
-        const cells = line.split("\t");
+      for (const cells of lines) {
         const row: Partial<Booking> = {
           date: new Date().toISOString().split("T")[0],
           gmt_time: "00:00",
@@ -507,11 +496,12 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         }
         createBooking.mutate(row);
       }
-    };
 
-    document.addEventListener("paste", handlePaste, true);
-    return () => document.removeEventListener("paste", handlePaste, true);
-  }, [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]);
+      // Return null to prevent AG Grid from also pasting into cells
+      return null;
+    },
+    [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]
+  );
 
   // ── Column resize persistence ──
   const COLUMN_WIDTH_KEY = `col-widths-${category ?? "default"}`;
@@ -598,6 +588,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           theme={gridTheme}
           rowData={rowData}
           columnDefs={columnDefs}
+          processDataFromClipboard={processDataFromClipboard}
           defaultColDef={defaultColDef}
           onGridReady={onGridReady}
           onColumnResized={onColumnResized}
