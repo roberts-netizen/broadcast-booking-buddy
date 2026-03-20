@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { SearchableSelect } from "./SearchableSelect";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Booking, useUpdateBooking } from "@/hooks/useBookings";
