@@ -49,9 +49,8 @@ export default function Index() {
     <div className="flex flex-col h-screen bg-background">
       {/* Top Nav */}
       <header className="flex items-center gap-0 border-b border-border bg-card px-4 py-0 shrink-0" style={{ height: 44 }}>
-        <div className="flex items-center gap-2 pr-6 mr-2 border-r border-border">
+        <div className="flex items-center pr-6 mr-2 border-r border-border">
           <img src={twoCirclesLogo} alt="Two Circles" className="h-5 invert brightness-200" />
-          <span className="font-bold text-sm tracking-tight">Broadcast</span>
         </div>
         <nav className="flex items-center h-full gap-0">
           {([
