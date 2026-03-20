@@ -329,9 +329,10 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "league_name",
           width: 130,
           editable: true,
-          cellEditorPopup: false,
+          cellEditor: SearchableCellEditor,
+          cellEditorPopup: true,
           cellEditorParams: {
-            useFormatter: true,
+            values: leagues.map((l) => l.name),
           },
         },
         {
