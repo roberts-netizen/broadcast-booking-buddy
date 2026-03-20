@@ -497,7 +497,6 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
           <>
             {renderSection("Today", "today", grouped.today, "text-primary")}
             {renderSection("Upcoming", "upcoming", grouped.upcoming, "text-foreground")}
-            {renderSection("Past", "past", grouped.past, "text-muted-foreground")}
           </>
         )}
       </div>
