@@ -75,7 +75,7 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
         ref={buttonRef}
         type="button"
         onClick={() => setOpen(!open)}
-        className={buttonClass}
+        className={`${buttonClass} ${className ?? ""}`}
       >
         <span className="truncate">{selectedLabel || placeholder}</span>
         <ChevronDown className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} shrink-0 text-muted-foreground`} />
