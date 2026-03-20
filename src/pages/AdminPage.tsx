@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X, ClipboardPaste } from "lucide-react";
 import {
-  useLeagues, useUpsertLeague, useDeleteLeague, useBulkInsertLeagues,
   useIncomingChannels, useUpsertIncomingChannel, useDeleteIncomingChannel, useBulkInsertIncomingChannels,
   useTakers, useUpsertTaker, useDeleteTaker, useBulkInsertTakers,
   useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap, useBulkInsertTakerChannelMaps,
@@ -590,12 +589,8 @@ function CategoriesTable() {
 
 // ── Admin Page ────────────────────────────────────────────────────────────────
 export default function AdminPage() {
-  const { data: leagues = [] } = useLeagues(false);
   const { data: channels = [] } = useIncomingChannels(false);
 
-  const upsertLeague = useUpsertLeague();
-  const deleteLeague = useDeleteLeague();
-  const bulkLeagues = useBulkInsertLeagues();
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
   const bulkChannels = useBulkInsertIncomingChannels();
@@ -611,13 +606,6 @@ export default function AdminPage() {
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SimpleTable
-          title="Leagues"
-          rows={leagues}
-          onUpsert={(r) => upsertLeague.mutate(r)}
-          onDelete={(id) => deleteLeague.mutate(id)}
-          onBulkImport={simpleBulk(bulkLeagues.mutateAsync)}
-        />
         <SimpleTable
           title="Incoming Channels"
           rows={channels}
