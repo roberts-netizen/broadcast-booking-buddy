@@ -456,16 +456,21 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     createBooking.mutate(payload);
   }, [createBooking, category, defaultTournamentId]);
 
-  // ── Paste handler for multi-row paste ──
-  const handlePaste = useCallback(
-    (e: React.ClipboardEvent) => {
-      const text = e.clipboardData.getData("text/plain");
+  // ── Paste handler for multi-row paste (document-level to bypass AG Grid) ──
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      // Only handle if focus is inside our grid container
+      const container = gridRef.current?.api ? document.querySelector('.ag-root-wrapper') : null;
+      if (!container?.contains(document.activeElement) && document.activeElement !== document.body) return;
+
+      const text = e.clipboardData?.getData("text/plain");
       if (!text) return;
 
       const lines = text.split("\n").filter((l) => l.trim());
       if (lines.length <= 1) return; // Single cell paste handled by AG Grid
 
       e.preventDefault();
+      e.stopPropagation();
 
       // Parse tab-separated rows: Date | GMT | CET | League | Event | Channel | WO
       const cols = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id"];
@@ -502,9 +507,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         }
         createBooking.mutate(row);
       }
-    },
-    [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]
-  );
+    };
+
+    document.addEventListener("paste", handlePaste, true);
+    return () => document.removeEventListener("paste", handlePaste, true);
+  }, [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]);
 
   // ── Column resize persistence ──
   const COLUMN_WIDTH_KEY = `col-widths-${category ?? "default"}`;
