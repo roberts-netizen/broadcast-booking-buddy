@@ -46,7 +46,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
     props.stopEditing();
   };
 
-  const handleMouseSelect = (e: React.MouseEvent, val: string) => {
+  const handlePointerSelect = (e: React.PointerEvent<HTMLButtonElement>, val: string) => {
     e.preventDefault();
     e.stopPropagation();
     handleSelect(val);
@@ -92,7 +92,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
         {!props.freeText && (
           <button
             type="button"
-            onMouseDown={(e) => handleMouseSelect(e, "")}
+            onPointerDown={(e) => handlePointerSelect(e, "")}
             className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!selected ? "bg-accent text-accent-foreground" : ""}`}
           >
             —
@@ -102,7 +102,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
           <button
             key={v}
             type="button"
-            onMouseDown={(e) => handleMouseSelect(e, v)}
+            onPointerDown={(e) => handlePointerSelect(e, v)}
             className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${(props.freeText ? search === v : selected === v) ? "bg-accent text-accent-foreground" : ""}`}
           >
             {v}
