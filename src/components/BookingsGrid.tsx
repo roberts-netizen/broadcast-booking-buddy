@@ -330,6 +330,12 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "league_name",
           width: 130,
           editable: true,
+          cellEditor: SearchableCellEditor,
+          cellEditorPopup: true,
+          cellEditorParams: {
+            values: leagues.map((l) => l.name),
+            freeText: true,
+          },
         },
         {
           headerName: "Event Name",
