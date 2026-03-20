@@ -22,6 +22,7 @@ import BookingFilters from "./BookingFilters";
 import { DateToCell } from "./DateToCell";
 import { ReportCell } from "./ReportCell";
 import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, BookingReport } from "@/hooks/useBookingReports";
+import { SearchableCellEditor } from "@/components/SearchableCellEditor";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
