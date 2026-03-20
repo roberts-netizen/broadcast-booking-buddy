@@ -152,14 +152,13 @@ function AssignmentForm({ form, takers, onChange, onSave, onDelete, isSaving, is
             </div>
             <div>
               <Label>Quality</Label>
-              <select
-                className={fieldClass()}
+              <SearchableSelect
+                freeText
+                options={QUALITIES.map((q) => ({ value: q, label: q }))}
                 value={form.quality ?? ""}
-                onChange={(e) => onChange({ quality: e.target.value || null })}
-              >
-                <option value="">— select —</option>
-                {QUALITIES.map((q) => <option key={q} value={q}>{q}</option>)}
-              </select>
+                onChange={(val) => onChange({ quality: val || null })}
+                placeholder="— select —"
+              />
             </div>
             <div>
               <Label warn={missingHost}>Host / IP {missingHost && "⚠"}</Label>
