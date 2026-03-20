@@ -353,6 +353,7 @@ export function AdvancedBookingView({ booking }: Props) {
         return (
           <SearchableSelect
             compact
+            className={sm.color}
             options={TEST_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
             value={a.test_status}
             onChange={(val) => handleUpdateAssignment(a.id, { test_status: (val || "not_tested") as TestStatus })}
