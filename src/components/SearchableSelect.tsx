@@ -23,7 +23,7 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
   const selectedLabel = options.find((o) => o.value === value)?.label || "";
 
   const filtered = search
-    ? options.filter((o) => o.label.toLowerCase().startsWith(search.toLowerCase()))
+    ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
     : options;
 
   const updatePos = useCallback(() => {
