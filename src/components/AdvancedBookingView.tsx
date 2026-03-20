@@ -232,7 +232,6 @@ export function AdvancedBookingView({ booking }: Props) {
               onChange={async (e) => {
                 const val = e.target.value || null;
                 handleUpdateAssignment(a.id, { taker_id: val, taker_custom_name: val ? null : customName } as any);
-                // Autofill from taker defaults
                 if (val) {
                   const { data: taker } = await supabase.from("takers").select("*").eq("id", val).single();
                   if (taker) {
