@@ -10,9 +10,12 @@ type Props = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  freeText?: boolean;
+  /** Compact mode for inline table cells */
+  compact?: boolean;
 };
 
-export function SearchableSelect({ options, value, onChange, placeholder = "—", className = "" }: Props) {
+export function SearchableSelect({ options, value, onChange, placeholder = "—", className = "", freeText = false, compact = false }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -20,7 +23,7 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
   const inputRef = useRef<HTMLInputElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
 
-  const selectedLabel = options.find((o) => o.value === value)?.label || "";
+  const selectedLabel = options.find((o) => o.value === value)?.label || (freeText ? value : "");
 
   const filtered = search
     ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
@@ -60,16 +63,22 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
     setSearch("");
   };
 
+  const buttonClass = compact
+    ? "w-full flex items-center justify-between border border-input rounded px-1 py-0.5 text-[10px] bg-background focus:outline-none focus:ring-1 focus:ring-ring truncate text-left min-h-[20px] gap-0.5"
+    : "w-full flex items-center justify-between border border-input rounded px-2 py-1 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-ring truncate text-left min-h-[28px] gap-1";
+
+  const itemClass = compact ? "text-[11px]" : "text-xs";
+
   return (
     <div className={className} onClick={(e) => e.stopPropagation()}>
       <button
         ref={buttonRef}
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between border border-input rounded px-1 py-0.5 text-[10px] bg-background focus:outline-none focus:ring-1 focus:ring-ring truncate text-left min-h-[20px] gap-0.5"
+        className={buttonClass}
       >
         <span className="truncate">{selectedLabel || placeholder}</span>
-        <ChevronDown className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
+        <ChevronDown className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} shrink-0 text-muted-foreground`} />
       </button>
 
       {open &&
@@ -88,18 +97,22 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
                   setOpen(false);
                   setSearch("");
                 }
-                if (e.key === "Enter" && filtered.length === 1) {
-                  handleSelect(filtered[0].value);
+                if (e.key === "Enter") {
+                  if (filtered.length === 1) {
+                    handleSelect(filtered[0].value);
+                  } else if (freeText && search.trim()) {
+                    handleSelect(search.trim());
+                  }
                 }
               }}
-              className="w-full px-1.5 py-1 text-[11px] bg-background border-b border-border focus:outline-none"
-              placeholder="Type to filter..."
+              className={`w-full px-1.5 py-1 ${itemClass} bg-background border-b border-border focus:outline-none`}
+              placeholder={freeText ? "Type or select..." : "Type to filter..."}
             />
             <div className="max-h-[180px] overflow-y-auto">
               <button
                 type="button"
                 onClick={() => handleSelect("")}
-                className={`w-full text-left px-1.5 py-1 text-[11px] hover:bg-accent hover:text-accent-foreground ${
+                className={`w-full text-left px-1.5 py-1 ${itemClass} hover:bg-accent hover:text-accent-foreground ${
                   !value ? "bg-accent text-accent-foreground" : ""
                 }`}
               >
@@ -110,15 +123,24 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
                   key={o.value}
                   type="button"
                   onClick={() => handleSelect(o.value)}
-                  className={`w-full text-left px-1.5 py-1 text-[11px] hover:bg-accent hover:text-accent-foreground ${
+                  className={`w-full text-left px-1.5 py-1 ${itemClass} hover:bg-accent hover:text-accent-foreground ${
                     value === o.value ? "bg-accent text-accent-foreground" : ""
                   }`}
                 >
                   {o.label}
                 </button>
               ))}
-              {filtered.length === 0 && (
-                <div className="px-1.5 py-1 text-[11px] text-muted-foreground">No match</div>
+              {freeText && search.trim() && !filtered.some((o) => o.label.toLowerCase() === search.trim().toLowerCase()) && (
+                <button
+                  type="button"
+                  onClick={() => handleSelect(search.trim())}
+                  className={`w-full text-left px-1.5 py-1 ${itemClass} hover:bg-accent hover:text-accent-foreground text-primary`}
+                >
+                  + "{search.trim()}"
+                </button>
+              )}
+              {filtered.length === 0 && !freeText && (
+                <div className={`px-1.5 py-1 ${itemClass} text-muted-foreground`}>No match</div>
               )}
             </div>
           </div>,

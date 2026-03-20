@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { SearchableSelect } from "./SearchableSelect";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Booking, useUpdateBooking } from "@/hooks/useBookings";
@@ -225,14 +226,20 @@ export function AdvancedBookingView({ booking }: Props) {
 
         return (
           <div className="flex flex-col gap-0.5">
-            <select
-              className={selectClass}
+            <SearchableSelect
+              compact
+              freeText
+              options={takerList.map((t) => ({ value: t.id, label: t.name }))}
               value={a.taker_id ?? ""}
-              onChange={async (e) => {
-                const val = e.target.value || null;
-                handleUpdateAssignment(a.id, { taker_id: val, taker_custom_name: val ? null : customName } as any);
-                // Autofill from taker defaults
-                if (val) {
+              onChange={async (val) => {
+                // Check if val is an existing taker id
+                const isExistingId = takerList.some((t) => t.id === val);
+                if (!val) {
+                  handleUpdateAssignment(a.id, { taker_id: null, taker_custom_name: null } as any);
+                  return;
+                }
+                if (isExistingId) {
+                  handleUpdateAssignment(a.id, { taker_id: val, taker_custom_name: null } as any);
                   const { data: taker } = await supabase.from("takers").select("*").eq("id", val).single();
                   if (taker) {
                     handleUpdateAssignment(a.id, {
@@ -262,12 +269,13 @@ export function AdvancedBookingView({ booking }: Props) {
                       });
                     }
                   }
+                } else {
+                  // Free text - set as custom name
+                  handleUpdateAssignment(a.id, { taker_id: null, taker_custom_name: val } as any);
                 }
               }}
-            >
-              <option value="">— Select or type below —</option>
-              {takerList.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+              placeholder="— Select or type —"
+            />
             {!a.taker_id && (
               <div className="flex items-center gap-1">
                 <input
@@ -301,10 +309,13 @@ export function AdvancedBookingView({ booking }: Props) {
       label: "Communication platform:",
       render: (a) =>
         a ? (
-          <select className={selectClass} value={a.communication_method ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { communication_method: e.target.value || null })}>
-            <option value="">—</option>
-            {COMM_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
+          <SearchableSelect
+            compact
+            freeText
+            options={COMM_METHODS.map((m) => ({ value: m, label: m }))}
+            value={a.communication_method ?? ""}
+            onChange={(val) => handleUpdateAssignment(a.id, { communication_method: val || null })}
+          />
         ) : null,
     },
     {
@@ -340,13 +351,12 @@ export function AdvancedBookingView({ booking }: Props) {
         if (!a) return null;
         const sm = TEST_STATUSES.find((s) => s.value === a.test_status) ?? TEST_STATUSES[0];
         return (
-          <select
-            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
+          <SearchableSelect
+            compact
+            options={TEST_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
             value={a.test_status}
-            onChange={(e) => handleUpdateAssignment(a.id, { test_status: e.target.value as TestStatus })}
-          >
-            {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-          </select>
+            onChange={(val) => handleUpdateAssignment(a.id, { test_status: (val || "not_tested") as TestStatus })}
+          />
         );
       },
     },
@@ -359,10 +369,13 @@ export function AdvancedBookingView({ booking }: Props) {
       label: "Taker:",
       render: (a) =>
         a ? (
-          <select className={selectClass} value={a.taker_id ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { taker_id: e.target.value || null })}>
-            <option value="">—</option>
-            {takerList.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
+          <SearchableSelect
+            compact
+            freeText
+            options={takerList.map((t) => ({ value: t.id, label: t.name }))}
+            value={a.taker_id ?? ""}
+            onChange={(val) => handleUpdateAssignment(a.id, { taker_id: val || null })}
+          />
         ) : null,
     },
     {
@@ -371,10 +384,13 @@ export function AdvancedBookingView({ booking }: Props) {
         if (!a) return null;
         const ep = getEp(a.id, "primary");
         return (
-          <select className={selectClass} value={ep.protocol ?? ""} onChange={(e) => handleUpdateEndpoint(a.id, "primary", { protocol: e.target.value || null })}>
-            <option value="">—</option>
-            {PROTOCOLS.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <SearchableSelect
+            compact
+            freeText
+            options={PROTOCOLS.map((p) => ({ value: p, label: p }))}
+            value={ep.protocol ?? ""}
+            onChange={(val) => handleUpdateEndpoint(a.id, "primary", { protocol: val || null })}
+          />
         );
       },
     },
@@ -492,16 +508,15 @@ export function AdvancedBookingView({ booking }: Props) {
         const currentStatus = (ef as any).source_status ?? "not_tested";
         const sm = TEST_STATUSES.find((s) => s.value === currentStatus) ?? TEST_STATUSES[0];
         return (
-          <select
-            className={`${selectClass} font-semibold ${sm.color} rounded px-1`}
+          <SearchableSelect
+            compact
+            options={TEST_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
             value={currentStatus}
-            onChange={(e) => {
-              setEf((f) => ({ ...f, source_status: e.target.value }));
-              updateBooking.mutate({ id: booking.id, source_status: e.target.value } as any);
+            onChange={(val) => {
+              setEf((f) => ({ ...f, source_status: val || "not_tested" }));
+              updateBooking.mutate({ id: booking.id, source_status: val || "not_tested" } as any);
             }}
-          >
-            {TEST_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-          </select>
+          />
         );
       },
     },
