@@ -465,8 +465,28 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           }
         }
       } else if (field === "channel_name") {
-        const name = event.newValue as string;
-        updates.incoming_channel_id = name ? (channelNameToId[name.toLowerCase()] ?? null) : null;
+        const name = (event.newValue as string)?.trim();
+        if (!name) {
+          updates.incoming_channel_id = null;
+        } else {
+          const existingId = channelNameToId[name.toLowerCase()];
+          if (existingId) {
+            updates.incoming_channel_id = existingId;
+          } else {
+            // Auto-create the incoming channel
+            const { data: newChannel, error } = await supabase
+              .from("incoming_channels")
+              .insert({ name, active: true })
+              .select("id")
+              .single();
+            if (!error && newChannel) {
+              updates.incoming_channel_id = newChannel.id;
+              queryClient.invalidateQueries({ queryKey: ["incoming_channels"] });
+            } else {
+              updates.incoming_channel_id = null;
+            }
+          }
+        }
       } else if (field === "gmt_time") {
         updates.gmt_time = event.newValue;
         if (event.newValue) {
