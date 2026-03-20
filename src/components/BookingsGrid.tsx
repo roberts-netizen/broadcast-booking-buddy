@@ -343,10 +343,9 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "channel_name",
           width: 130,
           editable: true,
-          cellEditor: SearchableCellEditor,
-          cellEditorPopup: true,
+          cellEditor: "agSelectCellEditor",
           cellEditorParams: {
-            values: channels.map((c) => c.name),
+            values: ["", ...channels.map((c) => c.name)],
           },
         },
         {
