@@ -12,20 +12,15 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const [selected, setSelected] = useState(props.value || "");
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Use refs to always have current values available for getValue()
-  const searchRef = useRef(search);
-  const selectedRef = useRef(selected);
-  searchRef.current = search;
-  selectedRef.current = selected;
+  // Use a mutable ref so getValue always returns current value
+  const valueRef = useRef(props.freeText ? (props.value || "") : (props.value || ""));
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useImperativeHandle(ref, () => ({
-    getValue: () => {
-      return props.freeText ? searchRef.current : selectedRef.current;
-    },
+    getValue: () => valueRef.current,
     isCancelAfterEnd: () => false,
   }));
 
@@ -36,27 +31,32 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const handleSelect = (val: string) => {
     if (props.freeText) {
       setSearch(val);
-      searchRef.current = val;
     } else {
       setSelected(val);
-      selectedRef.current = val;
     }
+    valueRef.current = val;
     setTimeout(() => props.stopEditing(), 0);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearch(val);
+    if (props.freeText) {
+      valueRef.current = val;
+    }
   };
 
   return (
     <div className="bg-popover border border-border rounded shadow-lg w-full min-w-[140px]" style={{ position: "absolute", zIndex: 9999 }}>
       <input
         ref={inputRef}
-        value={props.freeText ? search : search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          searchRef.current = e.target.value;
-        }}
+        value={search}
+        onChange={handleInputChange}
         onKeyDown={(e) => {
           if (e.key === "Escape") props.stopEditing();
           if (e.key === "Enter") {
             if (props.freeText) {
+              valueRef.current = search;
               setTimeout(() => props.stopEditing(), 0);
             } else if (filtered.length === 1) {
               handleSelect(filtered[0]);
