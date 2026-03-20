@@ -17,15 +17,14 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
     inputRef.current?.focus();
   }, []);
 
-  // Keep committedRef in sync with search state
-  useEffect(() => {
+  const updateCommitted = (raw: string) => {
     if (props.freeText) {
-      committedRef.current = search.trim();
+      committedRef.current = raw.trim();
     } else {
-      const exact = props.values.find((v) => v.toLowerCase() === search.trim().toLowerCase());
+      const exact = props.values.find((v) => v.toLowerCase() === raw.trim().toLowerCase());
       committedRef.current = exact ?? "";
     }
-  }, [search, props.freeText, props.values]);
+  };
 
   useImperativeHandle(ref, () => ({
     getValue: () => committedRef.current,
@@ -51,6 +50,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearch(val);
+    updateCommitted(val);
   };
 
   return (
