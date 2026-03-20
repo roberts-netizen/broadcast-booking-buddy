@@ -141,14 +141,13 @@ function AssignmentForm({ form, takers, onChange, onSave, onDelete, isSaving, is
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label warn={missingProtocol}>Protocol {missingProtocol && "⚠"}</Label>
-              <select
-                className={fieldClass(missingProtocol)}
+              <SearchableSelect
+                freeText
+                options={PROTOCOLS.map((p) => ({ value: p, label: p }))}
                 value={form.protocol ?? ""}
-                onChange={(e) => onChange({ protocol: e.target.value || null })}
-              >
-                <option value="">— select —</option>
-                {PROTOCOLS.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
+                onChange={(val) => onChange({ protocol: val || null })}
+                placeholder="— select —"
+              />
               {missingProtocol && <Warning text="Protocol is missing" />}
             </div>
             <div>
