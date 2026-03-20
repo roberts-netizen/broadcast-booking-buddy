@@ -116,47 +116,25 @@ function AssignmentForm({ form, takers, onChange, onSave, onDelete, isSaving, is
         <div className="px-3 pb-3 pt-1 border-t border-border space-y-0.5">
           <SectionHeader>A. Taker</SectionHeader>
           <div className="grid grid-cols-1 gap-2">
-            {!form._isCreatingTaker ? (
-              <div>
-                <Label>Taker Name</Label>
-                <select
-                  className={fieldClass()}
-                  value={form.taker_id ?? ""}
-                  onChange={(e) => {
-                    if (e.target.value === "__new__") {
-                      onChange({ _isCreatingTaker: true, taker_id: null, _newTakerName: "" });
-                    } else {
-                      onChange({ taker_id: e.target.value || null });
-                    }
-                  }}
-                >
-                  <option value="">— select taker —</option>
-                  {takers.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                  <option value="__new__">+ Create new taker…</option>
-                </select>
-              </div>
-            ) : (
-              <div>
-                <Label>New Taker Name</Label>
-                <div className="flex gap-1">
-                  <input
-                    autoFocus
-                    className={fieldClass()}
-                    placeholder="Enter taker name…"
-                    value={form._newTakerName ?? ""}
-                    onChange={(e) => onChange({ _newTakerName: e.target.value })}
-                  />
-                  <button
-                    className="text-[10px] text-muted-foreground hover:text-foreground px-1"
-                    onClick={() => onChange({ _isCreatingTaker: false, _newTakerName: "" })}
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            )}
+            <div>
+              <Label>Taker Name</Label>
+              <SearchableSelect
+                freeText
+                options={takers.map((t) => ({ value: t.id, label: t.name }))}
+                value={form._isCreatingTaker ? "" : (form.taker_id ?? "")}
+                onChange={(val) => {
+                  const isExistingId = takers.some((t) => t.id === val);
+                  if (!val) {
+                    onChange({ taker_id: null, _isCreatingTaker: false, _newTakerName: "" });
+                  } else if (isExistingId) {
+                    onChange({ taker_id: val, _isCreatingTaker: false, _newTakerName: "" });
+                  } else {
+                    onChange({ _isCreatingTaker: true, taker_id: null, _newTakerName: val });
+                  }
+                }}
+                placeholder="— select or type —"
+              />
+            </div>
           </div>
 
           <SectionHeader>B. Technical Details</SectionHeader>
