@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { AgGridReact } from "ag-grid-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ModuleRegistry,
@@ -156,6 +156,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     return base;
   }, [view, filters, category]);
 
+  const queryClient = useQueryClient();
   const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
@@ -423,7 +424,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
 
   // ── Handle cell value changes → save to DB ──
   const onCellValueChanged = useCallback(
-    (event: CellValueChangedEvent) => {
+    async (event: CellValueChangedEvent) => {
       const data = event.data;
       if (!data?.id) return;
 
@@ -436,8 +437,28 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       const updates: Partial<Booking> = {};
 
       if (field === "league_name") {
-        const name = event.newValue as string;
-        updates.league_id = name ? (leagueNameToId[name.toLowerCase()] ?? null) : null;
+        const name = (event.newValue as string)?.trim();
+        if (!name) {
+          updates.league_id = null;
+        } else {
+          const existingId = leagueNameToId[name.toLowerCase()];
+          if (existingId) {
+            updates.league_id = existingId;
+          } else {
+            // Auto-create the league, then update the booking
+            const { data: newLeague, error } = await supabase
+              .from("leagues")
+              .insert({ name, active: true })
+              .select("id")
+              .single();
+            if (!error && newLeague) {
+              updates.league_id = newLeague.id;
+              queryClient.invalidateQueries({ queryKey: ["leagues"] });
+            } else {
+              updates.league_id = null;
+            }
+          }
+        }
       } else if (field === "channel_name") {
         const name = event.newValue as string;
         updates.incoming_channel_id = name ? (channelNameToId[name.toLowerCase()] ?? null) : null;
