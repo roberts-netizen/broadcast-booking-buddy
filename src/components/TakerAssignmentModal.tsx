@@ -273,15 +273,12 @@ function AssignmentForm({ form, takers, onChange, onSave, onDelete, isSaving, is
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Test Status</Label>
-              <select
-                className={fieldClass()}
+              <SearchableSelect
+                options={TEST_STATUSES.map((s) => ({ value: s.value, label: `${s.dot} ${s.label}` }))}
                 value={form.test_status ?? "not_tested"}
-                onChange={(e) => onChange({ test_status: e.target.value as TestStatus })}
-              >
-                {TEST_STATUSES.map((s) => (
-                  <option key={s.value} value={s.value}>{s.dot} {s.label}</option>
-                ))}
-              </select>
+                onChange={(val) => onChange({ test_status: (val || "not_tested") as TestStatus })}
+                placeholder="— select —"
+              />
             </div>
             <div>
               <Label>Test Date/Time</Label>
