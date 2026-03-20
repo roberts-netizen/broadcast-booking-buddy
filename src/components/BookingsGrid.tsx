@@ -435,7 +435,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
 
       const field = event.colDef.field;
       if (!field) return;
-      console.log("[GRID] onCellValueChanged", { field, oldValue: event.oldValue, newValue: event.newValue });
+      
 
       // Push to undo stack
       undoStackRef.current.push({ id: data.id, field, oldValue: event.oldValue });
