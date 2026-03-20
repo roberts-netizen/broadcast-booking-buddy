@@ -48,11 +48,11 @@ export default function Index() {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Top Nav */}
-      <header className="flex items-center gap-0 border-b border-border bg-card px-4 py-0 shrink-0" style={{ height: 44 }}>
+      <header className="flex items-center border-b border-border bg-card px-4 py-0 shrink-0" style={{ height: 44 }}>
         <div className="flex items-center pr-6 mr-2 border-r border-border">
           <img src={twoCirclesLogo} alt="Two Circles" className="h-6" />
         </div>
-        <nav className="flex items-center h-full gap-0">
+        <nav className="flex items-center h-full gap-0 ml-auto">
           {([
             { key: "events" as Tab, label: "Events" },
             { key: "mcr" as Tab, label: "MCR", icon: LayoutGrid },
