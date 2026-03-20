@@ -60,12 +60,6 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
         value={search}
         onChange={handleInputChange}
         onBlur={() => {
-          if (!props.freeText) {
-            const exact = props.values.find((v) => v.toLowerCase() === getRawValue().trim().toLowerCase());
-            if (exact && inputRef.current) {
-              inputRef.current.value = exact;
-            }
-          }
           props.stopEditing();
         }}
         onKeyDown={(e) => {
