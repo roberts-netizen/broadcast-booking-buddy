@@ -10,23 +10,25 @@ type Props = {
 export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const [search, setSearch] = useState(props.value || "");
   const inputRef = useRef<HTMLInputElement>(null);
+  // Persistent ref that survives unmount — AG Grid reads getValue() after destroy
+  const committedRef = useRef<string>(props.value || "");
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const getRawValue = () => inputRef.current?.value ?? search;
-
-  const getCommittedValue = () => {
-    const raw = getRawValue().trim();
-    if (props.freeText) return raw;
-    if (!raw) return "";
-    const exact = props.values.find((v) => v.toLowerCase() === raw.toLowerCase());
-    return exact ?? "";
-  };
+  // Keep committedRef in sync with search state
+  useEffect(() => {
+    if (props.freeText) {
+      committedRef.current = search.trim();
+    } else {
+      const exact = props.values.find((v) => v.toLowerCase() === search.trim().toLowerCase());
+      committedRef.current = exact ?? "";
+    }
+  }, [search, props.freeText, props.values]);
 
   useImperativeHandle(ref, () => ({
-    getValue: getCommittedValue,
+    getValue: () => committedRef.current,
     isCancelAfterEnd: () => false,
   }));
 
@@ -35,10 +37,8 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
     : props.values;
 
   const handleSelect = (val: string) => {
-    if (inputRef.current) {
-      inputRef.current.value = val;
-    }
     setSearch(val);
+    committedRef.current = val;
     props.stopEditing();
   };
 
