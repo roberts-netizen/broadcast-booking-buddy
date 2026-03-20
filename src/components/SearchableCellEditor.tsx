@@ -24,6 +24,14 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
     isCancelAfterEnd: () => false,
   }));
 
+  useEffect(() => {
+    if (props.freeText) valueRef.current = search;
+  }, [search, props.freeText]);
+
+  useEffect(() => {
+    if (!props.freeText) valueRef.current = selected;
+  }, [selected, props.freeText]);
+
   const filtered = search
     ? props.values.filter((v) => v.toLowerCase().includes(search.toLowerCase()))
     : props.values;
@@ -35,7 +43,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
       setSelected(val);
     }
     valueRef.current = val;
-    setTimeout(() => props.stopEditing(), 0);
+    props.stopEditing();
   };
 
   const handleMouseSelect = (e: React.MouseEvent, val: string) => {
@@ -53,17 +61,22 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   };
 
   return (
-    <div className="ag-custom-component-popup bg-popover border border-border rounded shadow-lg w-full min-w-[140px]" style={{ position: "absolute", zIndex: 9999 }}>
+    <div className="ag-custom-component-popup bg-popover border border-border rounded shadow-lg w-full min-w-[140px] z-[9999]">
       <input
         ref={inputRef}
         value={search}
         onChange={handleInputChange}
+        onBlur={() => {
+          if (!props.freeText) return;
+          valueRef.current = search;
+          props.stopEditing();
+        }}
         onKeyDown={(e) => {
           if (e.key === "Escape") props.stopEditing();
           if (e.key === "Enter") {
             if (props.freeText) {
               valueRef.current = search;
-              setTimeout(() => props.stopEditing(), 0);
+              props.stopEditing();
             } else if (filtered.length === 1) {
               handleSelect(filtered[0]);
             } else {
