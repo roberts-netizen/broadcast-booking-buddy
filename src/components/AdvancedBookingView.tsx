@@ -369,10 +369,13 @@ export function AdvancedBookingView({ booking }: Props) {
       label: "Taker:",
       render: (a) =>
         a ? (
-          <select className={selectClass} value={a.taker_id ?? ""} onChange={(e) => handleUpdateAssignment(a.id, { taker_id: e.target.value || null })}>
-            <option value="">—</option>
-            {takerList.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
+          <SearchableSelect
+            compact
+            freeText
+            options={takerList.map((t) => ({ value: t.id, label: t.name }))}
+            value={a.taker_id ?? ""}
+            onChange={(val) => handleUpdateAssignment(a.id, { taker_id: val || null })}
+          />
         ) : null,
     },
     {
