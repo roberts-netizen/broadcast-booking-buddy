@@ -135,7 +135,7 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
 export default function BookingsGrid({ category, onBookingClick, highlightBookingId, onHighlightHandled }: { category?: string; onBookingClick?: (booking: Booking) => void; highlightBookingId?: string | null; onHighlightHandled?: () => void }) {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
-  const [view, setView] = useState<"today" | "full" | "past">("today");
+  const [view, setView] = useState<"today" | "upcoming" | "past">("today");
   const [filters, setFilters] = useState<{
     dateFrom?: string;
     dateTo?: string;
@@ -154,6 +154,10 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       const today = new Date().toISOString().split("T")[0];
       return { ...base, dateFrom: today, dateTo: today };
     }
+    if (view === "upcoming") {
+      const today = new Date().toISOString().split("T")[0];
+      return { ...base, dateFrom: today };
+    }
     if (view === "past") {
       const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
       return { ...base, dateTo: yesterday };
@@ -170,11 +174,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   // ── Highlight booking from MCR shortcut ──
   useEffect(() => {
     if (!highlightBookingId || !gridApi) return;
-    setView("full");
+    setView("upcoming");
   }, [highlightBookingId, gridApi]);
 
   useEffect(() => {
-    if (!highlightBookingId || !gridApi || view !== "full") return;
+    if (!highlightBookingId || !gridApi || view !== "upcoming") return;
     setTimeout(() => {
       const rowNode = gridApi.getRowNode(highlightBookingId);
       if (rowNode) {
@@ -725,14 +729,14 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
             Today's Events
           </button>
           <button
-            onClick={() => setView("full")}
+            onClick={() => setView("upcoming")}
             className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
-              view === "full"
+              view === "upcoming"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Full Events
+            Upcoming Events
           </button>
           <button
             onClick={() => setView("past")}
