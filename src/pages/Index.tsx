@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { Radio, Settings, Tv, Zap, Trophy, LayoutGrid } from "lucide-react";
+import { Settings, Tv, Zap, Trophy, LayoutGrid } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
 import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
 import AdminPage from "./AdminPage";
 import McrPage from "./McrPage";
 import { useCategories } from "@/hooks/useLookups";
+import twoCirclesLogo from "@/assets/two-circles-logo.png";
 
 type Tab = "events" | "mcr" | "admin";
 
@@ -49,8 +50,8 @@ export default function Index() {
       {/* Top Nav */}
       <header className="flex items-center gap-0 border-b border-border bg-card px-4 py-0 shrink-0" style={{ height: 44 }}>
         <div className="flex items-center gap-2 pr-6 mr-2 border-r border-border">
-          <Radio className="h-4 w-4 text-primary" />
-          <span className="font-bold text-sm tracking-tight">Broadcast Booking</span>
+          <img src={twoCirclesLogo} alt="Two Circles" className="h-5 invert brightness-200" />
+          <span className="font-bold text-sm tracking-tight">Broadcast</span>
         </div>
         <nav className="flex items-center h-full gap-0">
           {([
