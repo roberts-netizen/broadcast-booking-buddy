@@ -4,10 +4,11 @@ type Props = {
   value: string;
   values: string[];
   stopEditing: () => void;
+  freeText?: boolean;
 };
 
 export const SearchableCellEditor = forwardRef((props: Props, ref) => {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(props.freeText ? (props.value || "") : "");
   const [selected, setSelected] = useState(props.value || "");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -16,7 +17,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   }, []);
 
   useImperativeHandle(ref, () => ({
-    getValue: () => selected,
+    getValue: () => props.freeText ? search : selected,
     isCancelAfterEnd: () => false,
   }));
 
@@ -25,7 +26,11 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
     : props.values;
 
   const handleSelect = (val: string) => {
-    setSelected(val);
+    if (props.freeText) {
+      setSearch(val);
+    } else {
+      setSelected(val);
+    }
     setTimeout(() => props.stopEditing(), 0);
   };
 
@@ -33,29 +38,38 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
     <div className="bg-popover border border-border rounded shadow-lg w-full min-w-[140px]" style={{ position: "absolute", zIndex: 9999 }}>
       <input
         ref={inputRef}
-        value={search}
+        value={props.freeText ? search : search}
         onChange={(e) => setSearch(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Escape") props.stopEditing();
-          if (e.key === "Enter" && filtered.length === 1) handleSelect(filtered[0]);
+          if (e.key === "Enter") {
+            if (props.freeText) {
+              // Accept typed value as-is
+              setTimeout(() => props.stopEditing(), 0);
+            } else if (filtered.length === 1) {
+              handleSelect(filtered[0]);
+            }
+          }
         }}
         className="w-full px-2 py-1 text-xs bg-background border-b border-border focus:outline-none"
-        placeholder="Type to filter..."
+        placeholder={props.freeText ? "Type or select..." : "Type to filter..."}
       />
       <div className="max-h-[200px] overflow-y-auto">
-        <button
-          type="button"
-          onClick={() => handleSelect("")}
-          className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!selected ? "bg-accent text-accent-foreground" : ""}`}
-        >
-          —
-        </button>
+        {!props.freeText && (
+          <button
+            type="button"
+            onClick={() => handleSelect("")}
+            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!selected ? "bg-accent text-accent-foreground" : ""}`}
+          >
+            —
+          </button>
+        )}
         {filtered.map((v) => (
           <button
             key={v}
             type="button"
             onClick={() => handleSelect(v)}
-            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${selected === v ? "bg-accent text-accent-foreground" : ""}`}
+            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${(props.freeText ? search === v : selected === v) ? "bg-accent text-accent-foreground" : ""}`}
           >
             {v}
           </button>

@@ -333,6 +333,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           cellEditorPopup: true,
           cellEditorParams: {
             values: leagues.map((l) => l.name),
+            freeText: true,
           },
         },
         {
