@@ -423,7 +423,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
 
   // ── Handle cell value changes → save to DB ──
   const onCellValueChanged = useCallback(
-    (event: CellValueChangedEvent) => {
+    async (event: CellValueChangedEvent) => {
       const data = event.data;
       if (!data?.id) return;
 
