@@ -588,6 +588,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           theme={gridTheme}
           rowData={rowData}
           columnDefs={columnDefs}
+          processDataFromClipboard={processDataFromClipboard}
           defaultColDef={defaultColDef}
           onGridReady={onGridReady}
           onColumnResized={onColumnResized}
