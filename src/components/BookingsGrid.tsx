@@ -23,6 +23,7 @@ import { DateToCell } from "./DateToCell";
 import { ReportCell } from "./ReportCell";
 import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, BookingReport } from "@/hooks/useBookingReports";
 import { SearchableCellEditor } from "@/components/SearchableCellEditor";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -282,6 +283,64 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     [bookings, leagueMap, channelMap, assignmentMap, typedTakerMaps, dateGroupMap, reportMap]
   );
 
+  const saveLeagueValue = useCallback(
+    async (bookingId: string, rawName: string) => {
+      const name = rawName.trim();
+
+      if (!name) {
+        updateBooking.mutate({ id: bookingId, league_id: null });
+        return;
+      }
+
+      const existingId = leagueNameToId[name.toLowerCase()];
+      if (existingId) {
+        updateBooking.mutate({ id: bookingId, league_id: existingId });
+        return;
+      }
+
+      const { data: newLeague, error } = await supabase
+        .from("leagues")
+        .insert({ name, active: true })
+        .select("id")
+        .single();
+
+      if (!error && newLeague) {
+        queryClient.invalidateQueries({ queryKey: ["leagues"] });
+        updateBooking.mutate({ id: bookingId, league_id: newLeague.id });
+      }
+    },
+    [leagueNameToId, queryClient, updateBooking]
+  );
+
+  const saveChannelValue = useCallback(
+    async (bookingId: string, rawName: string) => {
+      const name = rawName.trim();
+
+      if (!name) {
+        updateBooking.mutate({ id: bookingId, incoming_channel_id: null });
+        return;
+      }
+
+      const existingId = channelNameToId[name.toLowerCase()];
+      if (existingId) {
+        updateBooking.mutate({ id: bookingId, incoming_channel_id: existingId });
+        return;
+      }
+
+      const { data: newChannel, error } = await supabase
+        .from("incoming_channels")
+        .insert({ name, active: true })
+        .select("id")
+        .single();
+
+      if (!error && newChannel) {
+        queryClient.invalidateQueries({ queryKey: ["incoming_channels"] });
+        updateBooking.mutate({ id: bookingId, incoming_channel_id: newChannel.id });
+      }
+    },
+    [channelNameToId, queryClient, updateBooking]
+  );
+
   // ── Column defs ──
   const columnDefs = useMemo<ColDef[]>(
     () => {
@@ -333,13 +392,25 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           headerName: "League",
           field: "league_name",
           width: 130,
-          editable: true,
-          cellEditor: SearchableCellEditor,
-          cellEditorPopup: true,
-          cellEditorParams: {
-            values: leagues.map((l) => l.name),
-            freeText: true,
+          editable: false,
+          cellRenderer: (params: ICellRendererParams) => {
+            if (!params.data?.id) return null;
+            return (
+              <SearchableSelect
+                options={leagues.map((l) => ({ value: l.name, label: l.name }))}
+                value={(params.value as string) ?? ""}
+                onChange={(next) => {
+                  params.node?.setDataValue("league_name", next);
+                  void saveLeagueValue(params.data.id, next);
+                }}
+                freeText
+                compact
+                placeholder="—"
+                className="w-full"
+              />
+            );
           },
+          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
         },
         {
           headerName: "Event Name",
@@ -352,13 +423,25 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           headerName: "Incoming Ch.",
           field: "channel_name",
           width: 130,
-          editable: true,
-          cellEditor: SearchableCellEditor,
-          cellEditorPopup: true,
-          cellEditorParams: {
-            values: channels.map((c) => c.name),
-            freeText: true,
+          editable: false,
+          cellRenderer: (params: ICellRendererParams) => {
+            if (!params.data?.id) return null;
+            return (
+              <SearchableSelect
+                options={channels.map((c) => ({ value: c.name, label: c.name }))}
+                value={(params.value as string) ?? ""}
+                onChange={(next) => {
+                  params.node?.setDataValue("channel_name", next);
+                  void saveChannelValue(params.data.id, next);
+                }}
+                freeText
+                compact
+                placeholder="—"
+                className="w-full"
+              />
+            );
           },
+          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
         },
         {
           headerName: "Work Order",
@@ -424,7 +507,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       ];
       return cols;
     },
-    [leagues, channels, deleteBooking, category, updateBooking, upsertReport, deleteReport]
+    [leagues, channels, deleteBooking, category, updateBooking, upsertReport, deleteReport, saveLeagueValue, saveChannelValue]
   );
 
   // ── Handle cell value changes → save to DB ──
@@ -435,60 +518,15 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
 
       const field = event.colDef.field;
       if (!field) return;
-      
+
+      if (field === "league_name" || field === "channel_name") return;
 
       // Push to undo stack
       undoStackRef.current.push({ id: data.id, field, oldValue: event.oldValue });
 
       const updates: Partial<Booking> = {};
 
-      if (field === "league_name") {
-        const name = (event.newValue as string)?.trim();
-        if (!name) {
-          updates.league_id = null;
-        } else {
-          const existingId = leagueNameToId[name.toLowerCase()];
-          if (existingId) {
-            updates.league_id = existingId;
-          } else {
-            // Auto-create the league, then update the booking
-            const { data: newLeague, error } = await supabase
-              .from("leagues")
-              .insert({ name, active: true })
-              .select("id")
-              .single();
-            if (!error && newLeague) {
-              updates.league_id = newLeague.id;
-              queryClient.invalidateQueries({ queryKey: ["leagues"] });
-            } else {
-              updates.league_id = null;
-            }
-          }
-        }
-      } else if (field === "channel_name") {
-        const name = (event.newValue as string)?.trim();
-        if (!name) {
-          updates.incoming_channel_id = null;
-        } else {
-          const existingId = channelNameToId[name.toLowerCase()];
-          if (existingId) {
-            updates.incoming_channel_id = existingId;
-          } else {
-            // Auto-create the incoming channel
-            const { data: newChannel, error } = await supabase
-              .from("incoming_channels")
-              .insert({ name, active: true })
-              .select("id")
-              .single();
-            if (!error && newChannel) {
-              updates.incoming_channel_id = newChannel.id;
-              queryClient.invalidateQueries({ queryKey: ["incoming_channels"] });
-            } else {
-              updates.incoming_channel_id = null;
-            }
-          }
-        }
-      } else if (field === "gmt_time") {
+      if (field === "gmt_time") {
         updates.gmt_time = event.newValue;
         if (event.newValue) {
           updates.cet_time = addOneHour(event.newValue);
@@ -503,7 +541,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
 
       updateBooking.mutate({ id: data.id, ...updates });
     },
-    [updateBooking, leagueNameToId, channelNameToId]
+    [updateBooking]
   );
 
   // ── Undo handler (Ctrl+Z) ──
