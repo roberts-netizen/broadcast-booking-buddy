@@ -357,6 +357,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           cellEditorPopup: true,
           cellEditorParams: {
             values: channels.map((c) => c.name),
+            freeText: true,
           },
         },
         {
