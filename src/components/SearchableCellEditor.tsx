@@ -10,23 +10,24 @@ type Props = {
 export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const [search, setSearch] = useState(props.value || "");
   const inputRef = useRef<HTMLInputElement>(null);
+  // Persistent ref that survives unmount — AG Grid reads getValue() after destroy
+  const committedRef = useRef<string>(props.value || "");
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const getRawValue = () => inputRef.current?.value ?? search;
-
-  const getCommittedValue = () => {
-    const raw = getRawValue().trim();
-    if (props.freeText) return raw;
-    if (!raw) return "";
-    const exact = props.values.find((v) => v.toLowerCase() === raw.toLowerCase());
-    return exact ?? "";
+  const updateCommitted = (raw: string) => {
+    if (props.freeText) {
+      committedRef.current = raw.trim();
+    } else {
+      const exact = props.values.find((v) => v.toLowerCase() === raw.trim().toLowerCase());
+      committedRef.current = exact ?? "";
+    }
   };
 
   useImperativeHandle(ref, () => ({
-    getValue: getCommittedValue,
+    getValue: () => committedRef.current,
     isCancelAfterEnd: () => false,
   }));
 
@@ -35,10 +36,8 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
     : props.values;
 
   const handleSelect = (val: string) => {
-    if (inputRef.current) {
-      inputRef.current.value = val;
-    }
     setSearch(val);
+    committedRef.current = val;
     props.stopEditing();
   };
 
@@ -51,6 +50,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearch(val);
+    updateCommitted(val);
   };
 
   return (
@@ -60,12 +60,6 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
         value={search}
         onChange={handleInputChange}
         onBlur={() => {
-          if (!props.freeText) {
-            const exact = props.values.find((v) => v.toLowerCase() === getRawValue().trim().toLowerCase());
-            if (exact && inputRef.current) {
-              inputRef.current.value = exact;
-            }
-          }
           props.stopEditing();
         }}
         onKeyDown={(e) => {
@@ -89,7 +83,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
           <button
             type="button"
             onPointerDown={(e) => handlePointerSelect(e, "")}
-            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!getCommittedValue() ? "bg-accent text-accent-foreground" : ""}`}
+            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!committedRef.current ? "bg-accent text-accent-foreground" : ""}`}
           >
             —
           </button>
@@ -99,7 +93,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
             key={v}
             type="button"
             onPointerDown={(e) => handlePointerSelect(e, v)}
-            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${getCommittedValue() === v ? "bg-accent text-accent-foreground" : ""}`}
+            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${committedRef.current === v ? "bg-accent text-accent-foreground" : ""}`}
           >
             {v}
           </button>
