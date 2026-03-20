@@ -8,41 +8,37 @@ type Props = {
 };
 
 export const SearchableCellEditor = forwardRef((props: Props, ref) => {
-  const [search, setSearch] = useState(props.freeText ? (props.value || "") : "");
-  const [selected, setSelected] = useState(props.value || "");
+  const [search, setSearch] = useState(props.value || "");
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Use a mutable ref so getValue always returns current value
-  const valueRef = useRef(props.freeText ? (props.value || "") : (props.value || ""));
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
+  const getRawValue = () => inputRef.current?.value ?? search;
+
+  const getCommittedValue = () => {
+    const raw = getRawValue().trim();
+    if (props.freeText) return raw;
+    if (!raw) return "";
+    const exact = props.values.find((v) => v.toLowerCase() === raw.toLowerCase());
+    return exact ?? "";
+  };
+
   useImperativeHandle(ref, () => ({
-    getValue: () => valueRef.current,
+    getValue: getCommittedValue,
     isCancelAfterEnd: () => false,
   }));
-
-  useEffect(() => {
-    if (props.freeText) valueRef.current = search;
-  }, [search, props.freeText]);
-
-  useEffect(() => {
-    if (!props.freeText) valueRef.current = selected;
-  }, [selected, props.freeText]);
 
   const filtered = search
     ? props.values.filter((v) => v.toLowerCase().includes(search.toLowerCase()))
     : props.values;
 
   const handleSelect = (val: string) => {
-    if (props.freeText) {
-      setSearch(val);
-    } else {
-      setSelected(val);
+    if (inputRef.current) {
+      inputRef.current.value = val;
     }
-    valueRef.current = val;
+    setSearch(val);
     props.stopEditing();
   };
 
@@ -55,9 +51,6 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearch(val);
-    if (props.freeText) {
-      valueRef.current = val;
-    }
   };
 
   return (
@@ -67,15 +60,18 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
         value={search}
         onChange={handleInputChange}
         onBlur={() => {
-          if (!props.freeText) return;
-          valueRef.current = search;
+          if (!props.freeText) {
+            const exact = props.values.find((v) => v.toLowerCase() === getRawValue().trim().toLowerCase());
+            if (exact && inputRef.current) {
+              inputRef.current.value = exact;
+            }
+          }
           props.stopEditing();
         }}
         onKeyDown={(e) => {
           if (e.key === "Escape") props.stopEditing();
           if (e.key === "Enter") {
             if (props.freeText) {
-              valueRef.current = search;
               props.stopEditing();
             } else if (filtered.length === 1) {
               handleSelect(filtered[0]);
@@ -93,7 +89,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
           <button
             type="button"
             onPointerDown={(e) => handlePointerSelect(e, "")}
-            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!selected ? "bg-accent text-accent-foreground" : ""}`}
+            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${!getCommittedValue() ? "bg-accent text-accent-foreground" : ""}`}
           >
             —
           </button>
@@ -103,7 +99,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
             key={v}
             type="button"
             onPointerDown={(e) => handlePointerSelect(e, v)}
-            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${(props.freeText ? search === v : selected === v) ? "bg-accent text-accent-foreground" : ""}`}
+            className={`w-full text-left px-2 py-1 text-xs hover:bg-accent hover:text-accent-foreground ${getCommittedValue() === v ? "bg-accent text-accent-foreground" : ""}`}
           >
             {v}
           </button>
