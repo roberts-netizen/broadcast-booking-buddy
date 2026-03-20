@@ -19,7 +19,7 @@ export const SearchableCellEditor = forwardRef((props: Props, ref) => {
   useImperativeHandle(ref, () => ({
     getValue: () => props.freeText ? search : selected,
     isCancelAfterEnd: () => false,
-  }));
+  }), [search, selected, props.freeText]);
 
   const filtered = search
     ? props.values.filter((v) => v.toLowerCase().includes(search.toLowerCase()))
