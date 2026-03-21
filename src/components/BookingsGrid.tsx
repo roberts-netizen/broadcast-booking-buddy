@@ -673,6 +673,69 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     return () => document.removeEventListener("paste", handleEditorPaste, true);
   }, [importRowsFromClipboard]);
 
+  // ── Excel-like copy with HTML formatting ──
+  useEffect(() => {
+    const handleCopy = (e: ClipboardEvent) => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed) return;
+
+      const gridEl = document.querySelector(".ag-root-wrapper");
+      if (!gridEl) return;
+
+      const range = sel.getRangeAt(0);
+      if (!gridEl.contains(range.commonAncestorContainer)) return;
+
+      const rows: { cells: { text: string; bg: string }[] }[] = [];
+      const agRows = gridEl.querySelectorAll(".ag-row");
+
+      agRows.forEach((rowEl) => {
+        const cells: { text: string; bg: string }[] = [];
+        const cellEls = rowEl.querySelectorAll(".ag-cell");
+        let rowHasSelection = false;
+
+        cellEls.forEach((cellEl) => {
+          if (sel.containsNode(cellEl, true)) {
+            rowHasSelection = true;
+            const text = (cellEl as HTMLElement).innerText?.trim() ?? "";
+            const bg = getComputedStyle(rowEl).backgroundColor ?? "";
+            cells.push({ text, bg });
+          }
+        });
+
+        if (rowHasSelection && cells.length > 0) {
+          rows.push({ cells });
+        }
+      });
+
+      if (rows.length === 0) return;
+
+      e.preventDefault();
+
+      const plainText = rows.map((r) => r.cells.map((c) => c.text).join("\t")).join("\n");
+
+      const htmlRows = rows
+        .map((r) => {
+          const tds = r.cells
+            .map(
+              (c) =>
+                `<td style="border:1px solid #ddd;padding:4px 8px;font-family:Arial,sans-serif;font-size:12px;${
+                  c.bg ? `background-color:${c.bg};` : ""
+                }">${c.text.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</td>`
+            )
+            .join("");
+          return `<tr>${tds}</tr>`;
+        })
+        .join("");
+      const html = `<table style="border-collapse:collapse;border:1px solid #ccc;">${htmlRows}</table>`;
+
+      e.clipboardData?.setData("text/plain", plainText);
+      e.clipboardData?.setData("text/html", html);
+    };
+
+    document.addEventListener("copy", handleCopy, true);
+    return () => document.removeEventListener("copy", handleCopy, true);
+  }, []);
+
   // ── Column resize persistence ──
   const COLUMN_WIDTH_KEY = `col-widths-${category ?? "default"}`;
 
