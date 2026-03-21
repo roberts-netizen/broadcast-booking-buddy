@@ -481,7 +481,7 @@ export function AdvancedBookingView({ booking }: Props) {
         </div>
       ),
     },
-    { label: "Venue", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
+    { label: "Brick Setup", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
     {
       label: "Source",
       rowSpan: 1,
