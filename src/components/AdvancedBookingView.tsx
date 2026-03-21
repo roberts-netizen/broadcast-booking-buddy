@@ -230,7 +230,7 @@ export function AdvancedBookingView({ booking }: Props) {
               compact
               freeText
               options={takerList.map((t) => ({ value: t.id, label: t.name }))}
-              value={a.taker_id ?? ""}
+              value={a.taker_id ?? (a as any).taker_custom_name ?? ""}
               onChange={async (val) => {
                 // Check if val is an existing taker id
                 const isExistingId = takerList.some((t) => t.id === val);
