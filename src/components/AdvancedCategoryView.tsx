@@ -3,6 +3,8 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues } from "@/hooks/useLookups";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { AdvancedBookingView } from "./AdvancedBookingView";
 import BookingFilters from "./BookingFilters";
 
@@ -20,6 +22,19 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
   const { data: leagues = [] } = useLeagues(true);
   const createBooking = useCreateBooking();
+
+  // Fetch tournaments for this category so we can assign tournament_id to new bookings
+  const { data: tournaments = [] } = useQuery({
+    queryKey: ["tournaments", category],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("id")
+        .eq("type", category);
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -56,6 +71,7 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
       date: new Date().toISOString().slice(0, 10),
       gmt_time: "12:00",
       work_order_id: "",
+      ...(tournaments.length > 0 ? { tournament_id: tournaments[0].id } : {}),
     });
   };
 
