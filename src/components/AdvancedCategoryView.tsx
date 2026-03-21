@@ -23,6 +23,19 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
   const { data: leagues = [] } = useLeagues(true);
   const createBooking = useCreateBooking();
 
+  // Fetch tournaments for this category so we can assign tournament_id to new bookings
+  const { data: tournaments = [] } = useQuery({
+    queryKey: ["tournaments", category],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("id")
+        .eq("type", category);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const today = new Date().toISOString().slice(0, 10);
 
   // Highlight & scroll to booking from MCR shortcut
