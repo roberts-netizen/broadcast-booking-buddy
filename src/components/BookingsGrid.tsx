@@ -779,6 +779,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
             };
           }}
           animateRows={false}
+          enableCellTextSelection={true}
+          ensureDomOrder={true}
           suppressRowHoverHighlight={false}
           enterNavigatesVertically={true}
           enterNavigatesVerticallyAfterEdit={true}
