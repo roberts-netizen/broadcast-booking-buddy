@@ -51,6 +51,7 @@ export type Database = {
           slot_number: number
           taker_channel_map_id: string | null
           taker_id: string | null
+          test_status: string
           updated_at: string
         }
         Insert: {
@@ -62,6 +63,7 @@ export type Database = {
           slot_number: number
           taker_channel_map_id?: string | null
           taker_id?: string | null
+          test_status?: string
           updated_at?: string
         }
         Update: {
@@ -73,6 +75,7 @@ export type Database = {
           slot_number?: number
           taker_channel_map_id?: string | null
           taker_id?: string | null
+          test_status?: string
           updated_at?: string
         }
         Relationships: [

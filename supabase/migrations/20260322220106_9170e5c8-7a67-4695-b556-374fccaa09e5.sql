@@ -1,0 +1,1 @@
+ALTER TABLE booking_taker_assignments ADD COLUMN test_status text NOT NULL DEFAULT 'not_tested';
