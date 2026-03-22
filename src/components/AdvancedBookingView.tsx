@@ -178,9 +178,17 @@ export function AdvancedBookingView({ booking }: Props) {
   const displayCount = Math.max(DEFAULT_TAKER_COUNT, assignments.length);
   const takerCols = Array.from({ length: displayCount }, (_, i) => assignments[i] ?? null);
 
+  // Check if any taker assignment uses a "2" protocol (backup endpoint needed)
+  const anyHasBackupProtocol = takerCols.some((a) => {
+    if (!a) return false;
+    const ep = getEp(a.id, "primary");
+    return ep.protocol?.trim().endsWith("2");
+  });
+
   // Info rows definition
   const infoRows: {
     label: string;
+    hidden?: boolean;
     render: (a: TakerAssignment | null, idx: number) => React.ReactNode;
   }[] = [
     {
