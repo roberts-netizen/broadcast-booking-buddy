@@ -13,12 +13,13 @@ import {
   type ICellRendererParams,
   themeQuartz,
 } from "ag-grid-community";
-import { Plus } from "lucide-react";
+import { Plus, ClipboardPaste } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/useLookups";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
+import BulkPasteDialog, { type BulkColumn } from "@/components/BulkPasteDialog";
 import { DateToCell } from "./DateToCell";
 import { ReportCell } from "./ReportCell";
 import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport, BookingReport } from "@/hooks/useBookingReports";
@@ -141,7 +142,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     dateTo?: string;
     leagueId?: string;
   }>({});
-
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   // ── Undo stack ──
   type UndoEntry = { id: string; field: string; oldValue: any };
@@ -870,10 +871,42 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           <Plus className="h-3.5 w-3.5" />
           Add booking
         </button>
-        <span className="text-[10px] text-muted-foreground">
-          Tip: Paste multiple rows from Excel (Date, GMT, CET, League, Event, Channel, WO)
-        </span>
+        <button
+          onClick={() => setBulkOpen(true)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
+        >
+          <ClipboardPaste className="h-3.5 w-3.5" />
+          Bulk Import
+        </button>
       </div>
+
+      <BulkPasteDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        title="Bookings"
+        columns={[
+          { key: "date", label: "Date", required: true },
+          { key: "gmt_time", label: "GMT" },
+          { key: "cet_time", label: "CET" },
+          { key: "league_name", label: "League" },
+          { key: "event_name", label: "Event", required: true },
+          { key: "channel_name", label: "Incoming Channel" },
+          { key: "work_order_id", label: "WO" },
+        ]}
+        onImport={async (rows) => {
+          const mapped = rows.map((r) => r as unknown as string[]);
+          const rawRows = rows.map((r) => [
+            r.date ?? "",
+            r.gmt_time ?? "",
+            r.cet_time ?? "",
+            r.league_name ?? "",
+            r.event_name ?? "",
+            r.channel_name ?? "",
+            r.work_order_id ?? "",
+          ]);
+          importRowsFromClipboard(rawRows);
+        }}
+      />
     </div>
   );
 }
