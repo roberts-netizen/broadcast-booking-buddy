@@ -431,9 +431,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "Event Name",
           field: "event_name",
-          flex: 1,
-          minWidth: 180,
+          width: 220,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: true,
+          cellStyle: { textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" },
         },
         {
           headerName: "Incoming Ch.",
