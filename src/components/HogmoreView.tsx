@@ -125,10 +125,12 @@ function HogmoreRow({ booking }: { booking: Booking }) {
           {assignments.length === 0 ? "—" : (
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {assignments.map((a) => {
-                const tDot = STATUS_DOT.not_tested;
+                const hasValidConnection = a.taker_host && a.taker_host !== "tbc" && a.taker_stream_key && a.taker_stream_key !== "tbc";
+                const tDot = hasValidConnection ? STATUS_DOT.tested : STATUS_DOT.not_tested;
+                const statusLabel = hasValidConnection ? "tested" : "not tested";
                 return (
                   <div key={a.id} className="flex items-center gap-1.5 whitespace-nowrap">
-                    <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title="not tested" />
+                    <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title={statusLabel} />
                     <span className="text-[11px]">{a.taker_channel_map_label || "—"}</span>
                   </div>
                 );
