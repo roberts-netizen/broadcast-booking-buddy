@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, X } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
-import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
+import { useLeagues, useCategories, useTakers, useIncomingChannels } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment, TestStatus, useUpdateTakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { useProjectTakerEndpoints, ProjectTakerEndpoint, useUpsertEndpoint } from "@/hooks/useProjectTakerEndpoints";
@@ -33,6 +33,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
 
   const { data: categories = [] } = useCategories(true);
   const { data: leagues = [] } = useLeagues(true);
+  const { data: incomingChannels = [] } = useIncomingChannels(true);
 
   // Fetch MCR bookings
   const { data: mcrBookings = [], isLoading: mcrLoading } = useBookings({ tournamentType: "MCR" });
@@ -114,6 +115,12 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
     for (const l of leagues) m[l.id] = l.name;
     return m;
   }, [leagues]);
+
+  const incomingChannelMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const c of incomingChannels) m[c.id] = c.name;
+    return m;
+  }, [incomingChannels]);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -268,13 +275,14 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                   <th className="px-1.5 py-1 text-left font-semibold w-[42px] border border-border">CET</th>
                   <th className="px-1.5 py-1 text-left font-semibold w-[130px] border border-border">Event</th>
                   <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">League / Brick</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">Incoming CH</th>
                   <th className="px-1.5 py-1 text-left font-semibold border border-border">Takers</th>
                   <th className="px-0.5 py-1 text-left font-semibold w-[24px] border border-border"></th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 ? (
-                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
+                  <tr><td colSpan={9} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
                 ) : (
                   items.map((b: any) => {
                     const cat = b._category || "MCR";
@@ -298,6 +306,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                         <td className="px-1.5 py-1 text-[11px] whitespace-nowrap border border-border">{b.cet_time?.slice(0, 5) ?? ""}</td>
                         <td className="px-1.5 py-1 text-[11px] font-medium truncate max-w-[130px] border border-border" title={b.event_name}>{b.event_name}</td>
                         <td className="px-1.5 py-1 text-[11px] text-muted-foreground border border-border">{isAdv ? (b.venue || "") : (b.league_id ? leagueMap[b.league_id] ?? "" : "")}</td>
+                        <td className="px-1.5 py-1 text-[11px] text-muted-foreground border border-border truncate max-w-[90px]" title={b.incoming_channel_id ? incomingChannelMap[b.incoming_channel_id] ?? "" : ""}>{b.incoming_channel_id ? incomingChannelMap[b.incoming_channel_id] ?? "" : ""}</td>
                         <td className="px-1 py-0.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
                         <td className="px-0.5 py-1 border border-border w-[24px]">
                           {onNavigateToBooking && (
