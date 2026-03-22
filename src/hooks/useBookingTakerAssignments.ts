@@ -13,6 +13,13 @@ export type BookingTakerAssignment = {
   updated_at: string;
   // Joined from taker_channel_maps
   taker_channel_map_label?: string | null;
+  // Joined from takers (via taker_channel_maps)
+  taker_name?: string | null;
+  taker_protocol?: string | null;
+  taker_host?: string | null;
+  taker_stream_key?: string | null;
+  taker_audio?: string | null;
+  taker_email_subject?: string | null;
 };
 
 export function useBookingTakerAssignments(bookingIds: string[]) {
@@ -22,13 +29,23 @@ export function useBookingTakerAssignments(bookingIds: string[]) {
       if (!bookingIds.length) return [] as BookingTakerAssignment[];
       const { data, error } = await supabase
         .from("booking_taker_assignments")
-        .select("*, taker_channel_maps(label)")
+        .select("*, taker_channel_maps(label, takers(name, protocol, host, stream_key, audio, email_subject))")
         .in("booking_id", bookingIds);
       if (error) throw error;
-      return (data as any[]).map((row) => ({
-        ...row,
-        taker_channel_map_label: row.taker_channel_maps?.label ?? null,
-      })) as BookingTakerAssignment[];
+      return (data as any[]).map((row) => {
+        const tcm = row.taker_channel_maps;
+        const taker = tcm?.takers;
+        return {
+          ...row,
+          taker_channel_map_label: tcm?.label ?? null,
+          taker_name: taker?.name ?? null,
+          taker_protocol: taker?.protocol ?? null,
+          taker_host: taker?.host ?? null,
+          taker_stream_key: taker?.stream_key ?? null,
+          taker_audio: taker?.audio ?? null,
+          taker_email_subject: taker?.email_subject ?? null,
+        };
+      }) as BookingTakerAssignment[];
     },
     enabled: bookingIds.length > 0,
   });
