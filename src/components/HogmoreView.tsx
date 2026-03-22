@@ -125,9 +125,8 @@ function HogmoreRow({ booking }: { booking: Booking }) {
           {assignments.length === 0 ? <span className="px-2 py-1.5">—</span> : (
             <div className="flex items-stretch">
               {assignments.map((a, i) => {
-                const hasValidConnection = a.taker_host && a.taker_host !== "tbc" && a.taker_stream_key && a.taker_stream_key !== "tbc";
-                const tDot = hasValidConnection ? STATUS_DOT.tested : STATUS_DOT.not_tested;
-                const statusLabel = hasValidConnection ? "tested" : "not tested";
+                const tDot = a.test_status === "tested" ? STATUS_DOT.tested : STATUS_DOT.not_tested;
+                const statusLabel = a.test_status === "tested" ? "tested" : "not tested";
                 const protocol = a.taker_protocol || "";
                 const streamInfo = [a.actual_channel_id, protocol ? `[${protocol}]` : ""].filter(Boolean).join(" ");
                 return (
