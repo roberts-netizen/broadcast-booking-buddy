@@ -494,11 +494,7 @@ export function AdvancedBookingView({ booking }: Props) {
       label: "Time CET",
       rowSpan: 1,
       render: () => (
-        <div className="flex items-center gap-1">
-          <input type="time" className={inputClass} value={ef.cet_time?.slice(0, 5) ?? ""} onChange={(e) => { setEf((f) => ({ ...f, cet_time: e.target.value })); }} onBlur={handleEventBlur} />
-          <span className="text-[10px] text-muted-foreground shrink-0">to</span>
-          <input type="time" className={inputClass} value={ef.cet_time_to?.slice(0, 5) ?? ""} onChange={(e) => { setEf((f) => ({ ...f, cet_time_to: e.target.value })); }} onBlur={handleEventBlur} />
-        </div>
+        <input type="time" className={inputClass} value={ef.cet_time?.slice(0, 5) ?? ""} onChange={(e) => { setEf((f) => ({ ...f, cet_time: e.target.value })); }} onBlur={handleEventBlur} />
       ),
     },
     { label: "Brick Setup", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
