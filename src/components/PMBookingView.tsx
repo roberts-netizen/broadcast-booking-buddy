@@ -235,7 +235,7 @@ function TakerCell({ assignment, takerOptions, takers, onUpdate, onDelete }: Tak
       <div className="flex items-center gap-1">
         <SearchableSelect
           value={takerDisplayName}
-          options={takerNames}
+          options={takerOptions}
           onChange={handleTakerChange}
           placeholder="Taker..."
           className="flex-1 text-[11px] font-medium"
