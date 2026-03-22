@@ -594,11 +594,14 @@ import ClientAccessAdmin from "@/components/ClientAccessAdmin";
 
 export default function AdminPage() {
   const { data: channels = [] } = useIncomingChannels(false);
+  const { data: leagues = [] } = useLeagues(false);
   const [activeTab, setActiveTab] = useState<"settings" | "client-access">("settings");
 
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
   const bulkChannels = useBulkInsertIncomingChannels();
+  const upsertLeague = useUpsertLeague();
+  const deleteLeague = useDeleteLeague();
 
   const simpleBulk = (mutate: (rows: { name: string; active: boolean }[]) => Promise<any>) =>
     async (parsed: Record<string, string>[]) => {
