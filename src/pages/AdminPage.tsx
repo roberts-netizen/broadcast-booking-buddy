@@ -646,6 +646,12 @@ export default function AdminPage() {
             onDelete={(id) => deleteChannel.mutate(id)}
             onBulkImport={simpleBulk(bulkChannels.mutateAsync)}
           />
+          <SimpleTable
+            title="Leagues"
+            rows={leagues}
+            onUpsert={(r) => upsertLeague.mutate(r)}
+            onDelete={(id) => deleteLeague.mutate(id)}
+          />
           <TakersTable />
           <CategoriesTable />
           <TakerChannelMapTable />
