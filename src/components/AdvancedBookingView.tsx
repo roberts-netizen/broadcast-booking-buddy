@@ -546,9 +546,6 @@ export function AdvancedBookingView({ booking }: Props) {
     { label: "Notes", rowSpan: notesSpan, render: () => <textarea className={`${inputClass} min-h-[40px] resize-none`} value={ef.event_notes} onChange={(e) => setEf((f) => ({ ...f, event_notes: e.target.value }))} onBlur={handleEventBlur} /> },
   ];
 
-  // Filter out hidden info rows
-  const visibleInfoRows = infoRows.filter((r) => !r.hidden);
-
   // Map event labels to row indices (based on visible info rows count)
   type EventCell = { label: string; rowSpan: number; render: () => React.ReactNode };
   const eventRowMap: Record<number, EventCell> = {};
