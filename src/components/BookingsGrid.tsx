@@ -13,7 +13,7 @@ import {
   type ICellRendererParams,
   themeQuartz,
 } from "ag-grid-community";
-import { Plus } from "lucide-react";
+import { Plus, ClipboardPaste } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/useLookups";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
