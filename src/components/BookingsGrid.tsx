@@ -510,6 +510,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "Takers",
           width: 520,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           cellRenderer: TakersCellRenderer,
           sortable: false,
