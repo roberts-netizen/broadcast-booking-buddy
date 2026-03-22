@@ -12,9 +12,9 @@ const cellClass = "px-2 py-1.5 border-b border-r border-border text-[11px] align
 const labelCell = "px-2 py-1 text-[10px] font-medium text-muted-foreground bg-muted/30 whitespace-nowrap border-b border-r border-border";
 const valueCell = "px-2 py-1 text-[11px] border-b border-r border-border";
 
-const STATUS_COLORS: Record<string, string> = {
-  tested: "text-green-600 bg-green-500/10",
-  not_tested: "text-destructive bg-destructive/10",
+const STATUS_DOT: Record<string, string> = {
+  tested: "bg-green-500",
+  not_tested: "bg-destructive",
 };
 
 export function HogmoreView() {
