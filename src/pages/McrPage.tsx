@@ -255,14 +255,14 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             <table className="w-full min-w-[900px] border-collapse">
               <thead>
                 <tr className="bg-muted/30 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <th className="px-3 py-1.5 text-left font-semibold w-[55px] border border-border">Type</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[95px] border border-border">Date</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[50px] border border-border">GMT</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[50px] border border-border">CET</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[140px] border border-border">Event</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[100px] border border-border">League / Brick</th>
-                  <th className="px-3 py-1.5 text-left font-semibold border border-border">Takers</th>
-                  <th className="px-1 py-1.5 text-left font-semibold w-[30px] border border-border"></th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[40px] border border-border">Type</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">Date</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[42px] border border-border">GMT</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[42px] border border-border">CET</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[130px] border border-border">Event</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">League / Brick</th>
+                  <th className="px-1.5 py-1 text-left font-semibold border border-border">Takers</th>
+                  <th className="px-0.5 py-1 text-left font-semibold w-[24px] border border-border"></th>
                 </tr>
               </thead>
               <tbody>
@@ -274,25 +274,25 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                     const isAdv = cat !== "MCR";
                     return (
                       <tr key={b.id} className="hover:bg-muted/20 transition-colors">
-                        <td className="px-3 py-1.5 border border-border">
+                        <td className="px-1.5 py-1 border border-border">
                           {isAdv ? (
                             <Badge variant="outline" className="text-[9px] px-1 py-0">{cat}</Badge>
                           ) : (
                             <span className="text-[9px] text-muted-foreground">MCR</span>
                           )}
                         </td>
-                        <td className="px-3 py-1.5 text-xs whitespace-nowrap border border-border">
+                        <td className="px-1.5 py-1 text-[11px] whitespace-nowrap border border-border">
                           {b.date}
                           {(b as any).date_to && (b as any).date_to !== b.date && (
                             <span className="text-muted-foreground ml-0.5">→{(b as any).date_to.slice(5)}</span>
                           )}
                         </td>
-                        <td className="px-3 py-1.5 text-xs whitespace-nowrap border border-border">{b.gmt_time?.slice(0, 5)}</td>
-                        <td className="px-3 py-1.5 text-xs whitespace-nowrap border border-border">{b.cet_time?.slice(0, 5) ?? ""}</td>
-                        <td className="px-3 py-1.5 text-xs font-medium truncate max-w-[140px] border border-border" title={b.event_name}>{b.event_name}</td>
-                        <td className="px-3 py-1.5 text-xs text-muted-foreground border border-border">{isAdv ? (b.venue || "") : (b.league_id ? leagueMap[b.league_id] ?? "" : "")}</td>
-                        <td className="px-3 py-1.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
-                        <td className="px-1 py-1.5 border border-border w-[30px]">
+                        <td className="px-1.5 py-1 text-[11px] whitespace-nowrap border border-border">{b.gmt_time?.slice(0, 5)}</td>
+                        <td className="px-1.5 py-1 text-[11px] whitespace-nowrap border border-border">{b.cet_time?.slice(0, 5) ?? ""}</td>
+                        <td className="px-1.5 py-1 text-[11px] font-medium truncate max-w-[130px] border border-border" title={b.event_name}>{b.event_name}</td>
+                        <td className="px-1.5 py-1 text-[11px] text-muted-foreground border border-border">{isAdv ? (b.venue || "") : (b.league_id ? leagueMap[b.league_id] ?? "" : "")}</td>
+                        <td className="px-1 py-0.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
+                        <td className="px-0.5 py-1 border border-border w-[24px]">
                           {onNavigateToBooking && (
                             <button
                               onClick={() => onNavigateToBooking(b.id, cat)}
