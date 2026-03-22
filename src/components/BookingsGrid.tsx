@@ -436,6 +436,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           headerName: "Incoming Ch.",
           field: "channel_name",
           width: 130,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           cellRenderer: (params: ICellRendererParams) => {
             if (!params.data?.id) return null;
