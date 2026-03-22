@@ -44,6 +44,7 @@ export type Database = {
       booking_taker_assignments: {
         Row: {
           actual_channel_id: string
+          booked_by_client: boolean
           booking_id: string
           created_at: string
           id: string
@@ -54,6 +55,7 @@ export type Database = {
         }
         Insert: {
           actual_channel_id?: string
+          booked_by_client?: boolean
           booking_id: string
           created_at?: string
           id?: string
@@ -64,6 +66,7 @@ export type Database = {
         }
         Update: {
           actual_channel_id?: string
+          booked_by_client?: boolean
           booking_id?: string
           created_at?: string
           id?: string

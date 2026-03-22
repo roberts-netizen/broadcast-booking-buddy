@@ -1,0 +1,1 @@
+ALTER TABLE public.booking_taker_assignments ADD COLUMN booked_by_client boolean NOT NULL DEFAULT false;

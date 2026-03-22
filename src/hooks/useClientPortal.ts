@@ -102,7 +102,8 @@ export function useClientBookGame() {
         taker_id: takerId,
         taker_channel_map_id: takerChannelMapId,
         actual_channel_id: actualChannelId,
-      });
+        booked_by_client: true,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
