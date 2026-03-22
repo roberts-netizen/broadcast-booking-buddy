@@ -70,7 +70,7 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
   const itemClass = compact ? "text-[11px]" : "text-xs";
 
   return (
-    <div className={className} onClick={(e) => e.stopPropagation()}>
+    <div className={`${className}`} onClick={(e) => e.stopPropagation()}>
       <button
         ref={buttonRef}
         type="button"
