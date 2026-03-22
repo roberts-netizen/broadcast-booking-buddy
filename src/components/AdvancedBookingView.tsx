@@ -530,11 +530,12 @@ export function AdvancedBookingView({ booking }: Props) {
       rowSpan: audioSpan,
       render: () => (
         <textarea
-          className={`${inputClass} font-mono min-h-[60px] resize-none`}
+          className={`${inputClass} font-mono min-h-[36px] resize-none text-[10px]`}
           value={ef.audio_setup}
           onChange={(e) => setEf((f) => ({ ...f, audio_setup: e.target.value }))}
           onBlur={handleEventBlur}
           placeholder={"CH12:\nCH34:\nCH56:\nCH78:"}
+          rows={2}
         />
       ),
     },

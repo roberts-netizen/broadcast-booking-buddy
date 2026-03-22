@@ -1,14 +1,21 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Booking, useUpdateBooking } from "@/hooks/useBookings";
 import { useTakerAssignments, useUpdateTakerAssignment, useCreateTakerAssignment, useDeleteTakerAssignment } from "@/hooks/useTakerAssignments";
+import { useBookingReports, useUpsertBookingReport, useDeleteBookingReport } from "@/hooks/useBookingReports";
 import { useTakers } from "@/hooks/useLookups";
 import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "./SearchableSelect";
+import { ReportCell } from "./ReportCell";
 
 const cellClass = "px-2 py-1 border-b border-r border-border text-[11px] align-top";
 const headerClass = "px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground border-b border-r border-border bg-muted/50 whitespace-nowrap";
 const inputClass = "w-full bg-transparent text-[11px] outline-none hover:bg-muted/30 focus:bg-muted/40 focus:ring-1 focus:ring-ring rounded px-1 py-0.5";
+
+const TEST_STATUS_COLORS: Record<string, string> = {
+  not_tested: "bg-destructive",
+  waiting_for_details: "bg-yellow-500",
+  tested: "bg-green-500",
+};
 
 type Props = {
   bookings: Booking[];
@@ -26,12 +33,14 @@ export function PMBookingView({ bookings }: Props) {
   const bookingIds = useMemo(() => bookings.map((b) => b.id), [bookings]);
   const { data: allAssignments = [] } = useTakerAssignments(bookingIds);
   const { data: takers = [] } = useTakers(true);
+  const { data: reports = [] } = useBookingReports(bookingIds);
   const updateBooking = useUpdateBooking();
   const updateAssignment = useUpdateTakerAssignment();
   const createAssignment = useCreateTakerAssignment();
   const deleteAssignment = useDeleteTakerAssignment();
+  const upsertReport = useUpsertBookingReport();
+  const deleteReport = useDeleteBookingReport();
 
-  // Find max taker count across all bookings
   const maxTakers = useMemo(() => {
     let max = 0;
     for (const b of bookings) {
@@ -58,23 +67,30 @@ export function PMBookingView({ bookings }: Props) {
                 Taker {i + 1}
               </th>
             ))}
+            <th className={headerClass} style={{ minWidth: 40 }}>Report</th>
           </tr>
         </thead>
         <tbody>
-          {bookings.map((booking) => (
-            <PMRow
-              key={booking.id}
-              booking={booking}
-              assignments={allAssignments.filter((a) => a.booking_id === booking.id)}
-              maxTakers={maxTakers}
-              takerOptions={takerOptions}
-              takers={takers}
-              onUpdateBooking={updateBooking.mutate}
-              onUpdateAssignment={updateAssignment.mutate}
-              onCreateAssignment={createAssignment.mutate}
-              onDeleteAssignment={deleteAssignment.mutate}
-            />
-          ))}
+          {bookings.map((booking) => {
+            const report = reports.find((r) => r.booking_id === booking.id);
+            return (
+              <PMRow
+                key={booking.id}
+                booking={booking}
+                assignments={allAssignments.filter((a) => a.booking_id === booking.id)}
+                maxTakers={maxTakers}
+                takerOptions={takerOptions}
+                takers={takers}
+                report={report ?? null}
+                onUpdateBooking={updateBooking.mutate}
+                onUpdateAssignment={updateAssignment.mutate}
+                onCreateAssignment={createAssignment.mutate}
+                onDeleteAssignment={deleteAssignment.mutate}
+                onUpsertReport={(impact, desc) => upsertReport.mutate({ booking_id: booking.id, impact_level: impact, description: desc })}
+                onDeleteReport={() => deleteReport.mutate(booking.id)}
+              />
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -89,13 +105,16 @@ type RowProps = {
   maxTakers: number;
   takerOptions: TakerOption[];
   takers: any[];
+  report: { impact_level: string; description: string | null } | null;
   onUpdateBooking: (data: any) => void;
   onUpdateAssignment: (data: any) => void;
   onCreateAssignment: (data: any) => void;
   onDeleteAssignment: (id: string) => void;
+  onUpsertReport: (impact: "high" | "low", desc: string) => void;
+  onDeleteReport: () => void;
 };
 
-function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdateBooking, onUpdateAssignment, onCreateAssignment, onDeleteAssignment }: RowProps) {
+function PMRow({ booking, assignments, maxTakers, takerOptions, takers, report, onUpdateBooking, onUpdateAssignment, onCreateAssignment, onDeleteAssignment, onUpsertReport, onDeleteReport }: RowProps) {
   const [local, setLocal] = useState<LocalBooking>({
     event_name: booking.event_name,
     date: booking.date,
@@ -104,7 +123,6 @@ function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdate
     event_notes: booking.event_notes,
   });
 
-  // Sync from props when booking changes externally
   React.useEffect(() => {
     setLocal({
       event_name: booking.event_name,
@@ -126,50 +144,28 @@ function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdate
 
   const sorted = useMemo(() => [...assignments].sort((a, b) => a.sort_order - b.sort_order), [assignments]);
 
+  const reportBgClass = report?.impact_level === "high"
+    ? "bg-red-500/20"
+    : report?.impact_level === "low"
+    ? "bg-yellow-500/20"
+    : "";
+
   return (
     <tr className="hover:bg-muted/30">
       <td className={cellClass}>
-        <input
-          type="date"
-          className={inputClass}
-          value={local.date}
-          onChange={(e) => setLocal((p) => ({ ...p, date: e.target.value }))}
-          onBlur={() => handleBlur("date")}
-        />
+        <input type="date" className={inputClass} value={local.date} onChange={(e) => setLocal((p) => ({ ...p, date: e.target.value }))} onBlur={() => handleBlur("date")} />
       </td>
       <td className={cellClass}>
-        <input
-          type="time"
-          className={inputClass}
-          value={local.cet_time?.slice(0, 5) ?? ""}
-          onChange={(e) => setLocal((p) => ({ ...p, cet_time: e.target.value }))}
-          onBlur={() => handleBlur("cet_time")}
-        />
+        <input type="time" className={inputClass} value={local.cet_time?.slice(0, 5) ?? ""} onChange={(e) => setLocal((p) => ({ ...p, cet_time: e.target.value }))} onBlur={() => handleBlur("cet_time")} />
       </td>
       <td className={cellClass}>
-        <input
-          className={inputClass}
-          value={local.event_name}
-          onChange={(e) => setLocal((p) => ({ ...p, event_name: e.target.value }))}
-          onBlur={() => handleBlur("event_name")}
-        />
+        <input className={inputClass} value={local.event_name} onChange={(e) => setLocal((p) => ({ ...p, event_name: e.target.value }))} onBlur={() => handleBlur("event_name")} />
       </td>
       <td className={cellClass}>
-        <input
-          className={inputClass}
-          value={local.source ?? ""}
-          onChange={(e) => setLocal((p) => ({ ...p, source: e.target.value }))}
-          onBlur={() => handleBlur("source")}
-        />
+        <input className={inputClass} value={local.source ?? ""} onChange={(e) => setLocal((p) => ({ ...p, source: e.target.value }))} onBlur={() => handleBlur("source")} />
       </td>
       <td className={cellClass}>
-        <input
-          className={inputClass}
-          value={local.event_notes ?? ""}
-          onChange={(e) => setLocal((p) => ({ ...p, event_notes: e.target.value }))}
-          onBlur={() => handleBlur("event_notes")}
-          placeholder="Notes..."
-        />
+        <input className={inputClass} value={local.event_notes ?? ""} onChange={(e) => setLocal((p) => ({ ...p, event_notes: e.target.value }))} onBlur={() => handleBlur("event_notes")} placeholder="Notes..." />
       </td>
       {Array.from({ length: maxTakers }, (_, i) => {
         const assignment = sorted[i];
@@ -194,6 +190,14 @@ function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdate
           </td>
         );
       })}
+      <td className={`${cellClass} ${reportBgClass}`} style={{ minWidth: 40 }}>
+        <ReportCell
+          impactLevel={report ? (report.impact_level as "high" | "low") : null}
+          description={report?.description ?? ""}
+          onSave={onUpsertReport}
+          onClear={onDeleteReport}
+        />
+      </td>
     </tr>
   );
 }
@@ -216,6 +220,7 @@ function TakerCell({ assignment, takerOptions, takers, onUpdate, onDelete }: Tak
   }, [assignment.email_subject, assignment.communication_notes]);
 
   const takerDisplayName = assignment.taker_name || assignment.taker_custom_name || "";
+  const statusColor = TEST_STATUS_COLORS[assignment.test_status] || TEST_STATUS_COLORS.not_tested;
 
   const handleTakerChange = (name: string) => {
     const found = takers.find((t) => t.name === name);
@@ -231,6 +236,7 @@ function TakerCell({ assignment, takerOptions, takers, onUpdate, onDelete }: Tak
   return (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-center gap-1">
+        <span className={`h-2 w-2 rounded-full shrink-0 ${statusColor}`} title={assignment.test_status?.replace(/_/g, " ")} />
         <SearchableSelect
           value={takerDisplayName}
           options={takerOptions}
