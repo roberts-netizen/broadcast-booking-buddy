@@ -202,13 +202,13 @@ function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdate
 
 type TakerCellProps = {
   assignment: any;
-  takerNames: string[];
+  takerOptions: TakerOption[];
   takers: any[];
   onUpdate: (data: any) => void;
   onDelete: (id: string) => void;
 };
 
-function TakerCell({ assignment, takerNames, takers, onUpdate, onDelete }: TakerCellProps) {
+function TakerCell({ assignment, takerOptions, takers, onUpdate, onDelete }: TakerCellProps) {
   const [emailSubject, setEmailSubject] = useState(assignment.email_subject ?? "");
   const [commNotes, setCommNotes] = useState(assignment.communication_notes ?? "");
 
