@@ -111,7 +111,16 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
           filters={filters}
           onChange={setFilters}
         />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
+          <Button
+            size="sm"
+            variant={viewMode === "pm" ? "default" : "outline"}
+            className="h-7 text-xs gap-1"
+            onClick={() => setViewMode(viewMode === "full" ? "pm" : "full")}
+          >
+            {viewMode === "full" ? <LayoutList className="h-3 w-3" /> : <Table2 className="h-3 w-3" />}
+            {viewMode === "full" ? "PM View" : "Full View"}
+          </Button>
           <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleAdd}>
             <Plus className="h-3 w-3" /> Add Event
           </Button>
@@ -123,6 +132,8 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
           <div className="p-8 text-center text-muted-foreground text-sm">Loading...</div>
         ) : filteredBookings.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-sm">No bookings found</div>
+        ) : viewMode === "pm" ? (
+          <PMBookingView bookings={filteredBookings} />
         ) : (
           <div className="divide-y divide-border">
             {filteredBookings.map((booking) => (
