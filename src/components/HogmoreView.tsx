@@ -191,6 +191,7 @@ function HogmoreExpandedDetail({
             <DetailRow label="Notes" value={booking.event_notes || "—"} />
             <DetailRow label="Work Order" value={booking.work_order_id || "—"} />
             <DetailRow label="Project Lead" value={(booking as any).project_lead || "—"} />
+            <DetailRow label="Betting Delivery" value={parseBettingName(booking.betting_settings)} />
           </tbody>
         </table>
       </div>
