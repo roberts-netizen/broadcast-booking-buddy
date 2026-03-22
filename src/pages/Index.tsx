@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { Settings, Tv, Zap, Trophy, LayoutGrid } from "lucide-react";
+import { Settings, Tv, Zap, Trophy, LayoutGrid, Star } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
 import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
 import AdminPage from "./AdminPage";
@@ -13,6 +13,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   MCR: Tv,
   "ONE-OFF": Zap,
   ATP: Trophy,
+  Hogmore: Star,
 };
 
 export default function Index() {
