@@ -217,7 +217,10 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             if (!label && !chId) return null;
             return (
               <div key={a.id} className="flex flex-col text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 w-[130px] shrink-0">
-                {label && <span className="font-medium text-foreground truncate" title={label}>{label}</span>}
+                <div className="flex items-center gap-1">
+                  {label && <span className="font-medium text-foreground truncate" title={label}>{label}</span>}
+                  {a.booked_by_client && <span className="text-[8px] px-1 py-0 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30 shrink-0">Client</span>}
+                </div>
                 {chId && <span className="text-muted-foreground font-mono truncate" title={chId}>{chId}</span>}
               </div>
             );

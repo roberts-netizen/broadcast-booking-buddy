@@ -114,24 +114,29 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
           const availableChannels = currentLabel ? getChannelsForLabel(currentLabel) : [];
 
           return (
-            <div key={i} className="flex flex-row items-center gap-1 border-r-2 border-border last:border-r-0 px-1.5 py-1 w-[260px] shrink-0 bg-background even:bg-muted/20">
-              <SearchableSelect
-                options={uniqueLabels.map((m) => ({ value: m.label, label: m.label }))}
-                value={currentLabel}
-                onChange={(val) => handleLabelChange(slotNum, val)}
-                placeholder={`Taker ${slotNum}`}
-                compact
-                className="flex-1 min-w-0"
-              />
-              {currentLabel && (
+            <div key={i} className="flex flex-col gap-0.5 border-r-2 border-border last:border-r-0 px-1.5 py-1 w-[260px] shrink-0 bg-background even:bg-muted/20">
+              <div className="flex flex-row items-center gap-1">
                 <SearchableSelect
-                  options={availableChannels.map((m) => ({ value: m.id, label: m.actual_channel_id }))}
-                  value={assignment?.taker_channel_map_id ?? ""}
-                  onChange={(val) => handleChannelChange(slotNum, val)}
-                  placeholder="CH ID"
+                  options={uniqueLabels.map((m) => ({ value: m.label, label: m.label }))}
+                  value={currentLabel}
+                  onChange={(val) => handleLabelChange(slotNum, val)}
+                  placeholder={`Taker ${slotNum}`}
                   compact
-                  className="flex-1 min-w-0 [&_button]:bg-muted/30 [&_button]:text-muted-foreground"
+                  className="flex-1 min-w-0"
                 />
+                {currentLabel && (
+                  <SearchableSelect
+                    options={availableChannels.map((m) => ({ value: m.id, label: m.actual_channel_id }))}
+                    value={assignment?.taker_channel_map_id ?? ""}
+                    onChange={(val) => handleChannelChange(slotNum, val)}
+                    placeholder="CH ID"
+                    compact
+                    className="flex-1 min-w-0 [&_button]:bg-muted/30 [&_button]:text-muted-foreground"
+                  />
+                )}
+              </div>
+              {assignment?.booked_by_client && (
+                <span className="text-[8px] px-1 py-0 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30 w-fit">Client</span>
               )}
             </div>
           );
