@@ -106,17 +106,15 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
 
   return (
     <>
-      <div className="flex items-center gap-0.5 px-0.5 w-full h-full">
+      <div className="flex items-center gap-0 px-0 w-full h-full">
         {Array.from({ length: slotCount }, (_, i) => {
-          const slotNum = i + 1; // slot_number is 1-based (1, 2, 3)
+          const slotNum = i + 1;
           const assignment = slotAssignment(slotNum);
           const currentLabel = getAssignmentLabel(assignment);
           const availableChannels = currentLabel ? getChannelsForLabel(currentLabel) : [];
-          const showChannelPicker = availableChannels.length > 1 && currentLabel;
 
           return (
-            <div key={i} className="flex flex-row gap-0.5 flex-1 min-w-0 items-center">
-              {/* Label dropdown */}
+            <div key={i} className="flex flex-row gap-0.5 items-center border-r border-border last:border-r-0 px-1 py-0.5 w-[130px] shrink-0">
               <SearchableSelect
                 options={uniqueLabels.map((m) => ({ value: m.label, label: m.label }))}
                 value={currentLabel}
@@ -124,7 +122,6 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
                 placeholder="—"
                 className="flex-1 min-w-0"
               />
-              {/* Channel dropdown (shown when label is selected) */}
               {currentLabel && (
                 <SearchableSelect
                   options={availableChannels.map((m) => ({ value: m.id, label: m.actual_channel_id }))}
