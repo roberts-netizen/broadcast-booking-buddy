@@ -599,9 +599,13 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
 
   // ── Paste handler for multi-row paste via AG Grid + inline editor fallback ──
   const importRowsFromClipboard = useCallback(
-    (rawRows: string[][]) => {
+    async (rawRows: string[][]) => {
       const rows = rawRows.filter((r) => r.some((c) => c.trim()));
       if (!rows.length) return false;
+
+      // Build a cache of new leagues/channels to avoid duplicate inserts
+      const newLeagueCache: Record<string, string> = {};
+      const newChannelCache: Record<string, string> = {};
 
       for (const cells of rows) {
         const row: Partial<Booking> = {
@@ -612,16 +616,29 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           work_order_id: "",
         };
 
-        BULK_IMPORT_COLUMNS.forEach((col, i) => {
+        for (let i = 0; i < BULK_IMPORT_COLUMNS.length; i++) {
+          const col = BULK_IMPORT_COLUMNS[i];
           const val = cells[i]?.trim() ?? "";
-          if (!val) return;
+          if (!val) continue;
 
           if (col === "date") {
             row.date = normalizeDate(val);
           } else if (col === "league_name") {
-            row.league_id = leagueNameToId[val.toLowerCase()] ?? null;
+            const key = val.toLowerCase();
+            let id = leagueNameToId[key] ?? newLeagueCache[key];
+            if (!id) {
+              const { data } = await supabase.from("leagues").insert({ name: val, active: true }).select("id").single();
+              if (data) { id = data.id; newLeagueCache[key] = id; }
+            }
+            row.league_id = id ?? null;
           } else if (col === "channel_name") {
-            row.incoming_channel_id = channelNameToId[val.toLowerCase()] ?? null;
+            const key = val.toLowerCase();
+            let id = channelNameToId[key] ?? newChannelCache[key];
+            if (!id) {
+              const { data } = await supabase.from("incoming_channels").insert({ name: val, active: true }).select("id").single();
+              if (data) { id = data.id; newChannelCache[key] = id; }
+            }
+            row.incoming_channel_id = id ?? null;
           } else if (col === "gmt_time") {
             row.gmt_time = val.slice(0, 5);
             if (!cells[2]?.trim()) row.cet_time = addOneHour(val.slice(0, 5));
@@ -630,7 +647,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           } else {
             (row as any)[col] = val;
           }
-        });
+        }
 
         if (category && category !== "MCR" && defaultTournamentId) {
           (row as any).tournament_id = defaultTournamentId;
@@ -638,9 +655,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         createBooking.mutate(row);
       }
 
+      queryClient.invalidateQueries({ queryKey: ["leagues"] });
+      queryClient.invalidateQueries({ queryKey: ["incoming_channels"] });
       return true;
     },
-    [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId]
+    [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId, queryClient]
   );
 
   const processDataFromClipboard = useCallback(
