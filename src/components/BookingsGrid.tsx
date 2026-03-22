@@ -353,7 +353,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "Date",
           field: "date",
-          width: 120,
+          width: 95,
+          suppressSizeToFit: true,
           editable: true,
           cellDataType: "dateString",
         },
