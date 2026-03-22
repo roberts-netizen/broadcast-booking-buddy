@@ -146,7 +146,7 @@ function HogmoreRow({ booking }: { booking: Booking }) {
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={7} className="bg-muted/10 border-b border-border">
+          <td colSpan={8} className="bg-muted/10 border-b border-border">
             <HogmoreExpandedDetail booking={booking} assignments={assignments} endpoints={endpoints} />
           </td>
         </tr>
