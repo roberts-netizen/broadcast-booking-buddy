@@ -194,7 +194,6 @@ function HogmoreExpandedDetail({
           <div className="text-[11px] text-muted-foreground">No takers assigned</div>
         ) : (
           assignments.map((a, i) => {
-            const ep = endpointMap[`${a.id}_primary`] ?? {};
             return (
               <div key={a.id} className="mb-3">
                 {assignments.length > 1 && (
@@ -202,15 +201,12 @@ function HogmoreExpandedDetail({
                 )}
                 <table className="w-full border-collapse">
                   <tbody>
-                    <DetailRow label="Name" value={a.taker_name || a.taker_custom_name || "—"} />
-                    <DetailRow label="Protocol" value={ep.protocol || "—"} />
-                    <DetailRow label="Host" value={ep.host || "—"} />
-                    <DetailRow label="Stream Key" value={ep.stream_key || "—"} />
-                    <DetailRow label="Audio" value={a.audio || "—"} />
-                    <DetailRow label="Quality" value={a.quality || "—"} />
-                    <DetailRow label="Email/Contact" value={a.email_subject || "—"} />
-                    <DetailRow label="Test Status" value={(a.test_status || "not_tested").replace(/_/g, " ")} />
-                    <DetailRow label="Comm Notes" value={a.communication_notes || "—"} />
+                    <DetailRow label="Name" value={a.taker_name || a.taker_channel_map_label || "—"} />
+                    <DetailRow label="Protocol" value={a.taker_protocol || "—"} />
+                    <DetailRow label="Host" value={a.taker_host || "—"} />
+                    <DetailRow label="Stream Key" value={a.taker_stream_key || "—"} />
+                    <DetailRow label="Audio" value={a.taker_audio || "—"} />
+                    <DetailRow label="Email/Contact" value={a.taker_email_subject || "—"} />
                   </tbody>
                 </table>
               </div>
