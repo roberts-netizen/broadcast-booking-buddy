@@ -255,14 +255,14 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             <table className="w-full min-w-[900px] border-collapse">
               <thead>
                 <tr className="bg-muted/30 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <th className="px-3 py-1.5 text-left font-semibold w-[55px] border border-border">Type</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[95px] border border-border">Date</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[50px] border border-border">GMT</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[50px] border border-border">CET</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[140px] border border-border">Event</th>
-                  <th className="px-3 py-1.5 text-left font-semibold w-[100px] border border-border">League / Brick</th>
-                  <th className="px-3 py-1.5 text-left font-semibold border border-border">Takers</th>
-                  <th className="px-1 py-1.5 text-left font-semibold w-[30px] border border-border"></th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[40px] border border-border">Type</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">Date</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[42px] border border-border">GMT</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[42px] border border-border">CET</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[130px] border border-border">Event</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">League / Brick</th>
+                  <th className="px-1.5 py-1 text-left font-semibold border border-border">Takers</th>
+                  <th className="px-0.5 py-1 text-left font-semibold w-[24px] border border-border"></th>
                 </tr>
               </thead>
               <tbody>
