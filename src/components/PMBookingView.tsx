@@ -41,7 +41,7 @@ export function PMBookingView({ bookings }: Props) {
     return Math.max(max, 1);
   }, [bookings, allAssignments]);
 
-  const takerNames = useMemo(() => takers.map((t) => t.name), [takers]);
+  const takerOptions = useMemo(() => takers.map((t) => ({ value: t.name, label: t.name })), [takers]);
 
   return (
     <div className="overflow-auto">
