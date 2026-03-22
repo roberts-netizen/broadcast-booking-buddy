@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useBookings, Booking } from "@/hooks/useBookings";
-import { useTakerAssignments } from "@/hooks/useTakerAssignments";
+import { useBookingTakerAssignments } from "@/hooks/useBookingTakerAssignments";
 import { useProjectTakerEndpoints } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Wifi } from "lucide-react";
@@ -97,13 +97,13 @@ export function HogmoreView() {
 
 function HogmoreRow({ booking }: { booking: Booking }) {
   const [expanded, setExpanded] = useState(false);
-  const { data: assignments = [] } = useTakerAssignments([booking.id]);
+  const { data: assignments = [] } = useBookingTakerAssignments([booking.id]);
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
 
   const firstAssignment = assignments[0];
   const takerName = firstAssignment
-    ? firstAssignment.taker_name || (firstAssignment as any).taker_custom_name || "—"
+    ? firstAssignment.taker_channel_map_label || "—"
     : "—";
 
   const sourceStatus = (booking as any).source_status ?? "not_tested";
