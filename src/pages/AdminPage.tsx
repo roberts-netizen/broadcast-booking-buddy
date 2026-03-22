@@ -588,8 +588,12 @@ function CategoriesTable() {
 }
 
 // ── Admin Page ────────────────────────────────────────────────────────────────
+
+import ClientAccessAdmin from "@/components/ClientAccessAdmin";
+
 export default function AdminPage() {
   const { data: channels = [] } = useIncomingChannels(false);
+  const [activeTab, setActiveTab] = useState<"settings" | "client-access">("settings");
 
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
@@ -605,18 +609,46 @@ export default function AdminPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SimpleTable
-          title="Incoming Channels"
-          rows={channels}
-          onUpsert={(r) => upsertChannel.mutate(r)}
-          onDelete={(id) => deleteChannel.mutate(id)}
-          onBulkImport={simpleBulk(bulkChannels.mutateAsync)}
-        />
-        <TakersTable />
-        <CategoriesTable />
-        <TakerChannelMapTable />
+      {/* Tab switcher */}
+      <div className="flex gap-1 border-b border-border">
+        <button
+          className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+            activeTab === "settings"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => setActiveTab("settings")}
+        >
+          Settings
+        </button>
+        <button
+          className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+            activeTab === "client-access"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => setActiveTab("client-access")}
+        >
+          Client Access
+        </button>
       </div>
+
+      {activeTab === "settings" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SimpleTable
+            title="Incoming Channels"
+            rows={channels}
+            onUpsert={(r) => upsertChannel.mutate(r)}
+            onDelete={(id) => deleteChannel.mutate(id)}
+            onBulkImport={simpleBulk(bulkChannels.mutateAsync)}
+          />
+          <TakersTable />
+          <CategoriesTable />
+          <TakerChannelMapTable />
+        </div>
+      )}
+
+      {activeTab === "client-access" && <ClientAccessAdmin />}
     </div>
   );
 }

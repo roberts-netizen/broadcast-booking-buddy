@@ -208,6 +208,38 @@ export type Database = {
         }
         Relationships: []
       }
+      client_access_tokens: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          taker_channel_map_id: string
+          token: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          taker_channel_map_id: string
+          token: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          taker_channel_map_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_access_tokens_taker_channel_map_id_fkey"
+            columns: ["taker_channel_map_id"]
+            isOneToOne: false
+            referencedRelation: "taker_channel_maps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incoming_channels: {
         Row: {
           active: boolean
@@ -228,6 +260,42 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      league_taker_tags: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          taker_channel_map_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          taker_channel_map_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          taker_channel_map_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_taker_tags_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_taker_tags_taker_channel_map_id_fkey"
+            columns: ["taker_channel_map_id"]
+            isOneToOne: false
+            referencedRelation: "taker_channel_maps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leagues: {
         Row: {
