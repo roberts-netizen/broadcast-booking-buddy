@@ -106,7 +106,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
 
   return (
     <>
-      <div className="flex items-center gap-0 px-0 w-full h-full">
+        <div className="flex items-stretch gap-0 px-0 w-full h-full">
         {Array.from({ length: slotCount }, (_, i) => {
           const slotNum = i + 1;
           const assignment = slotAssignment(slotNum);
@@ -114,21 +114,23 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
           const availableChannels = currentLabel ? getChannelsForLabel(currentLabel) : [];
 
           return (
-            <div key={i} className="flex flex-row gap-0.5 items-center border-r border-border last:border-r-0 px-1 py-0.5 w-[130px] shrink-0">
+            <div key={i} className="flex flex-col justify-center gap-0.5 border-r-2 border-border last:border-r-0 px-1.5 py-1 w-[140px] shrink-0 bg-background even:bg-muted/20">
               <SearchableSelect
                 options={uniqueLabels.map((m) => ({ value: m.label, label: m.label }))}
                 value={currentLabel}
                 onChange={(val) => handleLabelChange(slotNum, val)}
-                placeholder="—"
-                className="flex-1 min-w-0"
+                placeholder={`Taker ${slotNum}`}
+                compact
+                className="w-full"
               />
               {currentLabel && (
                 <SearchableSelect
                   options={availableChannels.map((m) => ({ value: m.id, label: m.actual_channel_id }))}
                   value={assignment?.taker_channel_map_id ?? ""}
                   onChange={(val) => handleChannelChange(slotNum, val)}
-                  placeholder="ch"
-                  className="min-w-[50px] max-w-[70px] [&_button]:text-[9px] [&_button]:py-0 [&_button]:bg-muted/30 [&_button]:text-muted-foreground"
+                  placeholder="CH ID"
+                  compact
+                  className="w-full [&_button]:bg-muted/30 [&_button]:text-muted-foreground"
                 />
               )}
             </div>
