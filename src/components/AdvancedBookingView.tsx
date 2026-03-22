@@ -448,6 +448,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "2nd User /StreamID",
+      hidden: !anyHasBackupProtocol,
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
