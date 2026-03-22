@@ -384,13 +384,15 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "GMT",
           field: "gmt_time",
-          width: 90,
+          width: 65,
+          suppressSizeToFit: true,
           editable: true,
         },
         {
           headerName: "CET",
           field: "cet_time",
-          width: 90,
+          width: 65,
+          suppressSizeToFit: true,
           editable: true,
         },
         {
