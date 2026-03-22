@@ -115,7 +115,9 @@ export default function Index() {
 
             {/* Grid or Advanced View */}
             <div className="flex-1 overflow-hidden">
-              {isAdvanced ? (
+              {categoryName === "HOGMORE" ? (
+                <HogmoreView />
+              ) : isAdvanced ? (
                 <AdvancedCategoryView category={categoryName} highlightBookingId={highlightBookingId} onHighlightHandled={() => setHighlightBookingId(null)} />
               ) : (
                 <BookingsGrid category={categoryName} highlightBookingId={highlightBookingId} onHighlightHandled={() => setHighlightBookingId(null)} />
