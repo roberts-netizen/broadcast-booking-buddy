@@ -12,9 +12,9 @@ const cellClass = "px-2 py-1.5 border-b border-r border-border text-[11px] align
 const labelCell = "px-2 py-1 text-[10px] font-medium text-muted-foreground bg-muted/30 whitespace-nowrap border-b border-r border-border";
 const valueCell = "px-2 py-1 text-[11px] border-b border-r border-border";
 
-const STATUS_COLORS: Record<string, string> = {
-  tested: "text-green-600 bg-green-500/10",
-  not_tested: "text-destructive bg-destructive/10",
+const STATUS_DOT: Record<string, string> = {
+  tested: "bg-green-500",
+  not_tested: "bg-destructive",
 };
 
 export function HogmoreView() {
@@ -78,9 +78,8 @@ export function HogmoreView() {
                 <th className={headerClass} style={{ width: 65 }}>GMT</th>
                 <th className={headerClass} style={{ minWidth: 200 }}>Event</th>
                 <th className={headerClass} style={{ minWidth: 180 }}>Source</th>
-                <th className={headerClass} style={{ width: 90 }}>Status</th>
                 <th className={headerClass} style={{ minWidth: 160 }}>Notes</th>
-                <th className={headerClass} style={{ minWidth: 160 }}>Taker</th>
+                <th className={headerClass} style={{ minWidth: 200 }}>Takers</th>
               </tr>
             </thead>
             <tbody>
@@ -101,13 +100,8 @@ function HogmoreRow({ booking }: { booking: Booking }) {
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
 
-  const firstAssignment = assignments[0];
-  const takerName = firstAssignment
-    ? firstAssignment.taker_channel_map_label || "—"
-    : "—";
-
-  const sourceStatus = (booking as any).source_status ?? "not_tested";
-  const statusStyle = STATUS_COLORS[sourceStatus] || STATUS_COLORS.not_tested;
+  const sourceStatus = booking.source_status ?? "not_tested";
+  const sourceDot = STATUS_DOT[sourceStatus] || STATUS_DOT.not_tested;
 
   return (
     <>
@@ -121,19 +115,31 @@ function HogmoreRow({ booking }: { booking: Booking }) {
           <span className="truncate block">{booking.event_name}</span>
         </td>
         <td className={cellClass} style={{ maxWidth: 180 }}>
-          <span className="truncate block">{booking.source || "—"}</span>
-        </td>
-        <td className={cellClass}>
-          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${statusStyle}`}>
-            {sourceStatus.replace(/_/g, " ")}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${sourceDot}`} title={sourceStatus.replace(/_/g, " ")} />
+            <span className="truncate">{booking.source || "—"}</span>
+          </div>
         </td>
         <td className={cellClass}>{booking.event_notes || "—"}</td>
-        <td className={cellClass}>{takerName}</td>
+        <td className={cellClass}>
+          {assignments.length === 0 ? "—" : (
+            <div className="flex flex-col gap-0.5">
+              {assignments.map((a) => {
+                const tDot = STATUS_DOT.not_tested;
+                return (
+                  <div key={a.id} className="flex items-center gap-1.5">
+                    <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title="not tested" />
+                    <span className="truncate">{a.taker_channel_map_label || "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </td>
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={8} className="bg-muted/10 border-b border-border">
+          <td colSpan={7} className="bg-muted/10 border-b border-border">
             <HogmoreExpandedDetail booking={booking} assignments={assignments} endpoints={endpoints} />
           </td>
         </tr>
