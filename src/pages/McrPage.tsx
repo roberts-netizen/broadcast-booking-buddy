@@ -160,10 +160,10 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       return <span className="text-muted-foreground">—</span>;
     }
 
-    // ADV events: show taker name + host/IP + key/port from assignments & endpoints
+    // ADV events: show taker name + details
     if (isAdv && ta.length > 0) {
       return (
-        <div className="flex divide-x divide-border">
+        <div className="flex gap-0">
           {ta.map((a, i) => {
             const name = a.taker_name || (a as any).taker_custom_name || "";
             const statusColor = a.test_status === "tested"
@@ -181,15 +181,15 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             return (
               <div
                 key={a.id}
-                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-2 py-0.5 transition-colors flex items-center gap-1.5 first:pl-0"
+                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors flex items-center gap-1 border-r border-border last:border-r-0 min-w-0"
                 onClick={(e) => { e.stopPropagation(); setSelectedTaker(a); }}
                 title="Click to view full details"
               >
                 <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-                <span className="font-medium text-primary underline decoration-dotted">{name}</span>
-                {qualAudio && <span className="text-muted-foreground">({qualAudio})</span>}
-                {proto && <span className="text-muted-foreground font-mono text-[9px]">[{proto}]</span>}
-                {notes && <span className="text-muted-foreground italic truncate max-w-[150px]" title={notes}>{notes}</span>}
+                <span className="font-medium text-primary underline decoration-dotted whitespace-nowrap">{name}</span>
+                {qualAudio && <span className="text-muted-foreground whitespace-nowrap">({qualAudio})</span>}
+                {proto && <span className="text-muted-foreground font-mono text-[9px] whitespace-nowrap">[{proto}]</span>}
+                {notes && <span className="text-muted-foreground italic truncate max-w-[100px]" title={notes}>{notes}</span>}
               </div>
             );
           })}
@@ -197,17 +197,18 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       );
     }
 
-    // MCR events: show taker label + actual_channel_id
+    // MCR events: show taker label + actual_channel_id in separate cells
     if (bta.length > 0) {
       return (
-        <div className="flex divide-x divide-border">
+        <div className="flex gap-0">
           {bta.map((a, i) => {
-            const label = a.taker_channel_map_label || `Taker ${i + 1}`;
+            const label = a.taker_channel_map_label || "";
             const chId = a.actual_channel_id || "";
+            if (!label && !chId) return null;
             return (
-              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-2 first:pl-0">
-                <span className="font-medium text-foreground">{label}</span>
-                {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
+              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 min-w-0">
+                {label && <span className="font-medium text-foreground whitespace-nowrap">{label}</span>}
+                {chId && <span className="text-muted-foreground font-mono whitespace-nowrap">{chId}</span>}
               </div>
             );
           })}
@@ -217,9 +218,10 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
 
     // Fallback: taker_assignments for MCR
     return (
-      <div className="flex divide-x divide-border">
+      <div className="flex gap-0">
         {ta.map((a, i) => {
-          const name = a.taker_name || (a as any).taker_custom_name || `Taker ${i + 1}`;
+          const name = a.taker_name || (a as any).taker_custom_name || "";
+          if (!name) return null;
           const statusColor = a.test_status === "tested"
             ? "bg-[hsl(142,71%,45%)]"
             : a.test_status === "waiting_for_details"
@@ -227,10 +229,10 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             : "bg-[hsl(0,72%,51%)]";
           const chId = a.stream_key_or_channel_id || "";
           return (
-            <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-2 first:pl-0">
+            <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 min-w-0">
               <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-              <span className="font-medium text-foreground">{name}</span>
-              {chId && <span className="text-muted-foreground font-mono">{chId}</span>}
+              <span className="font-medium text-foreground whitespace-nowrap">{name}</span>
+              {chId && <span className="text-muted-foreground font-mono whitespace-nowrap">{chId}</span>}
             </div>
           );
         })}
