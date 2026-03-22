@@ -143,6 +143,9 @@ function HogmoreRow({ booking }: { booking: Booking }) {
             </div>
           )}
         </td>
+        <td className={cellClass}>
+          <BettingBadge bettingSettings={booking.betting_settings} />
+        </td>
       </tr>
       {expanded && (
         <tr>
