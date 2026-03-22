@@ -587,7 +587,7 @@ export function AdvancedBookingView({ booking }: Props) {
             </tr>
           </thead>
           <tbody>
-            {infoRows.map((row, ri) => {
+            {visibleInfoRows.map((row, ri) => {
               const eventCell = eventRowMap[ri];
               const skipEvent = eventSkipRows.has(ri);
 
