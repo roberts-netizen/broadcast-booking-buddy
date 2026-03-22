@@ -121,17 +121,22 @@ function HogmoreRow({ booking }: { booking: Booking }) {
           </div>
         </td>
         <td className={cellClass}>{booking.event_notes || "—"}</td>
-        <td className={cellClass}>
-          {assignments.length === 0 ? "—" : (
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              {assignments.map((a) => {
+        <td className={`${cellClass} !p-0`}>
+          {assignments.length === 0 ? <span className="px-2 py-1.5">—</span> : (
+            <div className="flex items-stretch">
+              {assignments.map((a, i) => {
                 const hasValidConnection = a.taker_host && a.taker_host !== "tbc" && a.taker_stream_key && a.taker_stream_key !== "tbc";
                 const tDot = hasValidConnection ? STATUS_DOT.tested : STATUS_DOT.not_tested;
                 const statusLabel = hasValidConnection ? "tested" : "not tested";
+                const protocol = a.taker_protocol || "";
+                const streamInfo = [a.actual_channel_id, protocol ? `[${protocol}]` : ""].filter(Boolean).join(" ");
                 return (
-                  <div key={a.id} className="flex items-center gap-1.5 whitespace-nowrap">
-                    <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title={statusLabel} />
-                    <span className="text-[11px]">{a.taker_channel_map_label || "—"}</span>
+                  <div key={a.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < assignments.length - 1 ? "border-r border-border" : ""}`}>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title={statusLabel} />
+                      <span className="text-[11px] font-medium">{a.taker_channel_map_label || "—"}</span>
+                    </div>
+                    {streamInfo && <span className="text-[10px] text-muted-foreground pl-3.5">{streamInfo}</span>}
                   </div>
                 );
               })}
