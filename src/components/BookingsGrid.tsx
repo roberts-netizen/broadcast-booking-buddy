@@ -482,6 +482,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "Report",
           width: 65,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           sortable: false,
           filter: false,
