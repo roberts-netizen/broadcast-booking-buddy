@@ -51,8 +51,10 @@
     --confirmation-yes: 142 60% 36%;
     --tag-active: 142 50% 90%;
     --tag-active-foreground: 142 60% 25%;
-    --date-group-even: 0 0% 100%;
-    --date-group-odd: 215 25% 95%;
+    --date-group-0: 210 40% 97%;
+    --date-group-1: 190 35% 95%;
+    --date-group-2: 30 40% 96%;
+    --date-group-3: 260 30% 96%;
   }
 }
 

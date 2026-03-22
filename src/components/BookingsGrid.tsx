@@ -860,9 +860,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           getRowStyle={(params) => {
             const group = params.data?._dateGroup ?? 0;
             return {
-              backgroundColor: group === 0
-                ? 'hsl(var(--date-group-even))'
-                : 'hsl(var(--date-group-odd))',
+              backgroundColor: `hsl(var(--date-group-${group}))`,
             };
           }}
           animateRows={false}
