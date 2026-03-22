@@ -164,7 +164,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
     if (isAdv && ta.length > 0) {
       return (
         <div className="flex gap-0">
-          {ta.map((a, i) => {
+          {ta.map((a) => {
             const name = a.taker_name || (a as any).taker_custom_name || "";
             const statusColor = a.test_status === "tested"
               ? "bg-[hsl(142,71%,45%)]"
@@ -176,20 +176,23 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             const proto = eps.length > 0
               ? eps.map(e => e.protocol).filter(Boolean).join(", ")
               : a.protocol || "";
-            const notes = a.communication_notes || a.test_notes || "";
 
             return (
               <div
                 key={a.id}
-                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors flex items-center gap-1 border-r border-border last:border-r-0 min-w-0"
+                className="flex flex-col text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors border-r border-border last:border-r-0 w-[130px] shrink-0"
                 onClick={(e) => { e.stopPropagation(); setSelectedTaker(a); }}
                 title="Click to view full details"
               >
-                <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-                <span className="font-medium text-primary underline decoration-dotted whitespace-nowrap">{name}</span>
-                {qualAudio && <span className="text-muted-foreground whitespace-nowrap">({qualAudio})</span>}
-                {proto && <span className="text-muted-foreground font-mono text-[9px] whitespace-nowrap">[{proto}]</span>}
-                {notes && <span className="text-muted-foreground italic truncate max-w-[100px]" title={notes}>{notes}</span>}
+                <div className="flex items-center gap-1">
+                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+                  <span className="font-medium text-primary underline decoration-dotted truncate" title={name}>{name}</span>
+                </div>
+                {(qualAudio || proto) && (
+                  <span className="text-muted-foreground truncate" title={`${qualAudio} ${proto}`}>
+                    {qualAudio}{qualAudio && proto ? " " : ""}{proto && `[${proto}]`}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -197,18 +200,18 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       );
     }
 
-    // MCR events: show taker label + actual_channel_id in separate cells
+    // MCR events: show taker label + actual_channel_id in fixed-width separated cells
     if (bta.length > 0) {
       return (
         <div className="flex gap-0">
-          {bta.map((a, i) => {
+          {bta.map((a) => {
             const label = a.taker_channel_map_label || "";
             const chId = a.actual_channel_id || "";
             if (!label && !chId) return null;
             return (
-              <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 min-w-0">
-                {label && <span className="font-medium text-foreground whitespace-nowrap">{label}</span>}
-                {chId && <span className="text-muted-foreground font-mono whitespace-nowrap">{chId}</span>}
+              <div key={a.id} className="flex flex-col text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 w-[130px] shrink-0">
+                {label && <span className="font-medium text-foreground truncate" title={label}>{label}</span>}
+                {chId && <span className="text-muted-foreground font-mono truncate" title={chId}>{chId}</span>}
               </div>
             );
           })}
@@ -219,7 +222,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
     // Fallback: taker_assignments for MCR
     return (
       <div className="flex gap-0">
-        {ta.map((a, i) => {
+        {ta.map((a) => {
           const name = a.taker_name || (a as any).taker_custom_name || "";
           if (!name) return null;
           const statusColor = a.test_status === "tested"
@@ -229,10 +232,12 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             : "bg-[hsl(0,72%,51%)]";
           const chId = a.stream_key_or_channel_id || "";
           return (
-            <div key={a.id} className="flex items-center gap-1 text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 min-w-0">
-              <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-              <span className="font-medium text-foreground whitespace-nowrap">{name}</span>
-              {chId && <span className="text-muted-foreground font-mono whitespace-nowrap">{chId}</span>}
+            <div key={a.id} className="flex flex-col text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 w-[130px] shrink-0">
+              <div className="flex items-center gap-1">
+                <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+                <span className="font-medium text-foreground truncate" title={name}>{name}</span>
+              </div>
+              {chId && <span className="text-muted-foreground font-mono truncate" title={chId}>{chId}</span>}
             </div>
           );
         })}
