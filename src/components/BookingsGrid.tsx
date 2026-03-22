@@ -426,7 +426,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
               />
             );
           },
-          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+          cellStyle: { padding: 0, display: "flex", alignItems: "stretch", width: "100%" },
         },
         {
           headerName: "Event Name",
