@@ -17,9 +17,12 @@ type Props = {
 
 type TimeTab = "today" | "upcoming" | "past";
 
+type ViewMode = "full" | "pm";
+
 export function AdvancedCategoryView({ category, highlightBookingId, onHighlightHandled }: Props) {
   const [filters, setFilters] = useState<{ dateFrom?: string; dateTo?: string; leagueId?: string }>({});
   const [timeTab, setTimeTab] = useState<TimeTab>("today");
+  const [viewMode, setViewMode] = useState<ViewMode>("full");
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
   const { data: leagues = [] } = useLeagues(true);
   const createBooking = useCreateBooking();
