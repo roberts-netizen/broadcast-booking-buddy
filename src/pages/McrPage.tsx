@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, X } from "lucide-react";
 import { useBookings, Booking } from "@/hooks/useBookings";
-import { useLeagues, useCategories, useTakers } from "@/hooks/useLookups";
+import { useLeagues, useCategories, useTakers, useIncomingChannels } from "@/hooks/useLookups";
 import { useTakerAssignments, TakerAssignment, TestStatus, useUpdateTakerAssignment } from "@/hooks/useTakerAssignments";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { useProjectTakerEndpoints, ProjectTakerEndpoint, useUpsertEndpoint } from "@/hooks/useProjectTakerEndpoints";
