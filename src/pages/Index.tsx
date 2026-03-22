@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { Settings, Tv, Zap, Trophy, LayoutGrid, Star } from "lucide-react";
 import BookingsGrid from "@/components/BookingsGrid";
 import { AdvancedCategoryView } from "@/components/AdvancedCategoryView";
+import { HogmoreView } from "@/components/HogmoreView";
 import AdminPage from "./AdminPage";
 import McrPage from "./McrPage";
 import { useCategories } from "@/hooks/useLookups";
@@ -114,7 +115,9 @@ export default function Index() {
 
             {/* Grid or Advanced View */}
             <div className="flex-1 overflow-hidden">
-              {isAdvanced ? (
+              {categoryName === "HOGMORE" ? (
+                <HogmoreView />
+              ) : isAdvanced ? (
                 <AdvancedCategoryView category={categoryName} highlightBookingId={highlightBookingId} onHighlightHandled={() => setHighlightBookingId(null)} />
               ) : (
                 <BookingsGrid category={categoryName} highlightBookingId={highlightBookingId} onHighlightHandled={() => setHighlightBookingId(null)} />
