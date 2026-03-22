@@ -178,9 +178,17 @@ export function AdvancedBookingView({ booking }: Props) {
   const displayCount = Math.max(DEFAULT_TAKER_COUNT, assignments.length);
   const takerCols = Array.from({ length: displayCount }, (_, i) => assignments[i] ?? null);
 
+  // Check if any taker assignment uses a "2" protocol (backup endpoint needed)
+  const anyHasBackupProtocol = takerCols.some((a) => {
+    if (!a) return false;
+    const ep = getEp(a.id, "primary");
+    return ep.protocol?.trim().endsWith("2");
+  });
+
   // Info rows definition
   const infoRows: {
     label: string;
+    hidden?: boolean;
     render: (a: TakerAssignment | null, idx: number) => React.ReactNode;
   }[] = [
     {
@@ -420,6 +428,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "2nd Host/IP",
+      hidden: !anyHasBackupProtocol,
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
@@ -429,6 +438,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "2nd Key/port",
+      hidden: !anyHasBackupProtocol,
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
@@ -438,6 +448,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "2nd User /StreamID",
+      hidden: !anyHasBackupProtocol,
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
@@ -447,6 +458,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "2nd Pass",
+      hidden: !anyHasBackupProtocol,
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
@@ -526,7 +538,10 @@ export function AdvancedBookingView({ booking }: Props) {
     { label: "Notes", rowSpan: 3, render: () => <textarea className={`${inputClass} min-h-[60px] resize-none`} value={ef.event_notes} onChange={(e) => setEf((f) => ({ ...f, event_notes: e.target.value }))} onBlur={handleEventBlur} /> },
   ];
 
-  // Map event labels to row indices
+  // Filter out hidden info rows
+  const visibleInfoRows = infoRows.filter((r) => !r.hidden);
+
+  // Map event labels to row indices (based on visible info rows count)
   type EventCell = { label: string; rowSpan: number; render: () => React.ReactNode };
   const eventRowMap: Record<number, EventCell> = {};
   const eventSkipRows = new Set<number>();
@@ -572,7 +587,7 @@ export function AdvancedBookingView({ booking }: Props) {
             </tr>
           </thead>
           <tbody>
-            {infoRows.map((row, ri) => {
+            {visibleInfoRows.map((row, ri) => {
               const eventCell = eventRowMap[ri];
               const skipEvent = eventSkipRows.has(ri);
 
