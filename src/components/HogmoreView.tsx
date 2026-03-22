@@ -17,6 +17,26 @@ const STATUS_DOT: Record<string, string> = {
   not_tested: "bg-destructive",
 };
 
+function parseBettingName(settings: string | null | undefined): string {
+  if (!settings) return "—";
+  try {
+    const parsed = JSON.parse(settings);
+    return parsed?.name || "—";
+  } catch {
+    return "—";
+  }
+}
+
+function BettingBadge({ bettingSettings }: { bettingSettings: string | null | undefined }) {
+  const name = parseBettingName(bettingSettings);
+  if (name === "—") return <span>—</span>;
+  return (
+    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+      {name}
+    </span>
+  );
+}
+
 export function HogmoreView() {
   const [timeTab, setTimeTab] = useState<TimeTab>("today");
   const { data: bookings = [], isLoading } = useBookings({ tournamentType: "HOGMORE" });
