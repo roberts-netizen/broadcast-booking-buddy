@@ -398,7 +398,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "League",
           field: "league_name",
-          width: 130,
+          width: 110,
+          suppressSizeToFit: true,
           editable: false,
           cellRenderer: (params: ICellRendererParams) => {
             if (!params.data?.id) return null;
