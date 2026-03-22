@@ -180,7 +180,7 @@ function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdate
             {assignment ? (
               <TakerCell
                 assignment={assignment}
-                takerNames={takerNames}
+                takerOptions={takerOptions}
                 takers={takers}
                 onUpdate={onUpdateAssignment}
                 onDelete={onDeleteAssignment}
