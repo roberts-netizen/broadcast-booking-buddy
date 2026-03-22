@@ -130,20 +130,10 @@ function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdate
     <tr className="hover:bg-muted/30">
       <td className={cellClass}>
         <input
-          className={inputClass}
-          value={local.event_name}
-          onChange={(e) => setLocal((p) => ({ ...p, event_name: e.target.value }))}
-          onBlur={() => handleBlur("event_name")}
-        />
-      </td>
-      <td className={cellClass}>
-        <input
           type="date"
           className={inputClass}
           value={local.date}
-          onChange={(e) => {
-            setLocal((p) => ({ ...p, date: e.target.value }));
-          }}
+          onChange={(e) => setLocal((p) => ({ ...p, date: e.target.value }))}
           onBlur={() => handleBlur("date")}
         />
       </td>
@@ -154,6 +144,14 @@ function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdate
           value={local.cet_time?.slice(0, 5) ?? ""}
           onChange={(e) => setLocal((p) => ({ ...p, cet_time: e.target.value }))}
           onBlur={() => handleBlur("cet_time")}
+        />
+      </td>
+      <td className={cellClass}>
+        <input
+          className={inputClass}
+          value={local.event_name}
+          onChange={(e) => setLocal((p) => ({ ...p, event_name: e.target.value }))}
+          onBlur={() => handleBlur("event_name")}
         />
       </td>
       <td className={cellClass}>
