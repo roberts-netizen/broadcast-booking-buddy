@@ -438,6 +438,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "2nd Key/port",
+      hidden: !anyHasBackupProtocol,
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
