@@ -263,7 +263,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   const dateGroupMap = useMemo(() => {
     const uniqueDates = [...new Set(bookings.map((b) => b.date))].sort();
     const map: Record<string, number> = {};
-    uniqueDates.forEach((d, i) => (map[d] = i % 2));
+    uniqueDates.forEach((d, i) => (map[d] = i % 4));
     return map;
   }, [bookings]);
 
@@ -860,9 +860,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           getRowStyle={(params) => {
             const group = params.data?._dateGroup ?? 0;
             return {
-              backgroundColor: group === 0
-                ? 'hsl(var(--date-group-even))'
-                : 'hsl(var(--date-group-odd))',
+              backgroundColor: `hsl(var(--date-group-${group}))`,
             };
           }}
           animateRows={false}
