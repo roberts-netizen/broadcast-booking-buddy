@@ -458,6 +458,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "2nd Pass",
+      hidden: !anyHasBackupProtocol,
       render: (a) => {
         if (!a) return null;
         const ep = getEp(a.id, "backup");
