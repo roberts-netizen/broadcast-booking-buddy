@@ -32,7 +32,7 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
   const updatePos = useCallback(() => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setPos({ top: rect.bottom + 1, left: rect.left, width: Math.max(rect.width, 120) });
+      setPos({ top: rect.bottom + 1, left: rect.left, width: Math.max(rect.width, 1) });
     }
   }, []);
 
@@ -86,7 +86,7 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
           <div
             ref={dropdownRef}
             className="fixed z-[9999] bg-popover border border-border rounded shadow-lg"
-            style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
+            style={{ top: pos.top, left: pos.left, width: pos.width, minWidth: pos.width, maxWidth: pos.width }}
           >
             <input
               ref={inputRef}
