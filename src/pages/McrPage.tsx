@@ -282,7 +282,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
               </thead>
               <tbody>
                 {items.length === 0 ? (
-                  <tr><td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
+                  <tr><td colSpan={9} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
                 ) : (
                   items.map((b: any) => {
                     const cat = b._category || "MCR";
