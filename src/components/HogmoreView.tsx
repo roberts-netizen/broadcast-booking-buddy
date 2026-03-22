@@ -78,9 +78,8 @@ export function HogmoreView() {
                 <th className={headerClass} style={{ width: 65 }}>GMT</th>
                 <th className={headerClass} style={{ minWidth: 200 }}>Event</th>
                 <th className={headerClass} style={{ minWidth: 180 }}>Source</th>
-                <th className={headerClass} style={{ width: 90 }}>Status</th>
                 <th className={headerClass} style={{ minWidth: 160 }}>Notes</th>
-                <th className={headerClass} style={{ minWidth: 160 }}>Taker</th>
+                <th className={headerClass} style={{ minWidth: 200 }}>Takers</th>
               </tr>
             </thead>
             <tbody>
