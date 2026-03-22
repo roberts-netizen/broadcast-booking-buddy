@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { Plus } from "lucide-react";
+import { Plus, LayoutList, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues } from "@/hooks/useLookups";
@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdvancedBookingView } from "./AdvancedBookingView";
 import BookingFilters from "./BookingFilters";
+import { PMBookingView } from "./PMBookingView";
 
 type Props = {
   category: string;
@@ -16,9 +17,12 @@ type Props = {
 
 type TimeTab = "today" | "upcoming" | "past";
 
+type ViewMode = "full" | "pm";
+
 export function AdvancedCategoryView({ category, highlightBookingId, onHighlightHandled }: Props) {
   const [filters, setFilters] = useState<{ dateFrom?: string; dateTo?: string; leagueId?: string }>({});
   const [timeTab, setTimeTab] = useState<TimeTab>("today");
+  const [viewMode, setViewMode] = useState<ViewMode>("full");
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
   const { data: leagues = [] } = useLeagues(true);
   const createBooking = useCreateBooking();
@@ -107,7 +111,16 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
           filters={filters}
           onChange={setFilters}
         />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
+          <Button
+            size="sm"
+            variant={viewMode === "pm" ? "default" : "outline"}
+            className="h-7 text-xs gap-1"
+            onClick={() => setViewMode(viewMode === "full" ? "pm" : "full")}
+          >
+            {viewMode === "full" ? <LayoutList className="h-3 w-3" /> : <Table2 className="h-3 w-3" />}
+            {viewMode === "full" ? "PM View" : "Full View"}
+          </Button>
           <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleAdd}>
             <Plus className="h-3 w-3" /> Add Event
           </Button>
@@ -119,6 +132,8 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
           <div className="p-8 text-center text-muted-foreground text-sm">Loading...</div>
         ) : filteredBookings.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-sm">No bookings found</div>
+        ) : viewMode === "pm" ? (
+          <PMBookingView bookings={filteredBookings} />
         ) : (
           <div className="divide-y divide-border">
             {filteredBookings.map((booking) => (
