@@ -353,7 +353,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "Date",
           field: "date",
-          width: 120,
+          width: 95,
+          suppressSizeToFit: true,
           editable: true,
           cellDataType: "dateString",
         },
@@ -383,19 +384,22 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "GMT",
           field: "gmt_time",
-          width: 90,
+          width: 65,
+          suppressSizeToFit: true,
           editable: true,
         },
         {
           headerName: "CET",
           field: "cet_time",
-          width: 90,
+          width: 65,
+          suppressSizeToFit: true,
           editable: true,
         },
         {
           headerName: "League",
           field: "league_name",
-          width: 130,
+          width: 110,
+          suppressSizeToFit: true,
           editable: false,
           cellRenderer: (params: ICellRendererParams) => {
             if (!params.data?.id) return null;
