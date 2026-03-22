@@ -33,6 +33,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
 
   const { data: categories = [] } = useCategories(true);
   const { data: leagues = [] } = useLeagues(true);
+  const { data: incomingChannels = [] } = useIncomingChannels(true);
 
   // Fetch MCR bookings
   const { data: mcrBookings = [], isLoading: mcrLoading } = useBookings({ tournamentType: "MCR" });
