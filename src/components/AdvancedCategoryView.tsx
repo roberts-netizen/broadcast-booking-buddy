@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { Plus } from "lucide-react";
+import { Plus, LayoutList, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
 import { useLeagues } from "@/hooks/useLookups";
@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdvancedBookingView } from "./AdvancedBookingView";
 import BookingFilters from "./BookingFilters";
+import { PMBookingView } from "./PMBookingView";
 
 type Props = {
   category: string;
