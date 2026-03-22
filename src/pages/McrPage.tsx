@@ -116,6 +116,12 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
     return m;
   }, [leagues]);
 
+  const incomingChannelMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const c of incomingChannels) m[c.id] = c.name;
+    return m;
+  }, [incomingChannels]);
+
   const today = new Date().toISOString().slice(0, 10);
 
   // Group bookings respecting date_to for multi-day events
