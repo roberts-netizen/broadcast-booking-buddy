@@ -468,11 +468,14 @@ export function AdvancedBookingView({ booking }: Props) {
     },
   ];
 
-  // Event details rows — total rowSpans must equal visibleInfoRows.length
+  // Filter out hidden info rows (must be before eventLabels which uses visibleCount)
+  const visibleInfoRows = infoRows.filter((r) => !r.hidden);
   const visibleCount = visibleInfoRows.length;
-  // Reserve fixed rows: Event(1) + Date(1) + Time(1) + Brick(1) + Source(1) + SourceStatus(1) + ProjectLead(1) + Notes(2) = 9
-  const audioSpan = Math.max(1, visibleCount - 9);
-  const notesSpan = Math.max(1, visibleCount - 9 - audioSpan + 2); // fill remaining
+  // Reserve fixed rows: Event(1) + Date(1) + Time(1) + Brick(1) + Source(1) + SourceStatus(1) + ProjectLead(1) = 7, rest split between Audio and Notes
+  const fixedRows = 7;
+  const remaining = Math.max(2, visibleCount - fixedRows);
+  const audioSpan = Math.max(1, remaining - 2);
+  const notesSpan = Math.max(1, remaining - audioSpan);
 
   const eventLabels: { label: string; rowSpan?: number; render: () => React.ReactNode }[] = [
     { label: "Event", rowSpan: 1, render: () => <input className={inputClass} value={ef.event_name} onChange={(e) => setEf((f) => ({ ...f, event_name: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
