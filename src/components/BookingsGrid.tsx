@@ -514,7 +514,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         },
         {
           headerName: "Takers",
-          width: 520,
+          width: 820,
           suppressSizeToFit: true,
           resizable: false,
           editable: false,
@@ -522,7 +522,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           sortable: false,
           filter: false,
           autoHeight: false,
-          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+          cellStyle: { padding: 0, display: "flex", alignItems: "center", overflow: "hidden" },
         },
         {
           headerName: "",
