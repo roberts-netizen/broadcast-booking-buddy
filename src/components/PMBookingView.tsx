@@ -67,7 +67,7 @@ export function PMBookingView({ bookings }: Props) {
               booking={booking}
               assignments={allAssignments.filter((a) => a.booking_id === booking.id)}
               maxTakers={maxTakers}
-              takerNames={takerNames}
+              takerOptions={takerOptions}
               takers={takers}
               onUpdateBooking={updateBooking.mutate}
               onUpdateAssignment={updateAssignment.mutate}
