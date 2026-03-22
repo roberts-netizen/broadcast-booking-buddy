@@ -100,13 +100,8 @@ function HogmoreRow({ booking }: { booking: Booking }) {
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
 
-  const firstAssignment = assignments[0];
-  const takerName = firstAssignment
-    ? firstAssignment.taker_channel_map_label || "—"
-    : "—";
-
-  const sourceStatus = (booking as any).source_status ?? "not_tested";
-  const statusStyle = STATUS_COLORS[sourceStatus] || STATUS_COLORS.not_tested;
+  const sourceStatus = booking.source_status ?? "not_tested";
+  const sourceDot = STATUS_DOT[sourceStatus] || STATUS_DOT.not_tested;
 
   return (
     <>
@@ -120,15 +115,27 @@ function HogmoreRow({ booking }: { booking: Booking }) {
           <span className="truncate block">{booking.event_name}</span>
         </td>
         <td className={cellClass} style={{ maxWidth: 180 }}>
-          <span className="truncate block">{booking.source || "—"}</span>
-        </td>
-        <td className={cellClass}>
-          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${statusStyle}`}>
-            {sourceStatus.replace(/_/g, " ")}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${sourceDot}`} title={sourceStatus.replace(/_/g, " ")} />
+            <span className="truncate">{booking.source || "—"}</span>
+          </div>
         </td>
         <td className={cellClass}>{booking.event_notes || "—"}</td>
-        <td className={cellClass}>{takerName}</td>
+        <td className={cellClass}>
+          {assignments.length === 0 ? "—" : (
+            <div className="flex flex-col gap-0.5">
+              {assignments.map((a) => {
+                const tDot = STATUS_DOT.not_tested;
+                return (
+                  <div key={a.id} className="flex items-center gap-1.5">
+                    <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title="not tested" />
+                    <span className="truncate">{a.taker_channel_map_label || "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </td>
       </tr>
       {expanded && (
         <tr>
