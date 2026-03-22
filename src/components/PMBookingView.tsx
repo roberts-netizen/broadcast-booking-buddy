@@ -81,11 +81,13 @@ export function PMBookingView({ bookings }: Props) {
   );
 }
 
+type TakerOption = { value: string; label: string };
+
 type RowProps = {
   booking: Booking;
   assignments: any[];
   maxTakers: number;
-  takerNames: string[];
+  takerOptions: TakerOption[];
   takers: any[];
   onUpdateBooking: (data: any) => void;
   onUpdateAssignment: (data: any) => void;
@@ -93,7 +95,7 @@ type RowProps = {
   onDeleteAssignment: (id: string) => void;
 };
 
-function PMRow({ booking, assignments, maxTakers, takerNames, takers, onUpdateBooking, onUpdateAssignment, onCreateAssignment, onDeleteAssignment }: RowProps) {
+function PMRow({ booking, assignments, maxTakers, takerOptions, takers, onUpdateBooking, onUpdateAssignment, onCreateAssignment, onDeleteAssignment }: RowProps) {
   const [local, setLocal] = useState<LocalBooking>({
     event_name: booking.event_name,
     date: booking.date,
