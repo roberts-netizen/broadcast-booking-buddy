@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X, ClipboardPaste } from "lucide-react";
 import {
   useIncomingChannels, useUpsertIncomingChannel, useDeleteIncomingChannel, useBulkInsertIncomingChannels,
+  useLeagues, useUpsertLeague, useDeleteLeague,
   useTakers, useUpsertTaker, useDeleteTaker, useBulkInsertTakers,
   useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap, useBulkInsertTakerChannelMaps,
   useCategories, useUpsertCategory, useDeleteCategory,
@@ -593,11 +594,14 @@ import ClientAccessAdmin from "@/components/ClientAccessAdmin";
 
 export default function AdminPage() {
   const { data: channels = [] } = useIncomingChannels(false);
+  const { data: leagues = [] } = useLeagues(false);
   const [activeTab, setActiveTab] = useState<"settings" | "client-access">("settings");
 
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
   const bulkChannels = useBulkInsertIncomingChannels();
+  const upsertLeague = useUpsertLeague();
+  const deleteLeague = useDeleteLeague();
 
   const simpleBulk = (mutate: (rows: { name: string; active: boolean }[]) => Promise<any>) =>
     async (parsed: Record<string, string>[]) => {
@@ -641,6 +645,12 @@ export default function AdminPage() {
             onUpsert={(r) => upsertChannel.mutate(r)}
             onDelete={(id) => deleteChannel.mutate(id)}
             onBulkImport={simpleBulk(bulkChannels.mutateAsync)}
+          />
+          <SimpleTable
+            title="Leagues"
+            rows={leagues}
+            onUpsert={(r) => upsertLeague.mutate(r)}
+            onDelete={(id) => deleteLeague.mutate(id)}
           />
           <TakersTable />
           <CategoriesTable />
