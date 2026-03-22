@@ -142,7 +142,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     dateTo?: string;
     leagueId?: string;
   }>({});
-
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   // ── Undo stack ──
   type UndoEntry = { id: string; field: string; oldValue: any };
