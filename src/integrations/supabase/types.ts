@@ -105,6 +105,7 @@ export type Database = {
       bookings: {
         Row: {
           audio_setup: string | null
+          betting_settings: string | null
           cet_time: string | null
           cet_time_to: string | null
           created_at: string
@@ -126,6 +127,7 @@ export type Database = {
         }
         Insert: {
           audio_setup?: string | null
+          betting_settings?: string | null
           cet_time?: string | null
           cet_time_to?: string | null
           created_at?: string
@@ -147,6 +149,7 @@ export type Database = {
         }
         Update: {
           audio_setup?: string | null
+          betting_settings?: string | null
           cet_time?: string | null
           cet_time_to?: string | null
           created_at?: string
