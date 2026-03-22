@@ -263,7 +263,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   const dateGroupMap = useMemo(() => {
     const uniqueDates = [...new Set(bookings.map((b) => b.date))].sort();
     const map: Record<string, number> = {};
-    uniqueDates.forEach((d, i) => (map[d] = i % 2));
+    uniqueDates.forEach((d, i) => (map[d] = i % 4));
     return map;
   }, [bookings]);
 
