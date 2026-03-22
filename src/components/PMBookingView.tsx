@@ -48,9 +48,9 @@ export function PMBookingView({ bookings }: Props) {
       <table className="w-full border-collapse text-[11px]">
         <thead>
           <tr>
-            <th className={headerClass} style={{ minWidth: 160 }}>Event</th>
             <th className={headerClass} style={{ minWidth: 100 }}>Date</th>
             <th className={headerClass} style={{ minWidth: 70 }}>Time CET</th>
+            <th className={headerClass} style={{ minWidth: 160 }}>Event</th>
             <th className={headerClass} style={{ minWidth: 100 }}>Source</th>
             <th className={headerClass} style={{ minWidth: 140 }}>Notes</th>
             {Array.from({ length: maxTakers }, (_, i) => (
