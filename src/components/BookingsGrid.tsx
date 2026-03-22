@@ -356,6 +356,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "date",
           width: 95,
           suppressSizeToFit: true,
+          resizable: false,
           editable: true,
           cellDataType: "dateString",
         },
@@ -387,6 +388,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "gmt_time",
           width: 65,
           suppressSizeToFit: true,
+          resizable: false,
           editable: true,
         },
         {
@@ -394,6 +396,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "cet_time",
           width: 65,
           suppressSizeToFit: true,
+          resizable: false,
           editable: true,
         },
         {
@@ -401,6 +404,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "league_name",
           width: 110,
           suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           cellRenderer: (params: ICellRendererParams) => {
             if (!params.data?.id) return null;
@@ -435,6 +439,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           headerName: "Incoming Ch.",
           field: "channel_name",
           width: 130,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           cellRenderer: (params: ICellRendererParams) => {
             if (!params.data?.id) return null;
@@ -462,11 +468,15 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           headerName: "Work Order",
           field: "work_order_id",
           width: 110,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: true,
         },
         {
           headerName: "Conf.",
           width: 65,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           cellRenderer: ConfirmationRenderer,
           sortable: false,
@@ -475,6 +485,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "Report",
           width: 65,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           sortable: false,
           filter: false,
@@ -501,6 +513,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "Takers",
           width: 520,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           cellRenderer: TakersCellRenderer,
           sortable: false,
@@ -511,6 +525,8 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         {
           headerName: "",
           width: 40,
+          suppressSizeToFit: true,
+          resizable: false,
           editable: false,
           sortable: false,
           filter: false,
