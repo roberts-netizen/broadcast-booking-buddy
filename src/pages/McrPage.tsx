@@ -164,7 +164,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
     if (isAdv && ta.length > 0) {
       return (
         <div className="flex gap-0">
-          {ta.map((a, i) => {
+          {ta.map((a) => {
             const name = a.taker_name || (a as any).taker_custom_name || "";
             const statusColor = a.test_status === "tested"
               ? "bg-[hsl(142,71%,45%)]"
@@ -176,20 +176,23 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             const proto = eps.length > 0
               ? eps.map(e => e.protocol).filter(Boolean).join(", ")
               : a.protocol || "";
-            const notes = a.communication_notes || a.test_notes || "";
 
             return (
               <div
                 key={a.id}
-                className="text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors flex items-center gap-1 border-r border-border last:border-r-0 min-w-0"
+                className="flex flex-col text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors border-r border-border last:border-r-0 w-[130px] shrink-0"
                 onClick={(e) => { e.stopPropagation(); setSelectedTaker(a); }}
                 title="Click to view full details"
               >
-                <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-                <span className="font-medium text-primary underline decoration-dotted whitespace-nowrap">{name}</span>
-                {qualAudio && <span className="text-muted-foreground whitespace-nowrap">({qualAudio})</span>}
-                {proto && <span className="text-muted-foreground font-mono text-[9px] whitespace-nowrap">[{proto}]</span>}
-                {notes && <span className="text-muted-foreground italic truncate max-w-[100px]" title={notes}>{notes}</span>}
+                <div className="flex items-center gap-1">
+                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+                  <span className="font-medium text-primary underline decoration-dotted truncate" title={name}>{name}</span>
+                </div>
+                {(qualAudio || proto) && (
+                  <span className="text-muted-foreground truncate" title={`${qualAudio} ${proto}`}>
+                    {qualAudio}{qualAudio && proto ? " " : ""}{proto && `[${proto}]`}
+                  </span>
+                )}
               </div>
             );
           })}
