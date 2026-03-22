@@ -16,6 +16,7 @@ export type Booking = {
   project_lead: string | null;
   audio_setup: string | null;
   event_notes: string | null;
+  source_status: string;
   tournament_id: string | null;
   created_at: string;
   updated_at: string;
