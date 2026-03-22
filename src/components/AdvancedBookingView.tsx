@@ -468,12 +468,20 @@ export function AdvancedBookingView({ booking }: Props) {
     },
   ];
 
-  // Event details rows
+  // Filter out hidden info rows (must be before eventLabels which uses visibleCount)
+  const visibleInfoRows = infoRows.filter((r) => !r.hidden);
+  const visibleCount = visibleInfoRows.length;
+  // Reserve fixed rows: Event(1) + Date(1) + Time(1) + Brick(1) + Source(1) + SourceStatus(1) + ProjectLead(1) = 7, rest split between Audio and Notes
+  const fixedRows = 7;
+  const remaining = Math.max(2, visibleCount - fixedRows);
+  const audioSpan = Math.max(1, remaining - 2);
+  const notesSpan = Math.max(1, remaining - audioSpan);
+
   const eventLabels: { label: string; rowSpan?: number; render: () => React.ReactNode }[] = [
-    { label: "Event", rowSpan: 2, render: () => <input className={inputClass} value={ef.event_name} onChange={(e) => setEf((f) => ({ ...f, event_name: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
+    { label: "Event", rowSpan: 1, render: () => <input className={inputClass} value={ef.event_name} onChange={(e) => setEf((f) => ({ ...f, event_name: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
     {
       label: "Date",
-      rowSpan: 2,
+      rowSpan: 1,
       render: () => (
         <div className="flex items-center gap-1">
           <input type="date" className={inputClass} value={ef.date} onChange={(e) => { setEf((f) => ({ ...f, date: e.target.value })); }} onBlur={handleEventBlur} />
@@ -484,7 +492,7 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     {
       label: "Time CET",
-      rowSpan: 2,
+      rowSpan: 1,
       render: () => (
         <div className="flex items-center gap-1">
           <input type="time" className={inputClass} value={ef.cet_time?.slice(0, 5) ?? ""} onChange={(e) => { setEf((f) => ({ ...f, cet_time: e.target.value })); }} onBlur={handleEventBlur} />
@@ -522,11 +530,11 @@ export function AdvancedBookingView({ booking }: Props) {
       },
     },
     {
-      label: "Overall\nAudio setup",
-      rowSpan: 6,
+      label: "Audio setup",
+      rowSpan: audioSpan,
       render: () => (
         <textarea
-          className={`${inputClass} font-mono min-h-[100px] resize-none`}
+          className={`${inputClass} font-mono min-h-[60px] resize-none`}
           value={ef.audio_setup}
           onChange={(e) => setEf((f) => ({ ...f, audio_setup: e.target.value }))}
           onBlur={handleEventBlur}
@@ -535,11 +543,8 @@ export function AdvancedBookingView({ booking }: Props) {
       ),
     },
     { label: "Project Lead", rowSpan: 1, render: () => <input className={inputClass} value={ef.project_lead} onChange={(e) => setEf((f) => ({ ...f, project_lead: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
-    { label: "Notes", rowSpan: 3, render: () => <textarea className={`${inputClass} min-h-[60px] resize-none`} value={ef.event_notes} onChange={(e) => setEf((f) => ({ ...f, event_notes: e.target.value }))} onBlur={handleEventBlur} /> },
+    { label: "Notes", rowSpan: notesSpan, render: () => <textarea className={`${inputClass} min-h-[40px] resize-none`} value={ef.event_notes} onChange={(e) => setEf((f) => ({ ...f, event_notes: e.target.value }))} onBlur={handleEventBlur} /> },
   ];
-
-  // Filter out hidden info rows
-  const visibleInfoRows = infoRows.filter((r) => !r.hidden);
 
   // Map event labels to row indices (based on visible info rows count)
   type EventCell = { label: string; rowSpan: number; render: () => React.ReactNode };
