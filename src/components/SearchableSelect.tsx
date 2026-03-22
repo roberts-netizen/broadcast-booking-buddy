@@ -70,12 +70,12 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
   const itemClass = compact ? "text-[11px]" : "text-xs";
 
   return (
-    <div className={className} onClick={(e) => e.stopPropagation()}>
+    <div className={`${className}`} onClick={(e) => e.stopPropagation()}>
       <button
         ref={buttonRef}
         type="button"
         onClick={() => setOpen(!open)}
-        className={`${buttonClass} ${className ?? ""}`}
+        className={buttonClass}
       >
         <span className="truncate">{selectedLabel || placeholder}</span>
         <ChevronDown className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} shrink-0 text-muted-foreground`} />

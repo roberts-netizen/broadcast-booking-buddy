@@ -422,11 +422,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
                 freeText
                 compact
                 placeholder="—"
-                className="w-full"
+                className="w-full h-full"
               />
             );
           },
-          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+          cellStyle: { padding: 0, display: "flex", alignItems: "stretch", width: "100%" },
         },
         {
           headerName: "Event Name",
@@ -460,11 +460,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
                 freeText
                 compact
                 placeholder="—"
-                className="w-full"
+                className="w-full h-full"
               />
             );
           },
-          cellStyle: { padding: 0, display: "flex", alignItems: "center" },
+          cellStyle: { padding: 0, display: "flex", alignItems: "stretch", width: "100%" },
         },
         {
           headerName: "Work Order",
