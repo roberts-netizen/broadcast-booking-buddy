@@ -810,10 +810,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
 
   const defaultColDef = useMemo<ColDef>(
     () => ({
-      resizable: true,
+      resizable: false,
       sortable: true,
       suppressMovable: true,
       singleClickEdit: true,
+      suppressSizeToFit: true,
     }),
     []
   );
