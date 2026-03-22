@@ -388,6 +388,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "gmt_time",
           width: 65,
           suppressSizeToFit: true,
+          resizable: false,
           editable: true,
         },
         {
@@ -395,6 +396,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           field: "cet_time",
           width: 65,
           suppressSizeToFit: true,
+          resizable: false,
           editable: true,
         },
         {
