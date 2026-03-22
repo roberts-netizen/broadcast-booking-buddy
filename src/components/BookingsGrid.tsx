@@ -422,7 +422,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
                 freeText
                 compact
                 placeholder="—"
-                className="w-full"
+                className="w-full h-full"
               />
             );
           },
