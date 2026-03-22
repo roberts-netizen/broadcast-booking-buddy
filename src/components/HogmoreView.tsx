@@ -17,6 +17,26 @@ const STATUS_DOT: Record<string, string> = {
   not_tested: "bg-destructive",
 };
 
+function parseBettingName(settings: string | null | undefined): string {
+  if (!settings) return "—";
+  try {
+    const parsed = JSON.parse(settings);
+    return parsed?.name || "—";
+  } catch {
+    return "—";
+  }
+}
+
+function BettingBadge({ bettingSettings }: { bettingSettings: string | null | undefined }) {
+  const name = parseBettingName(bettingSettings);
+  if (name === "—") return <span>—</span>;
+  return (
+    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+      {name}
+    </span>
+  );
+}
+
 export function HogmoreView() {
   const [timeTab, setTimeTab] = useState<TimeTab>("today");
   const { data: bookings = [], isLoading } = useBookings({ tournamentType: "HOGMORE" });
@@ -80,6 +100,7 @@ export function HogmoreView() {
                 <th className={headerClass} style={{ minWidth: 180 }}>Source</th>
                 <th className={headerClass} style={{ minWidth: 160 }}>Notes</th>
                 <th className={headerClass} style={{ minWidth: 200 }}>Takers</th>
+                <th className={headerClass} style={{ minWidth: 120 }}>Betting</th>
               </tr>
             </thead>
             <tbody>
@@ -142,10 +163,13 @@ function HogmoreRow({ booking }: { booking: Booking }) {
             </div>
           )}
         </td>
+        <td className={cellClass}>
+          <BettingBadge bettingSettings={booking.betting_settings} />
+        </td>
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={7} className="bg-muted/10 border-b border-border">
+          <td colSpan={8} className="bg-muted/10 border-b border-border">
             <HogmoreExpandedDetail booking={booking} assignments={assignments} endpoints={endpoints} />
           </td>
         </tr>
@@ -187,6 +211,7 @@ function HogmoreExpandedDetail({
             <DetailRow label="Notes" value={booking.event_notes || "—"} />
             <DetailRow label="Work Order" value={booking.work_order_id || "—"} />
             <DetailRow label="Project Lead" value={(booking as any).project_lead || "—"} />
+            <DetailRow label="Betting Delivery" value={parseBettingName(booking.betting_settings)} />
           </tbody>
         </table>
       </div>
