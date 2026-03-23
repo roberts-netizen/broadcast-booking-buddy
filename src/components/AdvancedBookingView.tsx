@@ -55,6 +55,35 @@ export function AdvancedBookingView({ booking, categoryId }: Props) {
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
 
+  // Booking source (for ADV/Custom categories)
+  const { data: bookingSource } = useBookingSource(booking.id);
+  const upsertSource = useUpsertBookingSource();
+  const [sourceFields, setSourceFields] = useState({
+    name: "", protocol: "", host: "", stream_key: "",
+    audio1: "", audio2: "", settings: "", contact: "", status: "not_tested",
+  });
+  const sourceInited = useRef(false);
+  useEffect(() => {
+    if (bookingSource && !sourceInited.current) {
+      sourceInited.current = true;
+      setSourceFields({
+        name: bookingSource.name ?? "",
+        protocol: bookingSource.protocol ?? "",
+        host: bookingSource.host ?? "",
+        stream_key: bookingSource.stream_key ?? "",
+        audio1: bookingSource.audio1 ?? "",
+        audio2: bookingSource.audio2 ?? "",
+        settings: bookingSource.settings ?? "",
+        contact: bookingSource.contact ?? "",
+        status: bookingSource.status ?? "not_tested",
+      });
+    }
+  }, [bookingSource]);
+  const saveSource = useCallback((patch?: Partial<typeof sourceFields>) => {
+    const merged = { ...sourceFields, ...patch };
+    upsertSource.mutate({ booking_id: booking.id, ...merged } as any);
+  }, [sourceFields, booking.id, upsertSource]);
+
   const createAssignment = useCreateTakerAssignment();
   const updateAssignment = useUpdateTakerAssignment();
   const deleteAssignment = useDeleteTakerAssignment();
