@@ -150,6 +150,7 @@ function HogmoreRow({ booking }: { booking: Booking }) {
                 const statusLabel = a.test_status === "tested" ? "tested" : "not tested";
                 const protocol = a.taker_protocol || "";
                 const streamInfo = [a.actual_channel_id, protocol ? `[${protocol}]` : ""].filter(Boolean).join(" ");
+                const audioInfo = a.taker_audio || "";
                 return (
                   <div key={a.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < assignments.length - 1 ? "border-r border-border" : ""}`}>
                     <div className="flex items-center gap-1.5">
@@ -157,6 +158,7 @@ function HogmoreRow({ booking }: { booking: Booking }) {
                       <span className="text-[11px] font-medium">{a.taker_channel_map_label || "—"}</span>
                     </div>
                     {streamInfo && <span className="text-[10px] text-muted-foreground pl-3.5">{streamInfo}</span>}
+                    {audioInfo && <span className="text-[10px] text-muted-foreground pl-3.5">Audio - {audioInfo}</span>}
                   </div>
                 );
               })}
@@ -235,17 +237,9 @@ function HogmoreExpandedDetail({
                     <DetailRow label="Name" value={a.taker_name || a.taker_channel_map_label || "—"} />
                     <DetailRow label="Protocol" value={a.taker_protocol || "—"} />
                     <DetailRow label="Host" value={a.taker_host || "—"} />
-                    <DetailRow label="Port" value={a.taker_port || "—"} />
                     <DetailRow label="Stream Key" value={a.taker_stream_key || "—"} />
-                    <DetailRow label="Username" value={a.taker_username || "—"} />
-                    <DetailRow label="Password" value={a.taker_password || "—"} />
                     <DetailRow label="Audio" value={a.taker_audio || "—"} />
-                    <DetailRow label="Quality" value={a.taker_quality || "—"} />
                     <DetailRow label="Email/Contact" value={a.taker_email_subject || "—"} />
-                    <DetailRow label="Comm. Method" value={a.taker_communication_method || "—"} />
-                    <DetailRow label="Phone" value={a.taker_phone_number || "—"} />
-                    <DetailRow label="Channel ID" value={a.actual_channel_id || "—"} />
-                    <DetailRow label="Test Status" value={(a.test_status || "not_tested").replace(/_/g, " ")} />
                   </tbody>
                 </table>
               </div>
