@@ -122,8 +122,17 @@ function HogmoreRow({ booking }: { booking: Booking }) {
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
 
-  const sourceStatus = booking.source_status ?? "not_tested";
+  // Split by role
+  const sourceAssignments = useMemo(() => assignments.filter((a) => a.role === "source"), [assignments]);
+  const takerAssignments = useMemo(() => assignments.filter((a) => a.role !== "source"), [assignments]);
+
+  const sourceStatus = sourceAssignments.length > 0
+    ? (sourceAssignments[0].test_status ?? "not_tested")
+    : (booking.source_status ?? "not_tested");
   const sourceDot = STATUS_DOT[sourceStatus] || STATUS_DOT.not_tested;
+  const sourceName = sourceAssignments.length > 0
+    ? (sourceAssignments[0].taker_name || sourceAssignments[0].taker_channel_map_label || "—")
+    : (booking.source || "—");
 
   return (
     <>
@@ -139,14 +148,14 @@ function HogmoreRow({ booking }: { booking: Booking }) {
         <td className={cellClass} style={{ maxWidth: 180 }}>
           <div className="flex items-center gap-1.5">
             <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${sourceDot}`} title={sourceStatus.replace(/_/g, " ")} />
-            <span className="truncate">{booking.source || "—"}</span>
+            <span className="truncate">{sourceName}</span>
           </div>
         </td>
         <td className={cellClass}>{booking.event_notes || "—"}</td>
         <td className={`${cellClass} !p-0`}>
-          {assignments.length === 0 ? <span className="px-2 py-1.5">—</span> : (
+          {takerAssignments.length === 0 ? <span className="px-2 py-1.5">—</span> : (
             <div className="flex items-stretch">
-              {assignments.map((a, i) => {
+              {takerAssignments.map((a, i) => {
                 const curStatus = a.test_status || "not_tested";
                 const tDot = curStatus === "tested" ? STATUS_DOT.tested : STATUS_DOT.not_tested;
                 const statusLabel = curStatus === "tested" ? "tested" : "not tested";
@@ -158,7 +167,7 @@ function HogmoreRow({ booking }: { booking: Booking }) {
                   updateStatus.mutate({ id: a.id, test_status: next });
                 };
                 return (
-                  <div key={a.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < assignments.length - 1 ? "border-r border-border" : ""}`}>
+                  <div key={a.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < takerAssignments.length - 1 ? "border-r border-border" : ""}`}>
                     <div className="flex items-center gap-1.5">
                       <span
                         className={`inline-block h-2 w-2 rounded-full shrink-0 cursor-pointer ${tDot}`}
@@ -182,7 +191,7 @@ function HogmoreRow({ booking }: { booking: Booking }) {
       {expanded && (
         <tr>
           <td colSpan={8} className="bg-muted/10 border-b border-border">
-            <HogmoreExpandedDetail booking={booking} assignments={assignments} endpoints={endpoints} />
+            <HogmoreExpandedDetail booking={booking} sourceAssignments={sourceAssignments} takerAssignments={takerAssignments} endpoints={endpoints} />
           </td>
         </tr>
       )}
