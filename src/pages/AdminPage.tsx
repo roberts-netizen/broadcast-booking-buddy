@@ -478,7 +478,7 @@ function TakersTable() {
       <BulkPasteDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
-        title="Takers"
+        title="Takers Advanced"
         columns={[
           { key: "name", label: "Name", required: true },
           { key: "active", label: "Active (yes/no)" },
