@@ -616,6 +616,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tonybet_channel_maps: {
+        Row: {
+          active: boolean
+          actual_channel_id: string
+          created_at: string
+          id: string
+          label: string
+          taker_name: string | null
+        }
+        Insert: {
+          active?: boolean
+          actual_channel_id?: string
+          created_at?: string
+          id?: string
+          label: string
+          taker_name?: string | null
+        }
+        Update: {
+          active?: boolean
+          actual_channel_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          taker_name?: string | null
+        }
+        Relationships: []
+      }
       tournaments: {
         Row: {
           active: boolean
