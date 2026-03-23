@@ -41,6 +41,59 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_sources: {
+        Row: {
+          audio1: string | null
+          audio2: string | null
+          booking_id: string | null
+          contact: string | null
+          created_at: string | null
+          host: string | null
+          id: string
+          name: string | null
+          protocol: string | null
+          settings: string | null
+          status: string | null
+          stream_key: string | null
+        }
+        Insert: {
+          audio1?: string | null
+          audio2?: string | null
+          booking_id?: string | null
+          contact?: string | null
+          created_at?: string | null
+          host?: string | null
+          id?: string
+          name?: string | null
+          protocol?: string | null
+          settings?: string | null
+          status?: string | null
+          stream_key?: string | null
+        }
+        Update: {
+          audio1?: string | null
+          audio2?: string | null
+          booking_id?: string | null
+          contact?: string | null
+          created_at?: string | null
+          host?: string | null
+          id?: string
+          name?: string | null
+          protocol?: string | null
+          settings?: string | null
+          status?: string | null
+          stream_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_sources_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_taker_assignments: {
         Row: {
           actual_channel_id: string
@@ -145,6 +198,7 @@ export type Database = {
         Row: {
           audio_setup: string | null
           betting_settings: string | null
+          category_id: string | null
           cet_time: string | null
           cet_time_to: string | null
           created_at: string
@@ -167,6 +221,7 @@ export type Database = {
         Insert: {
           audio_setup?: string | null
           betting_settings?: string | null
+          category_id?: string | null
           cet_time?: string | null
           cet_time_to?: string | null
           created_at?: string
@@ -189,6 +244,7 @@ export type Database = {
         Update: {
           audio_setup?: string | null
           betting_settings?: string | null
+          category_id?: string | null
           cet_time?: string | null
           cet_time_to?: string | null
           created_at?: string
@@ -209,6 +265,13 @@ export type Database = {
           work_order_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_incoming_channel_id_fkey"
             columns: ["incoming_channel_id"]
@@ -235,6 +298,7 @@ export type Database = {
       categories: {
         Row: {
           active: boolean
+          category_type: string | null
           created_at: string
           id: string
           name: string
@@ -242,6 +306,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          category_type?: string | null
           created_at?: string
           id?: string
           name: string
@@ -249,6 +314,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          category_type?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -619,6 +685,7 @@ export type Database = {
           backup_port: string | null
           backup_stream_key: string | null
           backup_username: string | null
+          category_id: string | null
           communication_method: string | null
           created_at: string
           email_subject: string | null
@@ -644,6 +711,7 @@ export type Database = {
           backup_port?: string | null
           backup_stream_key?: string | null
           backup_username?: string | null
+          category_id?: string | null
           communication_method?: string | null
           created_at?: string
           email_subject?: string | null
@@ -669,6 +737,7 @@ export type Database = {
           backup_port?: string | null
           backup_stream_key?: string | null
           backup_username?: string | null
+          category_id?: string | null
           communication_method?: string | null
           created_at?: string
           email_subject?: string | null
@@ -685,7 +754,15 @@ export type Database = {
           stream_key?: string | null
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "takers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tonybet_channel_maps: {
         Row: {
