@@ -271,8 +271,120 @@ function TakerChannelMapTable() {
     </div>
   );
 }
+// ── TonyBet Virsliga Channel Map table ────────────────────────────────────────
+type TBRow = { id: string; taker_name?: string | null; label: string; actual_channel_id: string; active: boolean };
 
-// ── Takers Advanced table (expanded with all technical fields) ────────────────
+function TonybetChannelMapTable() {
+  const { data: rows = [] } = useTonybetChannelMaps(false);
+  const upsert = useUpsertTonybetChannelMap();
+  const del = useDeleteTonybetChannelMap();
+  const bulkInsert = useBulkInsertTonybetChannelMaps();
+
+  const blank = { taker_name: "", label: "", actual_channel_id: "", active: true };
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState(blank);
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  const startNew = () => { setDraft(blank); setEditing("new"); };
+  const startEdit = (r: TBRow) => { setDraft({ taker_name: r.taker_name ?? "", label: r.label, actual_channel_id: r.actual_channel_id, active: r.active }); setEditing(r.id); };
+  const save = () => {
+    if (!draft.taker_name?.trim()) return;
+    upsert.mutate({ id: editing === "new" ? undefined : editing!, taker_name: draft.taker_name.trim(), label: draft.label.trim() || draft.taker_name.trim(), actual_channel_id: draft.actual_channel_id, active: draft.active });
+    setEditing(null);
+  };
+  const cancel = () => setEditing(null);
+
+  const handleBulkImport = async (parsed: Record<string, string>[]) => {
+    await bulkInsert.mutateAsync(parsed.map((r) => ({
+      taker_name: r.taker_name || null,
+      label: r.label || r.taker_name || "",
+      actual_channel_id: r.actual_channel_id || "",
+      active: !r.active || r.active.toLowerCase() !== "no",
+    })));
+  };
+
+  const EditRow = () => (
+    <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+      <td className="px-2 py-1"><input autoFocus className="grid-cell-input border border-ring rounded" value={draft.taker_name} onChange={(e) => setDraft({ ...draft, taker_name: e.target.value })} placeholder="Taker name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} /></td>
+      <td className="px-2 py-1"><input className="grid-cell-input border border-border rounded" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="CHID…" /></td>
+      <td className="px-2 py-1"><input className="grid-cell-input border border-border rounded" value={draft.actual_channel_id} onChange={(e) => setDraft({ ...draft, actual_channel_id: e.target.value })} placeholder="Port/Key…" /></td>
+      <td className="px-2 py-1">
+        <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
+          <option value="1">Active</option><option value="0">Inactive</option>
+        </select>
+      </td>
+      <td className="px-2 py-1">
+        <div className="flex gap-1">
+          <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
+          <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+        </div>
+      </td>
+    </tr>
+  );
+
+  return (
+    <div className="bg-card border border-border rounded-lg overflow-hidden md:col-span-2">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <h2 className="text-sm font-semibold">Source/Taker Map (TonyBet Virsliga)</h2>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
+            <ClipboardPaste className="h-3.5 w-3.5" /> Paste
+          </button>
+          <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"><Plus className="h-3.5 w-3.5" /> Add</button>
+        </div>
+      </div>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-muted/50 border-b border-border">
+            <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Taker</th>
+            <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-[120px]">CHID</th>
+            <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-[120px]">Port/Key</th>
+            <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-[70px]">Status</th>
+            <th className="px-2 py-2 w-[60px]"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {editing === "new" && <EditRow />}
+          {(rows as TBRow[]).map((r) => (
+            <tr key={r.id} className="border-b border-border last:border-b-0 group hover:bg-muted/30">
+              {editing === r.id ? <EditRow /> : (
+                <>
+                  <td className="px-3 py-2">{r.taker_name ?? <span className="text-muted-foreground">—</span>}</td>
+                  <td className="px-3 py-2 font-mono">{r.label}</td>
+                  <td className="px-3 py-2 font-mono text-muted-foreground">{r.actual_channel_id}</td>
+                  <td className="px-3 py-2"><ActiveBadge active={r.active} /></td>
+                  <td className="px-2 py-2">
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => startEdit(r)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
+                      <button onClick={() => del.mutate(r.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                    </div>
+                  </td>
+                </>
+              )}
+            </tr>
+          ))}
+          {rows.length === 0 && editing !== "new" && (
+            <tr><td colSpan={5} className="px-3 py-4 text-muted-foreground text-center">No entries yet.</td></tr>
+          )}
+        </tbody>
+      </table>
+      <BulkPasteDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        title="TonyBet Virsliga Source/Taker Map"
+        columns={[
+          { key: "taker_name", label: "Taker Name", required: true },
+          { key: "label", label: "CHID" },
+          { key: "actual_channel_id", label: "Port/Key" },
+          { key: "active", label: "Active (yes/no)" },
+        ]}
+        onImport={handleBulkImport}
+      />
+    </div>
+  );
+}
+
+
 const TAKER_EXTRA_FIELDS: { key: keyof TakerRecord; label: string }[] = [
   { key: "email_subject", label: "Email / e-subject" },
   { key: "communication_method", label: "Comm. Method" },
