@@ -220,7 +220,7 @@ function TakerChannelMapTable() {
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold">Taker Channel Map</h2>
+        <h2 className="text-sm font-semibold">Taker Channel Map (MCR)</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
             <ClipboardPaste className="h-3.5 w-3.5" /> Paste
