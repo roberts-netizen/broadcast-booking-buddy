@@ -105,7 +105,7 @@ export default function Index() {
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Categories</span>
               </div>
               <nav className="flex-1 py-1">
-                {displayCategories.map((c) => {
+                {displayCategories.map((c, i) => {
                   const isActive = categoryName === c.name;
                   const Icon = CATEGORY_ICONS[c.name] ?? Zap;
                   return (
