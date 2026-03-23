@@ -438,6 +438,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
             const bookingId = params.data.id as string;
             const rowNode = params.node;
             const currentValue = (params.value as string) ?? "";
+            const group = params.data._dateGroup ?? 0;
             return (
               <SearchableSelect
                 options={leagues.map((l) => ({ value: l.name, label: l.name }))}
@@ -450,6 +451,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
                 compact
                 placeholder="—"
                 className="w-full h-full"
+                bgStyle={{ backgroundColor: `hsl(var(--date-group-${group}))` }}
               />
             );
           },
