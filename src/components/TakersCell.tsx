@@ -1,4 +1,15 @@
 import React, { useState, useCallback, useMemo } from "react";
+
+/** Extract leading number from strings like "T02-...", "CH14", "SR03" for natural sorting */
+const extractNum = (s: string): number => {
+  const m = s.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : Infinity;
+};
+const naturalSort = (a: string, b: string) => {
+  const na = extractNum(a);
+  const nb = extractNum(b);
+  return na !== nb ? na - nb : a.localeCompare(b);
+};
 import { Settings2, Plus } from "lucide-react";
 import { SearchableSelect } from "./SearchableSelect";
 import {
@@ -123,7 +134,9 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
         seen.set(key, name);
       }
     }
-    return Array.from(seen.entries()).map(([id, name]) => ({ value: id, label: name }));
+    return Array.from(seen.entries())
+      .map(([id, name]) => ({ value: id, label: name }))
+      .sort((a, b) => naturalSort(a.label, b.label));
   }, [takerChannelMaps]);
 
   return (
@@ -148,7 +161,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
                 />
                 {currentTakerId && (
                   <SearchableSelect
-                    options={availableChids.map((m) => ({ value: m.id, label: m.label }))}
+                    options={availableChids.map((m) => ({ value: m.id, label: m.label })).sort((a, b) => naturalSort(a.label, b.label))}
                     value={assignment?.taker_channel_map_id ?? ""}
                     onChange={(val) => handleChidChange(slotNum, val)}
                     placeholder="CHID"
