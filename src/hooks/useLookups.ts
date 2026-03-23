@@ -225,6 +225,8 @@ export function useBulkInsertTakerChannelMaps() {
 }
 
 // ── Categories ───────────────────────────────────────────────────────────────
+export type CategoryRecord = { id: string; name: string; type: string; category_type: string; active: boolean; created_at: string };
+
 export function useCategories(activeOnly = false) {
   return useQuery({
     queryKey: ["categories", activeOnly],
@@ -233,7 +235,7 @@ export function useCategories(activeOnly = false) {
       if (activeOnly) q = q.eq("active", true);
       const { data, error } = await q;
       if (error) throw error;
-      return data as { id: string; name: string; type: string; active: boolean; created_at: string }[];
+      return data as CategoryRecord[];
     },
   });
 }
@@ -241,10 +243,12 @@ export function useCategories(activeOnly = false) {
 export function useUpsertCategory() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: { id?: string; name: string; type: string; active: boolean }) => {
+    mutationFn: async (row: { id?: string; name: string; type: string; category_type?: string; active: boolean }) => {
+      const payload: any = { name: row.name, type: row.type, active: row.active };
+      if (row.category_type) payload.category_type = row.category_type;
       const { error } = row.id
-        ? await supabase.from("categories").update({ name: row.name, type: row.type, active: row.active }).eq("id", row.id)
-        : await supabase.from("categories").insert({ name: row.name, type: row.type, active: row.active });
+        ? await supabase.from("categories").update(payload).eq("id", row.id)
+        : await supabase.from("categories").insert(payload);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
@@ -259,6 +263,40 @@ export function useDeleteCategory() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+}
+
+// ── Takers by Category ──────────────────────────────────────────────────────
+export function useTakersByCategory(categoryId: string | null) {
+  return useQuery({
+    queryKey: ["takers", "by_category", categoryId],
+    queryFn: async () => {
+      if (!categoryId) return [];
+      const { data, error } = await supabase
+        .from("takers")
+        .select("*")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId,
+  });
+}
+
+export function useUpsertCategoryTaker() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: TakerRecord & { category_id: string }) => {
+      const { id, ...rest } = row;
+      const { error } = id
+        ? await supabase.from("takers").update(rest).eq("id", id)
+        : await supabase.from("takers").insert(rest);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["takers"] });
+    },
   });
 }
 
