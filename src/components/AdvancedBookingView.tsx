@@ -506,8 +506,8 @@ export function AdvancedBookingView({ booking, categoryId }: Props) {
   // Filter out hidden info rows (must be before eventLabels which uses visibleCount)
   const visibleInfoRows = infoRows.filter((r) => !r.hidden);
   const visibleCount = visibleInfoRows.length;
-  // Reserve fixed rows: Event(1) + Date(1) + Time(1) + Brick(1) + Source(1) + SourceStatus(1) + ProjectLead(1) = 7, rest split between Audio and Notes
-  const fixedRows = 7;
+  // Reserve fixed rows: Event(1) + Date(1) + Time(1) + Brick(1) + Source fields(7) + Audio(1) + ProjectLead(1) + Notes(1) = 14
+  const fixedRows = 14;
   const remaining = Math.max(2, visibleCount - fixedRows);
   const audioSpan = Math.max(1, remaining - 2);
   const notesSpan = Math.max(1, remaining - audioSpan);
