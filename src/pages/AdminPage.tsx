@@ -213,7 +213,7 @@ function TakerChannelMapTable() {
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden md:col-span-2">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold">Taker Channel Map (MCR)</h2>
+        <h2 className="text-sm font-semibold">MCR Taker</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
             <ClipboardPaste className="h-3.5 w-3.5" /> Paste
@@ -259,7 +259,7 @@ function TakerChannelMapTable() {
       <BulkPasteDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
-        title="Taker Channel Map"
+        title="MCR Taker"
         columns={[
           { key: "taker_name", label: "Taker Name", required: true },
           { key: "label", label: "CHID" },
@@ -385,18 +385,23 @@ function TonybetChannelMapTable() {
 }
 
 
-const TAKER_EXTRA_FIELDS: { key: keyof TakerRecord; label: string }[] = [
-  { key: "email_subject", label: "Email / e-subject" },
-  { key: "communication_method", label: "Comm. Method" },
-  { key: "phone_number", label: "Phone" },
-  { key: "quality", label: "Quality" },
+const TAKER_INLINE_FIELDS: { key: keyof TakerRecord; label: string }[] = [
+  { key: "email_subject", label: "Email Subject" },
+  { key: "communication_method", label: "Communication" },
   { key: "audio1", label: "Audio 1" },
+  { key: "audio2", label: "Audio 2" },
   { key: "protocol", label: "Protocol" },
   { key: "host", label: "Host/IP" },
-  { key: "port", label: "Port" },
   { key: "stream_key", label: "StreamKey" },
-  { key: "username", label: "User/StreamID" },
-  { key: "password", label: "Password" },
+  { key: "port", label: "Port" },
+  { key: "password", label: "Password/StreamID" },
+  { key: "quality", label: "Quality" },
+];
+
+const TAKER_DETAIL_FIELDS: { key: keyof TakerRecord; label: string }[] = [
+  { key: "username", label: "Username" },
+  { key: "phone_number", label: "Phone" },
+  { key: "settings", label: "Settings" },
   { key: "backup_host", label: "2nd Host/IP" },
   { key: "backup_port", label: "2nd Port" },
   { key: "backup_stream_key", label: "2nd StreamKey" },
@@ -406,7 +411,6 @@ const TAKER_EXTRA_FIELDS: { key: keyof TakerRecord; label: string }[] = [
 
 function TakersTable() {
   const { data: allRows = [] } = useTakers(false);
-  // Exclude HGM and MCR-prefixed takers (those belong to Hogmore/MCR, not Advanced)
   const rows = useMemo(() => allRows.filter((r: any) => {
     const name = (r.name || "").toUpperCase();
     return !name.startsWith("HGM") && !name.startsWith("MCR");
@@ -426,20 +430,18 @@ function TakersTable() {
       id: r.id, name: r.name, active: r.active,
       email_subject: r.email_subject ?? "", communication_method: r.communication_method ?? "",
       phone_number: r.phone_number ?? "", quality: r.quality ?? "", audio1: r.audio1 ?? "",
-      protocol: r.protocol ?? "", host: r.host ?? "", port: r.port ?? "",
+      audio2: r.audio2 ?? "", protocol: r.protocol ?? "", host: r.host ?? "", port: r.port ?? "",
       stream_key: r.stream_key ?? "", username: r.username ?? "", password: r.password ?? "",
       backup_host: r.backup_host ?? "", backup_port: r.backup_port ?? "",
       backup_stream_key: r.backup_stream_key ?? "", backup_username: r.backup_username ?? "",
-      backup_password: r.backup_password ?? "",
+      backup_password: r.backup_password ?? "", settings: r.settings ?? "",
     });
     setEditing(r.id);
-    setExpanded((p) => ({ ...p, [r.id]: true }));
   };
   const save = () => {
     if (!draft.name.trim()) return;
     const payload = { ...draft };
     if (editing === "new") delete payload.id;
-    // Convert empty strings to null
     for (const k of Object.keys(payload) as (keyof TakerRecord)[]) {
       if (typeof payload[k] === "string" && !(payload[k] as string).trim()) (payload as any)[k] = null;
     }
@@ -457,31 +459,42 @@ function TakersTable() {
     })));
   };
 
-  const DetailFields = () => (
-    <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
-      <td colSpan={3} className="px-3 py-2">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-          {TAKER_EXTRA_FIELDS.map((f) => (
-            <div key={f.key} className="flex items-center gap-2">
-              <label className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</label>
-              <input
-                className="grid-cell-input border border-border rounded flex-1 text-xs"
-                type={f.key.includes("password") ? "password" : "text"}
-                value={(draft[f.key] as string) ?? ""}
-                onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
-                onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }}
-              />
-            </div>
-          ))}
-        </div>
-      </td>
-    </tr>
+  const totalCols = 2 + TAKER_INLINE_FIELDS.length + 1; // name + status + inline fields + actions
+
+  const InlineEditCells = () => (
+    <>
+      {TAKER_INLINE_FIELDS.map((f) => (
+        <td key={f.key} className="px-1 py-1">
+          <input
+            className="grid-cell-input border border-border rounded w-full text-xs"
+            type={f.key === "password" ? "password" : "text"}
+            value={(draft[f.key] as string) ?? ""}
+            onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+            onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }}
+            placeholder={f.label}
+          />
+        </td>
+      ))}
+    </>
+  );
+
+  const InlineViewCells = ({ r }: { r: any }) => (
+    <>
+      {TAKER_INLINE_FIELDS.map((f) => {
+        const val = r[f.key];
+        return (
+          <td key={f.key} className="px-1 py-2 text-xs truncate max-w-[100px]" title={val || ""}>
+            {f.key === "password" && val ? "••••" : (val || "—")}
+          </td>
+        );
+      })}
+    </>
   );
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden md:col-span-2">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold">Takers Advanced</h2>
+        <h2 className="text-sm font-semibold">ADV Taker</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium">
             <ClipboardPaste className="h-3.5 w-3.5" /> Paste
@@ -491,104 +504,149 @@ function TakersTable() {
           </button>
         </div>
       </div>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="bg-muted/50 border-b border-border">
-            <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Name</th>
-            <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-20">Status</th>
-            <th className="px-2 py-2 w-16"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {editing === "new" && (
-            <>
-              <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
-                <td className="px-2 py-1">
-                  <input autoFocus className="grid-cell-input border border-ring rounded" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
-                </td>
-                <td className="px-2 py-1">
-                  <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
-                    <option value="1">Active</option><option value="0">Inactive</option>
-                  </select>
-                </td>
-                <td className="px-2 py-1">
-                  <div className="flex gap-1">
-                    <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
-                    <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
-                  </div>
-                </td>
-              </tr>
-              <DetailFields />
-            </>
-          )}
-          {rows.map((r: any) => (
-            <React.Fragment key={r.id}>
-              <tr className="border-b border-border last:border-b-0 group hover:bg-muted/30">
-                {editing === r.id ? (
-                  <>
-                    <td className="px-2 py-1">
-                      <input autoFocus className="grid-cell-input border border-ring rounded" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
-                    </td>
-                    <td className="px-2 py-1">
-                      <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
-                        <option value="1">Active</option><option value="0">Inactive</option>
-                      </select>
-                    </td>
-                    <td className="px-2 py-1">
-                      <div className="flex gap-1">
-                        <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
-                        <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
-                      </div>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td className="px-3 py-2">
-                      <button onClick={() => toggle(r.id)} className="flex items-center gap-1 hover:text-primary">
-                        {expanded[r.id] ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                        {r.name}
-                      </button>
-                    </td>
-                    <td className="px-3 py-2"><ActiveBadge active={r.active} /></td>
-                    <td className="px-2 py-2">
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => startEdit(r)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
-                        <button onClick={() => del.mutate(r.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                      </div>
-                    </td>
-                  </>
-                )}
-              </tr>
-              {editing === r.id && <DetailFields />}
-              {expanded[r.id] && editing !== r.id && (
-                <tr className="border-b border-border bg-muted/20">
-                  <td colSpan={3} className="px-3 py-2">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                      {TAKER_EXTRA_FIELDS.map((f) => {
-                        const val = (r as any)[f.key];
-                        if (!val) return null;
-                        return (
-                          <div key={f.key} className="flex items-center gap-2">
-                            <span className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</span>
-                            <span className="text-xs truncate">{f.key.includes("password") ? "••••••" : val}</span>
-                          </div>
-                        );
-                      })}
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs min-w-[1100px]">
+          <thead>
+            <tr className="bg-muted/50 border-b border-border">
+              <th className="px-2 py-2 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">Name</th>
+              {TAKER_INLINE_FIELDS.map((f) => (
+                <th key={f.key} className="px-1 py-2 text-left font-semibold text-muted-foreground whitespace-nowrap min-w-[80px]">{f.label}</th>
+              ))}
+              <th className="px-2 py-2 text-left font-semibold text-muted-foreground w-20">Status</th>
+              <th className="px-2 py-2 w-16"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {editing === "new" && (
+              <>
+                <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+                  <td className="px-1 py-1">
+                    <input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
+                  </td>
+                  <InlineEditCells />
+                  <td className="px-1 py-1">
+                    <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
+                      <option value="1">Active</option><option value="0">Inactive</option>
+                    </select>
+                  </td>
+                  <td className="px-1 py-1">
+                    <div className="flex gap-1">
+                      <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
+                      <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
                     </div>
                   </td>
                 </tr>
-              )}
-            </React.Fragment>
-          ))}
-          {rows.length === 0 && editing !== "new" && (
-            <tr><td colSpan={3} className="px-3 py-4 text-muted-foreground text-center">No entries yet.</td></tr>
-          )}
-        </tbody>
-      </table>
+                {/* Detail fields row for backup/extra when adding */}
+                <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+                  <td colSpan={totalCols} className="px-3 py-2">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {TAKER_DETAIL_FIELDS.map((f) => (
+                        <div key={f.key} className="flex items-center gap-2">
+                          <label className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</label>
+                          <input
+                            className="grid-cell-input border border-border rounded flex-1 text-xs"
+                            type={f.key.includes("password") ? "password" : "text"}
+                            value={(draft[f.key] as string) ?? ""}
+                            onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              </>
+            )}
+            {rows.map((r: any) => (
+              <React.Fragment key={r.id}>
+                <tr className="border-b border-border last:border-b-0 group hover:bg-muted/30">
+                  {editing === r.id ? (
+                    <>
+                      <td className="px-1 py-1">
+                        <input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
+                      </td>
+                      <InlineEditCells />
+                      <td className="px-1 py-1">
+                        <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
+                          <option value="1">Active</option><option value="0">Inactive</option>
+                        </select>
+                      </td>
+                      <td className="px-1 py-1">
+                        <div className="flex gap-1">
+                          <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
+                          <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-2 py-2">
+                        <button onClick={() => toggle(r.id)} className="flex items-center gap-1 hover:text-primary whitespace-nowrap">
+                          {expanded[r.id] ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
+                          {r.name}
+                        </button>
+                      </td>
+                      <InlineViewCells r={r} />
+                      <td className="px-2 py-2"><ActiveBadge active={r.active} /></td>
+                      <td className="px-2 py-2">
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => startEdit(r)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
+                          <button onClick={() => del.mutate(r.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                        </div>
+                      </td>
+                    </>
+                  )}
+                </tr>
+                {editing === r.id && (
+                  <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+                    <td colSpan={totalCols} className="px-3 py-2">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                        {TAKER_DETAIL_FIELDS.map((f) => (
+                          <div key={f.key} className="flex items-center gap-2">
+                            <label className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</label>
+                            <input
+                              className="grid-cell-input border border-border rounded flex-1 text-xs"
+                              type={f.key.includes("password") ? "password" : "text"}
+                              value={(draft[f.key] as string) ?? ""}
+                              onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                              onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                {expanded[r.id] && editing !== r.id && (
+                  <tr className="border-b border-border bg-muted/20">
+                    <td colSpan={totalCols} className="px-3 py-2">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                        {TAKER_DETAIL_FIELDS.map((f) => {
+                          const val = (r as any)[f.key];
+                          if (!val) return null;
+                          return (
+                            <div key={f.key} className="flex items-center gap-2">
+                              <span className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</span>
+                              <span className="text-xs truncate">{f.key.includes("password") ? "••••••" : val}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+            {rows.length === 0 && editing !== "new" && (
+              <tr><td colSpan={totalCols} className="px-3 py-4 text-muted-foreground text-center">No entries yet.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
       <BulkPasteDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
-        title="Takers Advanced"
+        title="ADV Taker"
         columns={[
           { key: "name", label: "Name", required: true },
           { key: "active", label: "Active (yes/no)" },
