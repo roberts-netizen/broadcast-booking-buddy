@@ -157,52 +157,44 @@ function SimpleTable({ title, rows, onUpsert, onDelete, onBulkImport }: SimpleTa
 }
 
 // ── TakerChannelMap table ─────────────────────────────────────────────────────
-type TCMRow = { id: string; label: string; actual_channel_id: string; taker_id: string | null; active: boolean; takers?: { name: string } | null };
+type TCMRow = { id: string; label: string; actual_channel_id: string; taker_id: string | null; taker_name?: string | null; active: boolean; takers?: { name: string } | null };
 
 function TakerChannelMapTable() {
   const { data: rows = [] } = useTakerChannelMaps(false);
-  const { data: takers = [] } = useTakers(true);
   const upsert = useUpsertTakerChannelMap();
   const del = useDeleteTakerChannelMap();
   const bulkInsert = useBulkInsertTakerChannelMaps();
 
-  const blank = { label: "", actual_channel_id: "", taker_id: null as string | null, active: true };
+  const blank = { label: "", actual_channel_id: "", taker_name: "", active: true };
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState(blank);
   const [bulkOpen, setBulkOpen] = useState(false);
 
   const startNew = () => { setDraft(blank); setEditing("new"); };
-  const startEdit = (r: TCMRow) => { setDraft({ label: r.label, actual_channel_id: r.actual_channel_id, taker_id: r.taker_id, active: r.active }); setEditing(r.id); };
+  const startEdit = (r: TCMRow) => { setDraft({ label: r.label, actual_channel_id: r.actual_channel_id, taker_name: r.taker_name ?? r.takers?.name ?? "", active: r.active }); setEditing(r.id); };
   const save = () => {
-    if (!draft.label.trim() || !draft.actual_channel_id.trim()) return;
-    upsert.mutate({ id: editing === "new" ? undefined : editing!, ...draft });
+    if (!draft.taker_name?.trim()) return;
+    upsert.mutate({ id: editing === "new" ? undefined : editing!, label: draft.label.trim() || draft.taker_name.trim(), actual_channel_id: draft.actual_channel_id, taker_id: null, taker_name: draft.taker_name.trim(), active: draft.active });
     setEditing(null);
   };
   const cancel = () => setEditing(null);
 
   const handleBulkImport = async (parsed: Record<string, string>[]) => {
-    const mapped = parsed.map((r) => {
-      const matchedTaker = takers.find((t: any) => t.name.toLowerCase() === r.taker_name?.toLowerCase());
-      return {
-        label: r.label,
-        actual_channel_id: r.actual_channel_id,
-        taker_id: matchedTaker?.id ?? null,
-        active: !r.active || r.active.toLowerCase() !== "no",
-      };
-    });
+    const mapped = parsed.map((r) => ({
+      label: r.label || r.taker_name || "",
+      actual_channel_id: r.actual_channel_id || "",
+      taker_id: null,
+      taker_name: r.taker_name || null,
+      active: !r.active || r.active.toLowerCase() !== "no",
+    }));
     await bulkInsert.mutateAsync(mapped);
   };
 
   const EditRow = () => (
     <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
-      <td className="px-2 py-1"><input autoFocus className="grid-cell-input border border-ring rounded" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="Label…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} /></td>
-      <td className="px-2 py-1"><input className="grid-cell-input border border-border rounded" value={draft.actual_channel_id} onChange={(e) => setDraft({ ...draft, actual_channel_id: e.target.value })} placeholder="CH-001…" /></td>
-      <td className="px-2 py-1">
-        <select className="grid-cell-input border border-border rounded" value={draft.taker_id ?? ""} onChange={(e) => setDraft({ ...draft, taker_id: e.target.value || null })}>
-          <option value="">— none —</option>
-          {takers.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
-      </td>
+      <td className="px-2 py-1"><input autoFocus className="grid-cell-input border border-ring rounded" value={draft.taker_name} onChange={(e) => setDraft({ ...draft, taker_name: e.target.value })} placeholder="Taker name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} /></td>
+      <td className="px-2 py-1"><input className="grid-cell-input border border-border rounded" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="CHID…" /></td>
+      <td className="px-2 py-1"><input className="grid-cell-input border border-border rounded" value={draft.actual_channel_id} onChange={(e) => setDraft({ ...draft, actual_channel_id: e.target.value })} placeholder="Port/Key…" /></td>
       <td className="px-2 py-1">
         <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
           <option value="1">Active</option><option value="0">Inactive</option>
@@ -244,7 +236,7 @@ function TakerChannelMapTable() {
             <tr key={r.id} className="border-b border-border last:border-b-0 group hover:bg-muted/30">
               {editing === r.id ? <EditRow /> : (
                 <>
-                  <td className="px-3 py-2">{r.takers?.name ?? <span className="text-muted-foreground">—</span>}</td>
+                  <td className="px-3 py-2">{r.taker_name ?? r.takers?.name ?? <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2 font-mono">{r.label}</td>
                   <td className="px-3 py-2 font-mono text-muted-foreground">{r.actual_channel_id}</td>
                   <td className="px-3 py-2"><ActiveBadge active={r.active} /></td>
@@ -268,9 +260,9 @@ function TakerChannelMapTable() {
         onOpenChange={setBulkOpen}
         title="Taker Channel Map"
         columns={[
-          { key: "label", label: "Label", required: true },
-          { key: "actual_channel_id", label: "Actual Ch. ID", required: true },
-          { key: "taker_name", label: "Taker Name" },
+          { key: "taker_name", label: "Taker Name", required: true },
+          { key: "label", label: "CHID" },
+          { key: "actual_channel_id", label: "Port/Key" },
           { key: "active", label: "Active (yes/no)" },
         ]}
         onImport={handleBulkImport}

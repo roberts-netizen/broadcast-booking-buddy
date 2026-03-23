@@ -188,10 +188,11 @@ export function useTakerChannelMaps(activeOnly = false) {
 export function useUpsertTakerChannelMap() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: { id?: string; label: string; actual_channel_id: string; taker_id: string | null; active: boolean }) => {
+    mutationFn: async (row: { id?: string; label: string; actual_channel_id: string; taker_id: string | null; taker_name?: string | null; active: boolean }) => {
+      const payload: any = { label: row.label, actual_channel_id: row.actual_channel_id, taker_id: row.taker_id, taker_name: row.taker_name ?? null, active: row.active };
       const { error } = row.id
-        ? await supabase.from("taker_channel_maps").update({ label: row.label, actual_channel_id: row.actual_channel_id, taker_id: row.taker_id, active: row.active }).eq("id", row.id)
-        : await supabase.from("taker_channel_maps").insert({ label: row.label, actual_channel_id: row.actual_channel_id, taker_id: row.taker_id, active: row.active });
+        ? await supabase.from("taker_channel_maps").update(payload).eq("id", row.id)
+        : await supabase.from("taker_channel_maps").insert(payload);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["taker_channel_maps"] }),
@@ -212,8 +213,8 @@ export function useDeleteTakerChannelMap() {
 export function useBulkInsertTakerChannelMaps() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (rows: { label: string; actual_channel_id: string; taker_id: string | null; active: boolean }[]) => {
-      const { error } = await supabase.from("taker_channel_maps").insert(rows);
+    mutationFn: async (rows: { label: string; actual_channel_id: string; taker_id: string | null; taker_name?: string | null; active: boolean }[]) => {
+      const { error } = await supabase.from("taker_channel_maps").insert(rows as any);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["taker_channel_maps"] }),

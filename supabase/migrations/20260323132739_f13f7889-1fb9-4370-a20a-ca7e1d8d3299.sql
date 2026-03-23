@@ -1,0 +1,1 @@
+ALTER TABLE taker_channel_maps ADD COLUMN taker_name text;

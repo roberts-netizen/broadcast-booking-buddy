@@ -517,6 +517,7 @@ export type Database = {
           id: string
           label: string
           taker_id: string | null
+          taker_name: string | null
         }
         Insert: {
           active?: boolean
@@ -525,6 +526,7 @@ export type Database = {
           id?: string
           label: string
           taker_id?: string | null
+          taker_name?: string | null
         }
         Update: {
           active?: boolean
@@ -533,6 +535,7 @@ export type Database = {
           id?: string
           label?: string
           taker_id?: string | null
+          taker_name?: string | null
         }
         Relationships: [
           {
