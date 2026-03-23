@@ -78,8 +78,10 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
       date: new Date().toISOString().slice(0, 10),
       gmt_time: "12:00",
       work_order_id: "",
+      ...(categoryId ? { category_id: categoryId } : {}),
       ...(tournaments.length > 0 ? { tournament_id: tournaments[0].id } : {}),
-    });
+    } as any);
+  };
   };
 
   const tabs: { key: TimeTab; label: string; count: number }[] = [
