@@ -258,3 +258,53 @@ export function useDeleteCategory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
   });
 }
+
+// ── TonyBet Channel Maps ─────────────────────────────────────────────────────
+export function useTonybetChannelMaps(activeOnly = false) {
+  return useQuery({
+    queryKey: ["tonybet_channel_maps", activeOnly],
+    queryFn: async () => {
+      let q = supabase.from("tonybet_channel_maps").select("*").order("label");
+      if (activeOnly) q = q.eq("active", true);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+}
+
+export function useUpsertTonybetChannelMap() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id?: string; taker_name?: string | null; label: string; actual_channel_id: string; active: boolean }) => {
+      const payload: any = { taker_name: row.taker_name ?? null, label: row.label, actual_channel_id: row.actual_channel_id, active: row.active };
+      const { error } = row.id
+        ? await supabase.from("tonybet_channel_maps").update(payload).eq("id", row.id)
+        : await supabase.from("tonybet_channel_maps").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tonybet_channel_maps"] }),
+  });
+}
+
+export function useDeleteTonybetChannelMap() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("tonybet_channel_maps").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tonybet_channel_maps"] }),
+  });
+}
+
+export function useBulkInsertTonybetChannelMaps() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: { taker_name?: string | null; label: string; actual_channel_id: string; active: boolean }[]) => {
+      const { error } = await supabase.from("tonybet_channel_maps").insert(rows as any);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tonybet_channel_maps"] }),
+  });
+}
