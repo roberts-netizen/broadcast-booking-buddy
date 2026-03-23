@@ -29,7 +29,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const BULK_IMPORT_COLUMNS = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id"] as const;
+const BULK_IMPORT_COLUMNS = ["date", "gmt_time", "cet_time", "league_name", "event_name", "channel_name", "work_order_id", "taker1", "chid1", "taker2", "chid2", "taker3", "chid3", "taker4", "chid4"] as const;
 
 function addOneHour(time: string): string {
   if (!time) return "";
