@@ -42,21 +42,22 @@ export function useBookingTakerAssignments(bookingIds: string[]) {
       return (data as any[]).map((row) => {
         const tcm = row.taker_channel_maps;
         const taker = tcm?.takers;
+        // Prefer inline fields (used by HOGMORE one-time takers), fall back to joined data
         return {
           ...row,
-          taker_channel_map_label: tcm?.label ?? null,
-          taker_name: taker?.name ?? null,
-          taker_protocol: taker?.protocol ?? null,
-          taker_host: taker?.host ?? null,
-          taker_port: taker?.port ?? null,
-          taker_stream_key: taker?.stream_key ?? null,
-          taker_username: taker?.username ?? null,
-          taker_password: taker?.password ?? null,
-          taker_audio: taker?.audio ?? null,
-          taker_quality: taker?.quality ?? null,
-          taker_email_subject: taker?.email_subject ?? null,
-          taker_communication_method: taker?.communication_method ?? null,
-          taker_phone_number: taker?.phone_number ?? null,
+          taker_channel_map_label: tcm?.label ?? row.taker_name ?? null,
+          taker_name: row.taker_name ?? taker?.name ?? null,
+          taker_protocol: row.taker_protocol ?? taker?.protocol ?? null,
+          taker_host: row.taker_host ?? taker?.host ?? null,
+          taker_port: row.taker_port ?? taker?.port ?? null,
+          taker_stream_key: row.taker_stream_key ?? taker?.stream_key ?? null,
+          taker_username: row.taker_username ?? taker?.username ?? null,
+          taker_password: row.taker_password ?? taker?.password ?? null,
+          taker_audio: row.taker_audio ?? taker?.audio ?? null,
+          taker_quality: row.taker_quality ?? taker?.quality ?? null,
+          taker_email_subject: row.taker_email_subject ?? taker?.email_subject ?? null,
+          taker_communication_method: row.taker_communication_method ?? taker?.communication_method ?? null,
+          taker_phone_number: row.taker_phone_number ?? taker?.phone_number ?? null,
         };
       }) as BookingTakerAssignment[];
     },
