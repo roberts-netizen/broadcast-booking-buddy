@@ -16,7 +16,8 @@ import {
   useProjectTakerEndpoints,
   useUpsertEndpoint,
 } from "@/hooks/useProjectTakerEndpoints";
-import { useTakers } from "@/hooks/useLookups";
+import { useTakers, useTakersByCategory } from "@/hooks/useLookups";
+import { useBookingSource, useUpsertBookingSource } from "@/hooks/useBookingSources";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 
