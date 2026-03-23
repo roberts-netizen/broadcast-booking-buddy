@@ -259,7 +259,7 @@ function TakerChannelMapTable() {
       <BulkPasteDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
-        title="Taker Channel Map"
+        title="MCR Taker"
         columns={[
           { key: "taker_name", label: "Taker Name", required: true },
           { key: "label", label: "CHID" },
