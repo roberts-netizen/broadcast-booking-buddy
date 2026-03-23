@@ -134,7 +134,9 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
         seen.set(key, name);
       }
     }
-    return Array.from(seen.entries()).map(([id, name]) => ({ value: id, label: name }));
+    return Array.from(seen.entries())
+      .map(([id, name]) => ({ value: id, label: name }))
+      .sort((a, b) => naturalSort(a.label, b.label));
   }, [takerChannelMaps]);
 
   return (
