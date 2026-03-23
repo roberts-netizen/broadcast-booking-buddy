@@ -608,7 +608,7 @@ import CategoriesAdmin from "@/components/CategoriesAdmin";
 export default function AdminPage() {
   const { data: channels = [] } = useIncomingChannels(false);
   const { data: leagues = [] } = useLeagues(false);
-  const [activeTab, setActiveTab] = useState<"settings" | "client-access">("settings");
+  const [activeTab, setActiveTab] = useState<"settings" | "client-access" | "categories">("settings");
 
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
@@ -640,6 +640,16 @@ export default function AdminPage() {
         </button>
         <button
           className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+            activeTab === "categories"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => setActiveTab("categories")}
+        >
+          Categories
+        </button>
+        <button
+          className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
             activeTab === "client-access"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -666,11 +676,12 @@ export default function AdminPage() {
             onDelete={(id) => deleteLeague.mutate(id)}
           />
           <TakersTable />
-          <CategoriesTable />
           <TakerChannelMapTable />
           <TonybetChannelMapTable />
         </div>
       )}
+
+      {activeTab === "categories" && <CategoriesAdmin />}
 
       {activeTab === "client-access" && <ClientAccessAdmin />}
     </div>
