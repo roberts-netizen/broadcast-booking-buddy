@@ -291,12 +291,13 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                   <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">League / Brick</th>
                   <th className="px-1.5 py-1 text-left font-semibold w-[160px] border border-border">Incoming CH</th>
                   <th className="px-1.5 py-1 text-left font-semibold border border-border">Takers</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[100px] border border-border">Betting</th>
                   <th className="px-0.5 py-1 text-left font-semibold w-[24px] border border-border"></th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 ? (
-                  <tr><td colSpan={9} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
+                  <tr><td colSpan={10} className="px-3 py-4 text-center text-xs text-muted-foreground border border-border">No events</td></tr>
                 ) : (
                   items.map((b: any) => {
                     const cat = b._category || "MCR";
@@ -331,6 +332,21 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                           ) : ""}
                         </td>
                         <td className="px-1 py-0.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
+                        <td className="px-1.5 py-1 border border-border text-[11px]">
+                          {(() => {
+                            if (!b.betting_settings) return "—";
+                            try {
+                              const parsed = JSON.parse(b.betting_settings);
+                              const name = parsed?.name;
+                              if (!name) return "—";
+                              return (
+                                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                  {name}
+                                </span>
+                              );
+                            } catch { return "—"; }
+                          })()}
+                        </td>
                         <td className="px-0.5 py-1 border border-border w-[24px]">
                           {onNavigateToBooking && (
                             <button
