@@ -242,6 +242,7 @@ export function AdvancedBookingView({ booking, categoryId }: Props) {
             .insert({
               name: name.trim(),
               active: true,
+              category_id: categoryId || null,
               email_subject: a.email_subject || null,
               communication_method: a.communication_method || null,
               phone_number: (a as any).phone_number || null,
