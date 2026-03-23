@@ -1,27 +1,55 @@
 
 
-## Fix ADV Taker Table Columns
+## Plan: Consolidate Taker Management into Categories
 
-### Problem
-The ADV Taker table currently only shows Name and Status as visible columns, with all other fields hidden in an expandable detail row. The user wants key fields visible as table columns.
+### Goal
+Remove the standalone "MCR Taker" and "ADV Taker" tables from the Settings tab. Move all taker pool management into the Categories tab, so each category (MCR, ADV, Custom) manages its own Source/Taker pool via expandable rows. Hogmore stays read-only with no pool management.
 
-### Changes
+### Database Changes
 
-**File: `src/pages/AdminPage.tsx`**
+**Add two new columns to `categories` table:**
+- `has_source_pool` (boolean, default false) — whether this category manages its own source registry
+- `has_taker_pool` (boolean, default true) — whether this category manages its own taker registry
 
-1. **Update the ADV Taker table header** to show these columns:
-   - Name | Email Subject | Communication | Audio 1 | Audio 2 | Protocol | Host/IP | StreamKey | Port | Password/StreamID | Quality | Status | Actions
+**Migrate existing MCR taker_channel_maps into the `takers` table** scoped to the MCR category:
+- For each record in `taker_channel_maps`, insert into `takers` with `category_id` = MCR category ID, mapping `taker_name` → `name`, `label` → `stream_key`, `actual_channel_id` → `host`
 
-2. **Update each row** to display these fields inline as cells (not hidden in expandable detail):
-   - All fields shown as compact text cells in the table
-   - Editing mode: each cell becomes an inline input
-   - Expandable detail row kept for backup fields only (2nd Host, 2nd Port, 2nd StreamKey, 2nd User/StreamID, 2nd Password, Settings, Phone)
+### Category Creation Form Changes (`CategoriesAdmin.tsx`)
 
-3. **Update `TAKER_EXTRA_FIELDS`** — split into two arrays:
-   - `TAKER_INLINE_FIELDS`: email_subject, communication_method, audio1, audio2, protocol, host, stream_key, port, username, password, quality
-   - `TAKER_DETAIL_FIELDS`: phone_number, settings, backup_host, backup_port, backup_stream_key, backup_username, backup_password (shown in expandable row only)
+Add to the create/edit form:
+- **Category Type**: MCR / ADV / Hogmore / Custom (existing)
+- **View Type**: Standard / Advanced (existing)  
+- **Source Pool**: toggle (default off) — "Does this category have its own source registry?"
+- **Taker Pool**: toggle (default on) — "Does this category have its own taker registry?"
 
-4. **Rename heading** from "Takers Advanced" to "ADV Taker"
+### Taker Pool in Categories Tab
 
-5. **Table styling**: compact cells with `text-xs`, horizontal scroll on overflow, fixed min-widths per column for readability.
+When expanding a category row:
+- **If MCR category type**: show simplified taker pool table with columns: **Taker | CHID | Port/Key | Status** (same structure as old MCR Taker table, but data stored in `takers` table with `category_id`)
+- **If ADV/Custom**: show full taker pool table with columns: **Name | Email Subject | Communication | Audio 1 | Audio 2 | Protocol | Host/IP | StreamKey | Port | Password/StreamID | Quality | Status** (same as the current ADV Taker table)
+- **If Hogmore**: no expand, no pool management
+- Only show expand arrow if `has_taker_pool = true` or `has_source_pool = true`
+
+### AdminPage.tsx Changes
+
+1. **Remove** `TakerChannelMapTable` component (MCR Taker) — lines 160-272
+2. **Remove** `TakersTable` component (ADV Taker) — lines 388-657
+3. **Remove** related imports (`useTakers`, `useTakerChannelMaps`, etc.) that are only used by those tables
+4. Keep `TonybetChannelMapTable` in Settings tab
+5. Settings tab grid now shows: Incoming Channels, Leagues, TonyBet only
+
+### CategoriesAdmin.tsx Changes
+
+1. Update `CategoryTakerPool` to render different column layouts based on `category_type`:
+   - MCR: simple 4-column table (Taker, CHID, Port/Key, Status) — fields map to `name`, `stream_key`, `host`, `active`
+   - ADV/Custom: full inline columns matching the old ADV Taker table layout
+2. Add bulk paste support to category taker pools
+3. Update `canExpand()` to check `has_taker_pool || has_source_pool` instead of hardcoded type check
+4. Add source/taker pool toggles to the category create/edit form
+
+### Files Modified
+- `src/pages/AdminPage.tsx` — remove MCR Taker + ADV Taker tables, clean up imports
+- `src/components/CategoriesAdmin.tsx` — enhanced taker pool with MCR vs ADV layouts, pool toggles, bulk paste
+- `src/hooks/useLookups.ts` — no changes needed (existing hooks sufficient)
+- Migration: add `has_source_pool`, `has_taker_pool` columns to `categories`
 
