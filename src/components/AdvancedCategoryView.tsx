@@ -25,6 +25,9 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
   const [viewMode, setViewMode] = useState<ViewMode>("full");
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
   const { data: leagues = [] } = useLeagues(true);
+  const { data: allCategories = [] } = useCategories(false);
+  const categoryRecord = useMemo(() => allCategories.find((c) => c.name === category), [allCategories, category]);
+  const categoryId = categoryRecord?.id ?? null;
   const createBooking = useCreateBooking();
 
   // Fetch tournaments for this category so we can assign tournament_id to new bookings
