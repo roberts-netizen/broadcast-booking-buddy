@@ -147,15 +147,24 @@ function HogmoreRow({ booking }: { booking: Booking }) {
           {assignments.length === 0 ? <span className="px-2 py-1.5">—</span> : (
             <div className="flex items-stretch">
               {assignments.map((a, i) => {
-                const tDot = a.test_status === "tested" ? STATUS_DOT.tested : STATUS_DOT.not_tested;
-                const statusLabel = a.test_status === "tested" ? "tested" : "not tested";
+                const curStatus = a.test_status || "not_tested";
+                const tDot = curStatus === "tested" ? STATUS_DOT.tested : STATUS_DOT.not_tested;
+                const statusLabel = curStatus === "tested" ? "tested" : "not tested";
                 const protocol = a.taker_protocol || "";
                 const streamInfo = [a.actual_channel_id, protocol ? `[${protocol}]` : ""].filter(Boolean).join(" ");
                 const audioInfo = a.taker_audio || "";
+                const toggleStatus = () => {
+                  const next = curStatus === "tested" ? "not_tested" : "tested";
+                  updateStatus.mutate({ id: a.id, test_status: next });
+                };
                 return (
                   <div key={a.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < assignments.length - 1 ? "border-r border-border" : ""}`}>
                     <div className="flex items-center gap-1.5">
-                      <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title={statusLabel} />
+                      <span
+                        className={`inline-block h-2 w-2 rounded-full shrink-0 cursor-pointer ${tDot}`}
+                        title={`${statusLabel} — click to toggle`}
+                        onClick={(e) => { e.stopPropagation(); toggleStatus(); }}
+                      />
                       <span className="text-[11px] font-medium">{a.taker_channel_map_label || a.taker_name || a.actual_channel_id || "—"}</span>
                     </div>
                     {streamInfo && <span className="text-[10px] text-muted-foreground pl-3.5">{streamInfo}</span>}
