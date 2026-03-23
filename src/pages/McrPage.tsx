@@ -30,6 +30,7 @@ type Section = "today" | "upcoming" | "past";
 export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?: (bookingId: string, category: string) => void }) {
   const [expandedSections, setExpandedSections] = useState<Set<Section>>(new Set(["today", "upcoming"]));
   const [selectedTaker, setSelectedTaker] = useState<TakerAssignment | null>(null);
+  const [selectedBta, setSelectedBta] = useState<BookingTakerAssignment | null>(null);
 
   const { data: categories = [] } = useCategories(true);
   const { data: leagues = [] } = useLeagues(true);
