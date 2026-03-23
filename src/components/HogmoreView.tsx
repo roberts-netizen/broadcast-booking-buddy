@@ -155,7 +155,7 @@ function HogmoreRow({ booking }: { booking: Booking }) {
                   <div key={a.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < assignments.length - 1 ? "border-r border-border" : ""}`}>
                     <div className="flex items-center gap-1.5">
                       <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title={statusLabel} />
-                      <span className="text-[11px] font-medium">{a.taker_channel_map_label || "—"}</span>
+                      <span className="text-[11px] font-medium">{a.taker_channel_map_label || a.taker_name || a.actual_channel_id || "—"}</span>
                     </div>
                     {streamInfo && <span className="text-[10px] text-muted-foreground pl-3.5">{streamInfo}</span>}
                     {audioInfo && <span className="text-[10px] text-muted-foreground pl-3.5">Audio - {audioInfo}</span>}
