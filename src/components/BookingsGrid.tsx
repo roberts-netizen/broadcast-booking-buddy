@@ -360,6 +360,18 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     () => {
       const isMCR = category === "MCR" || !category;
       const cols: ColDef[] = [
+        ...(isMCR ? [{
+          headerName: "",
+          width: 42,
+          suppressSizeToFit: true,
+          resizable: false,
+          editable: false,
+          sortable: false,
+          filter: false,
+          cellRenderer: () => (
+            <Badge variant="outline" className="text-[9px] px-1 py-0 bg-muted text-muted-foreground border-border">MCR</Badge>
+          ),
+        } as ColDef] : []),
         {
           headerName: "Date",
           field: "date",
