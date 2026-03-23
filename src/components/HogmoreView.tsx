@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useBookings, Booking } from "@/hooks/useBookings";
-import { useBookingTakerAssignments } from "@/hooks/useBookingTakerAssignments";
+import { useBookingTakerAssignments, useUpdateAssignmentTestStatus } from "@/hooks/useBookingTakerAssignments";
 import { useProjectTakerEndpoints } from "@/hooks/useProjectTakerEndpoints";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Wifi } from "lucide-react";
