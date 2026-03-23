@@ -66,9 +66,10 @@ export function SearchableSelect({ options, value, onChange, placeholder = "—"
   };
 
   const bgClass = bgStyle ? "bg-transparent" : "bg-background";
+  const borderClass = bgStyle ? "border-0" : "border border-input";
   const buttonClass = compact
-    ? `w-full flex items-center justify-between border border-input rounded px-1 py-0.5 text-[10px] ${bgClass} focus:outline-none focus:ring-1 focus:ring-ring truncate text-left min-h-[20px] gap-0.5`
-    : `w-full flex items-center justify-between border border-input rounded px-2 py-1 text-xs ${bgClass} focus:outline-none focus:ring-1 focus:ring-ring truncate text-left min-h-[28px] gap-1`;
+    ? `w-full flex items-center justify-between ${borderClass} rounded px-1 py-0.5 text-[10px] ${bgClass} focus:outline-none focus:ring-1 focus:ring-ring truncate text-left min-h-[20px] gap-0.5`
+    : `w-full flex items-center justify-between ${borderClass} rounded px-2 py-1 text-xs ${bgClass} focus:outline-none focus:ring-1 focus:ring-ring truncate text-left min-h-[28px] gap-1`;
 
   const itemClass = compact ? "text-[11px]" : "text-xs";
 
