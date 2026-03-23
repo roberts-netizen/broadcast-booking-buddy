@@ -425,7 +425,7 @@ function TakersTable() {
     setDraft({
       id: r.id, name: r.name, active: r.active,
       email_subject: r.email_subject ?? "", communication_method: r.communication_method ?? "",
-      phone_number: r.phone_number ?? "", quality: r.quality ?? "", audio: r.audio ?? "",
+      phone_number: r.phone_number ?? "", quality: r.quality ?? "", audio1: r.audio1 ?? "",
       protocol: r.protocol ?? "", host: r.host ?? "", port: r.port ?? "",
       stream_key: r.stream_key ?? "", username: r.username ?? "", password: r.password ?? "",
       backup_host: r.backup_host ?? "", backup_port: r.backup_port ?? "",

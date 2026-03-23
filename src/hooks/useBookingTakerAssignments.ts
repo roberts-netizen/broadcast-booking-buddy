@@ -10,6 +10,7 @@ export type BookingTakerAssignment = {
   actual_channel_id: string;
   booked_by_client: boolean;
   test_status: string;
+  role: string;
   created_at: string;
   updated_at: string;
   // Joined from taker_channel_maps
