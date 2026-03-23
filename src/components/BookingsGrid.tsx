@@ -175,6 +175,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
+  const { data: takers = [] } = useTakers(true);
   const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
   // ── Highlight booking from MCR shortcut ──
