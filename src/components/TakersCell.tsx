@@ -161,7 +161,7 @@ export function TakersCell({ bookingId, bookingLabel, assignments, takerChannelM
                 />
                 {currentTakerId && (
                   <SearchableSelect
-                    options={availableChids.map((m) => ({ value: m.id, label: m.label }))}
+                    options={availableChids.map((m) => ({ value: m.id, label: m.label })).sort((a, b) => naturalSort(a.label, b.label))}
                     value={assignment?.taker_channel_map_id ?? ""}
                     onChange={(val) => handleChidChange(slotNum, val)}
                     placeholder="CHID"
