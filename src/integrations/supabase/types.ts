@@ -49,8 +49,20 @@ export type Database = {
           created_at: string
           id: string
           slot_number: number
+          taker_audio: string | null
           taker_channel_map_id: string | null
+          taker_communication_method: string | null
+          taker_email_subject: string | null
+          taker_host: string | null
           taker_id: string | null
+          taker_name: string | null
+          taker_password: string | null
+          taker_phone_number: string | null
+          taker_port: string | null
+          taker_protocol: string | null
+          taker_quality: string | null
+          taker_stream_key: string | null
+          taker_username: string | null
           test_status: string
           updated_at: string
         }
@@ -61,8 +73,20 @@ export type Database = {
           created_at?: string
           id?: string
           slot_number: number
+          taker_audio?: string | null
           taker_channel_map_id?: string | null
+          taker_communication_method?: string | null
+          taker_email_subject?: string | null
+          taker_host?: string | null
           taker_id?: string | null
+          taker_name?: string | null
+          taker_password?: string | null
+          taker_phone_number?: string | null
+          taker_port?: string | null
+          taker_protocol?: string | null
+          taker_quality?: string | null
+          taker_stream_key?: string | null
+          taker_username?: string | null
           test_status?: string
           updated_at?: string
         }
@@ -73,8 +97,20 @@ export type Database = {
           created_at?: string
           id?: string
           slot_number?: number
+          taker_audio?: string | null
           taker_channel_map_id?: string | null
+          taker_communication_method?: string | null
+          taker_email_subject?: string | null
+          taker_host?: string | null
           taker_id?: string | null
+          taker_name?: string | null
+          taker_password?: string | null
+          taker_phone_number?: string | null
+          taker_port?: string | null
+          taker_protocol?: string | null
+          taker_quality?: string | null
+          taker_stream_key?: string | null
+          taker_username?: string | null
           test_status?: string
           updated_at?: string
         }
