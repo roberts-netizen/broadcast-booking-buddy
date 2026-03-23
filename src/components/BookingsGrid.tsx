@@ -648,12 +648,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   // ── Build taker name → id map for bulk import ──
   const takerNameToId = useMemo(() => {
     const map: Record<string, string> = {};
-    for (const m of typedTakerMaps) {
-      const name = (m as any).takers?.name;
-      if (name && m.taker_id) map[name.toLowerCase()] = m.taker_id;
+    for (const taker of takers) {
+      map[normalizeLookup(taker.name)] = taker.id;
     }
     return map;
-  }, [typedTakerMaps]);
+  }, [takers]);
 
   // ── Paste handler for multi-row paste via AG Grid + inline editor fallback ──
   const importRowsFromClipboard = useCallback(
