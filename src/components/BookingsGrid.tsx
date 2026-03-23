@@ -753,6 +753,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
             booking_id: newBooking.id,
             slot_number: s + 1,
             taker_id: takerId,
+            taker_name: pair.takerName,
             taker_channel_map_id: resolvedMap.id,
             actual_channel_id: resolvedMap.actual_channel_id,
           }, { onConflict: "booking_id,slot_number" });
