@@ -260,9 +260,9 @@ function TakerChannelMapTable() {
         onOpenChange={setBulkOpen}
         title="Taker Channel Map"
         columns={[
-          { key: "label", label: "Label", required: true },
-          { key: "actual_channel_id", label: "Actual Ch. ID", required: true },
-          { key: "taker_name", label: "Taker Name" },
+          { key: "taker_name", label: "Taker Name", required: true },
+          { key: "label", label: "CHID" },
+          { key: "actual_channel_id", label: "Port/Key" },
           { key: "active", label: "Active (yes/no)" },
         ]}
         onImport={handleBulkImport}
