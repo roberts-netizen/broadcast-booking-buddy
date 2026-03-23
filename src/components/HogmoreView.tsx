@@ -79,7 +79,7 @@ export function HogmoreView() {
             </button>
           ))}
         </div>
-        <Badge variant="outline" className="ml-auto gap-1 text-[10px]">
+        <Badge variant="outline" className="ml-auto gap-1 text-[10px]" title="Data is refreshed daily at 06:00 UTC">
           <Wifi className="h-3 w-3" />
           Auto-synced from Hogmore MCR
         </Badge>
