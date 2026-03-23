@@ -18,6 +18,7 @@ export type Booking = {
   event_notes: string | null;
   source_status: string;
   tournament_id: string | null;
+  category_id: string | null;
   betting_settings: string | null;
   created_at: string;
   updated_at: string;

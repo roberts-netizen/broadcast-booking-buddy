@@ -15,7 +15,8 @@ import {
 } from "ag-grid-community";
 import { Plus, ClipboardPaste } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakerChannelMaps } from "@/hooks/useLookups";
+import { useLeagues, useIncomingChannels, useTakerChannelMaps, useCategories } from "@/hooks/useLookups";
+import { Badge } from "@/components/ui/badge";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
 import BookingFilters from "./BookingFilters";
@@ -211,6 +212,13 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     return map;
   }, [allReports]);
 
+  // Fetch categories to get MCR category_id
+  const { data: allCategories = [] } = useCategories(false);
+  const mcrCategoryId = useMemo(() => {
+    const mcr = allCategories.find((c) => c.category_type === "mcr");
+    return mcr?.id ?? null;
+  }, [allCategories]);
+
   // Get or create the default tournament ID for non-MCR categories
   const { data: categoryTournaments = [], refetch: refetchTournaments } = useQuery({
     queryKey: ["tournaments-for-category", category],
@@ -352,6 +360,18 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     () => {
       const isMCR = category === "MCR" || !category;
       const cols: ColDef[] = [
+        ...(isMCR ? [{
+          headerName: "",
+          width: 42,
+          suppressSizeToFit: true,
+          resizable: false,
+          editable: false,
+          sortable: false,
+          filter: false,
+          cellRenderer: () => (
+            <Badge variant="outline" className="text-[9px] px-1 py-0 bg-muted text-muted-foreground border-border">MCR</Badge>
+          ),
+        } as ColDef] : []),
         {
           headerName: "Date",
           field: "date",
@@ -603,18 +623,21 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   // ── Add new row ──
   const handleAddRow = useCallback(() => {
     const today = new Date().toISOString().split("T")[0];
-    const payload: Partial<Booking> & { tournament_id?: string | null } = {
+    const payload: Partial<Booking> & { tournament_id?: string | null; category_id?: string | null } = {
       date: today,
       gmt_time: "00:00",
       cet_time: "01:00",
       event_name: "",
       work_order_id: "",
     };
+    if (category === "MCR" && mcrCategoryId) {
+      (payload as any).category_id = mcrCategoryId;
+    }
     if (category && category !== "MCR" && defaultTournamentId) {
       (payload as any).tournament_id = defaultTournamentId;
     }
     createBooking.mutate(payload);
-  }, [createBooking, category, defaultTournamentId]);
+  }, [createBooking, category, defaultTournamentId, mcrCategoryId]);
 
   // ── Build taker name → id map for bulk import ──
   const takerNameToId = useMemo(() => {
@@ -689,6 +712,9 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           }
         }
 
+        if (category === "MCR" && mcrCategoryId) {
+          (row as any).category_id = mcrCategoryId;
+        }
         if (category && category !== "MCR" && defaultTournamentId) {
           (row as any).tournament_id = defaultTournamentId;
         }
@@ -729,7 +755,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       queryClient.invalidateQueries({ queryKey: ["incoming_channels"] });
       return true;
     },
-    [leagueNameToId, channelNameToId, takerNameToId, typedTakerMaps, category, defaultTournamentId, queryClient]
+    [leagueNameToId, channelNameToId, takerNameToId, typedTakerMaps, category, defaultTournamentId, mcrCategoryId, queryClient]
   );
 
   const processDataFromClipboard = useCallback(

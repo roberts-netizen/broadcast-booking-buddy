@@ -327,7 +327,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                           {isAdv ? (
                             <Badge variant="outline" className="text-[9px] px-1 py-0">{cat}</Badge>
                           ) : (
-                            <span className="text-[9px] text-muted-foreground">MCR</span>
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 bg-muted text-muted-foreground border-border">MCR</Badge>
                           )}
                         </td>
                         <td className="px-1.5 py-1 text-[11px] whitespace-nowrap border border-border">
