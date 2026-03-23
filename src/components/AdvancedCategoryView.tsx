@@ -147,7 +147,7 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
                 id={`booking-${booking.id}`}
                 className={highlightBookingId === booking.id ? "ring-2 ring-primary bg-primary/5 transition-all" : ""}
               >
-                <AdvancedBookingView booking={booking} />
+                <AdvancedBookingView booking={booking} categoryId={categoryId} />
               </div>
             ))}
           </div>
