@@ -80,8 +80,6 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
       work_order_id: "",
       ...(categoryId ? { category_id: categoryId } : {}),
       ...(tournaments.length > 0 ? { tournament_id: tournaments[0].id } : {}),
-    } as any);
-  };
   };
 
   const tabs: { key: TimeTab; label: string; count: number }[] = [
