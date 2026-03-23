@@ -279,7 +279,7 @@ function TakerChannelMapTable() {
   );
 }
 
-// ── Takers table (expanded with all technical fields) ─────────────────────────
+// ── Takers Advanced table (expanded with all technical fields) ────────────────
 const TAKER_EXTRA_FIELDS: { key: keyof TakerRecord; label: string }[] = [
   { key: "email_subject", label: "Email / e-subject" },
   { key: "communication_method", label: "Comm. Method" },
