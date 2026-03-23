@@ -390,7 +390,7 @@ const TAKER_EXTRA_FIELDS: { key: keyof TakerRecord; label: string }[] = [
   { key: "communication_method", label: "Comm. Method" },
   { key: "phone_number", label: "Phone" },
   { key: "quality", label: "Quality" },
-  { key: "audio", label: "Audio" },
+  { key: "audio1", label: "Audio 1" },
   { key: "protocol", label: "Protocol" },
   { key: "host", label: "Host/IP" },
   { key: "port", label: "Port" },
