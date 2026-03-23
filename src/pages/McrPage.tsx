@@ -320,7 +320,16 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                         <td className="px-1.5 py-1 text-[11px] whitespace-nowrap border border-border">{b.cet_time?.slice(0, 5) ?? ""}</td>
                         <td className="px-1.5 py-1 text-[11px] font-medium truncate max-w-[130px] border border-border" title={b.event_name}>{b.event_name}</td>
                         <td className="px-1.5 py-1 text-[11px] text-muted-foreground border border-border">{isAdv ? (b.venue || b.source || "") : (b.league_id ? leagueMap[b.league_id] ?? "" : "")}</td>
-                        <td className="px-1.5 py-1 text-[11px] text-muted-foreground border border-border truncate max-w-[90px]" title={b.incoming_channel_id ? incomingChannelMap[b.incoming_channel_id] ?? "" : (b.source || "")}>{b.incoming_channel_id ? incomingChannelMap[b.incoming_channel_id] ?? "" : (isAdv ? (b.source || "") : "")}</td>
+                        <td className="px-1.5 py-1 text-[11px] text-muted-foreground border border-border truncate max-w-[90px]" title={b.incoming_channel_id ? incomingChannelMap[b.incoming_channel_id] ?? "" : (b.source || "")}>
+                          {b.incoming_channel_id ? (
+                            incomingChannelMap[b.incoming_channel_id] ?? ""
+                          ) : isAdv && b.source ? (
+                            <div className="flex items-center gap-1">
+                              <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${b.source_status === "tested" ? "bg-[hsl(142,71%,45%)]" : "bg-[hsl(0,72%,51%)]"}`} />
+                              <span className="truncate">{b.source}</span>
+                            </div>
+                          ) : ""}
+                        </td>
                         <td className="px-1 py-0.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
                         <td className="px-0.5 py-1 border border-border w-[24px]">
                           {onNavigateToBooking && (
