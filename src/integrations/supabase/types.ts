@@ -288,6 +288,65 @@ export type Database = {
           },
         ]
       }
+      hogmore_streams: {
+        Row: {
+          audio1: string | null
+          audio2: string | null
+          booking_id: string
+          contact: string | null
+          created_at: string | null
+          host: string | null
+          id: string
+          name: string | null
+          protocol: string | null
+          role: string
+          settings: string | null
+          slot_number: number | null
+          status: string | null
+          stream_key: string | null
+        }
+        Insert: {
+          audio1?: string | null
+          audio2?: string | null
+          booking_id: string
+          contact?: string | null
+          created_at?: string | null
+          host?: string | null
+          id?: string
+          name?: string | null
+          protocol?: string | null
+          role?: string
+          settings?: string | null
+          slot_number?: number | null
+          status?: string | null
+          stream_key?: string | null
+        }
+        Update: {
+          audio1?: string | null
+          audio2?: string | null
+          booking_id?: string
+          contact?: string | null
+          created_at?: string | null
+          host?: string | null
+          id?: string
+          name?: string | null
+          protocol?: string | null
+          role?: string
+          settings?: string | null
+          slot_number?: number | null
+          status?: string | null
+          stream_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hogmore_streams_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incoming_channels: {
         Row: {
           active: boolean
