@@ -13,6 +13,8 @@ type Props = {
   freeText?: boolean;
   /** Compact mode for inline table cells */
   compact?: boolean;
+  /** Custom background style for the trigger button (e.g. to match row color) */
+  bgStyle?: React.CSSProperties;
 };
 
 export function SearchableSelect({ options, value, onChange, placeholder = "—", className = "", freeText = false, compact = false }: Props) {
