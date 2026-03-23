@@ -118,6 +118,7 @@ export function HogmoreView() {
 function HogmoreRow({ booking }: { booking: Booking }) {
   const [expanded, setExpanded] = useState(false);
   const { data: assignments = [] } = useBookingTakerAssignments([booking.id]);
+  const updateStatus = useUpdateAssignmentTestStatus();
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
 
