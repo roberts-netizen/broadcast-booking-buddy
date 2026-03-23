@@ -5,6 +5,7 @@ import {
   useLeagues, useUpsertLeague, useDeleteLeague,
   useTakers, useUpsertTaker, useDeleteTaker, useBulkInsertTakers,
   useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap, useBulkInsertTakerChannelMaps,
+  useTonybetChannelMaps, useUpsertTonybetChannelMap, useDeleteTonybetChannelMap, useBulkInsertTonybetChannelMaps,
   useCategories, useUpsertCategory, useDeleteCategory,
   type TakerRecord,
 } from "@/hooks/useLookups";
