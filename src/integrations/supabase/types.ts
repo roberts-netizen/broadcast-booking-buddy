@@ -300,6 +300,8 @@ export type Database = {
           active: boolean
           category_type: string | null
           created_at: string
+          has_source_pool: boolean
+          has_taker_pool: boolean
           id: string
           name: string
           type: string
@@ -308,6 +310,8 @@ export type Database = {
           active?: boolean
           category_type?: string | null
           created_at?: string
+          has_source_pool?: boolean
+          has_taker_pool?: boolean
           id?: string
           name: string
           type?: string
@@ -316,6 +320,8 @@ export type Database = {
           active?: boolean
           category_type?: string | null
           created_at?: string
+          has_source_pool?: boolean
+          has_taker_pool?: boolean
           id?: string
           name?: string
           type?: string

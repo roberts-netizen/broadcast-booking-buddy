@@ -225,7 +225,7 @@ export function useBulkInsertTakerChannelMaps() {
 }
 
 // ── Categories ───────────────────────────────────────────────────────────────
-export type CategoryRecord = { id: string; name: string; type: string; category_type: string; active: boolean; created_at: string };
+export type CategoryRecord = { id: string; name: string; type: string; category_type: string; active: boolean; has_source_pool: boolean; has_taker_pool: boolean; created_at: string };
 
 export function useCategories(activeOnly = false) {
   return useQuery({
@@ -243,9 +243,11 @@ export function useCategories(activeOnly = false) {
 export function useUpsertCategory() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: { id?: string; name: string; type: string; category_type?: string; active: boolean }) => {
+    mutationFn: async (row: { id?: string; name: string; type: string; category_type?: string; active: boolean; has_source_pool?: boolean; has_taker_pool?: boolean }) => {
       const payload: any = { name: row.name, type: row.type, active: row.active };
       if (row.category_type) payload.category_type = row.category_type;
+      if (row.has_source_pool !== undefined) payload.has_source_pool = row.has_source_pool;
+      if (row.has_taker_pool !== undefined) payload.has_taker_pool = row.has_taker_pool;
       const { error } = row.id
         ? await supabase.from("categories").update(payload).eq("id", row.id)
         : await supabase.from("categories").insert(payload);
