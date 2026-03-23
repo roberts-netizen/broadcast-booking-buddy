@@ -732,17 +732,22 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         for (let s = 0; s < takerPairs.length; s++) {
           const pair = takerPairs[s];
           if (!pair?.takerName) continue;
-          const takerId = takerNameToId[pair.takerName.toLowerCase()];
-          if (!takerId) continue;
 
-          // Find the matching taker_channel_map by taker_id + label (CHID)
-          const chidLower = pair.chidLabel.toLowerCase();
-          const map = typedTakerMaps.find(
-            (m) => m.taker_id === takerId && m.label.toLowerCase() === chidLower
-          );
-          // If no CHID match, pick the first map for this taker
-          const resolvedMap = map ?? typedTakerMaps.find((m) => m.taker_id === takerId);
-          if (!resolvedMap) continue;
+          const normalizedTakerName = normalizeLookup(pair.takerName);
+          let takerId = takerNameToId[normalizedTakerName] ?? null;
+
+          const candidateMaps = typedTakerMaps.filter((m) => {
+            const mapTakerName = normalizeLookup(m.taker_name ?? (m as any).takers?.name ?? "");
+            return (takerId && m.taker_id === takerId) || mapTakerName === normalizedTakerName;
+          });
+
+          if (!candidateMaps.length) continue;
+          if (!takerId) takerId = candidateMaps[0].taker_id ?? null;
+
+          const normalizedChid = normalizeLookup(pair.chidLabel);
+          const resolvedMap =
+            candidateMaps.find((m) => normalizeLookup(m.label) === normalizedChid || normalizeLookup(m.actual_channel_id) === normalizedChid) ??
+            candidateMaps[0];
 
           await supabase.from("booking_taker_assignments").upsert({
             booking_id: newBooking.id,
