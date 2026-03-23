@@ -201,11 +201,13 @@ function HogmoreRow({ booking }: { booking: Booking }) {
 
 function HogmoreExpandedDetail({
   booking,
-  assignments,
+  sourceAssignments,
+  takerAssignments,
   endpoints,
 }: {
   booking: Booking;
-  assignments: any[];
+  sourceAssignments: any[];
+  takerAssignments: any[];
   endpoints: any[];
 }) {
   const endpointMap = useMemo(() => {
@@ -226,9 +228,6 @@ function HogmoreExpandedDetail({
             <DetailRow label="GMT Time" value={booking.gmt_time?.slice(0, 5) || "—"} />
             <DetailRow label="CET Time" value={booking.cet_time?.slice(0, 5) || "—"} />
             <DetailRow label="Venue" value={(booking as any).venue || "—"} />
-            <DetailRow label="Source" value={booking.source || "—"} />
-            <DetailRow label="Source Status" value={((booking as any).source_status || "not_tested").replace(/_/g, " ")} />
-            <DetailRow label="Audio Setup" value={(booking as any).audio_setup || "—"} multiline />
             <DetailRow label="Notes" value={booking.event_notes || "—"} />
             <DetailRow label="Work Order" value={booking.work_order_id || "—"} />
             <DetailRow label="Project Lead" value={(booking as any).project_lead || "—"} />
@@ -237,36 +236,82 @@ function HogmoreExpandedDetail({
         </table>
       </div>
 
-      {/* Taker Details */}
+      {/* Source & Takers */}
       <div>
-        <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-1.5">
-          Taker{assignments.length > 1 ? "s" : ""}
-        </div>
-        {assignments.length === 0 ? (
-          <div className="text-[11px] text-muted-foreground">No takers assigned</div>
-        ) : (
-          assignments.map((a, i) => {
-            return (
-              <div key={a.id} className="mb-3">
-                {assignments.length > 1 && (
-                  <div className="text-[10px] font-medium text-muted-foreground mb-1">Taker {i + 1}</div>
-                )}
+        {/* SOURCE panel */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="text-[10px] font-semibold uppercase text-muted-foreground">Source</div>
+            <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-semibold bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-400/30">
+              SOURCE
+            </span>
+          </div>
+          {sourceAssignments.length === 0 ? (
+            <div className="text-[11px] text-muted-foreground">
+              {booking.source ? (
                 <table className="w-full border-collapse">
                   <tbody>
-                    <DetailRow label="Name" value={a.taker_name || a.taker_channel_map_label || "—"} />
-                    <DetailRow label="Protocol" value={a.taker_protocol || "—"} />
-                    <DetailRow label="Host" value={a.taker_host || "—"} />
-                    <DetailRow label="Stream Key" value={a.taker_stream_key || "—"} />
-                    <DetailRow label="Audio" value={a.taker_audio || "—"} />
-                    <DetailRow label="Email/Contact" value={a.taker_email_subject || "—"} />
+                    <DetailRow label="Name" value={booking.source || "—"} />
+                    <DetailRow label="Status" value={((booking as any).source_status || "not_tested").replace(/_/g, " ")} />
                   </tbody>
                 </table>
-              </div>
-            );
-          })
+              ) : "No source assigned"}
+            </div>
+          ) : (
+            sourceAssignments.map((a) => (
+              <StreamDetailTable key={a.id} assignment={a} />
+            ))
+          )}
+        </div>
+
+        {/* TAKERS panel */}
+        <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-1.5">
+          Taker{takerAssignments.length > 1 ? "s" : ""}
+        </div>
+        {takerAssignments.length === 0 ? (
+          <div className="text-[11px] text-muted-foreground">No takers assigned</div>
+        ) : (
+          takerAssignments.map((a, i) => (
+            <div key={a.id} className="mb-3">
+              {takerAssignments.length > 1 && (
+                <div className="text-[10px] font-medium text-muted-foreground mb-1">Taker {i + 1}</div>
+              )}
+              <StreamDetailTable assignment={a} />
+            </div>
+          ))
         )}
       </div>
     </div>
+  );
+}
+
+/** Unified stream detail table — used for both source and taker assignments */
+function StreamDetailTable({ assignment: a }: { assignment: any }) {
+  const statusLabel = (a.test_status || "not_tested").replace(/_/g, " ");
+  const statusBadge = a.test_status === "tested"
+    ? "bg-green-500/20 text-green-700 dark:text-green-300"
+    : "bg-destructive/20 text-destructive";
+
+  return (
+    <table className="w-full border-collapse">
+      <tbody>
+        <DetailRow label="Name" value={a.taker_name || a.taker_channel_map_label || "—"} />
+        <tr>
+          <td className={labelCell} style={{ width: 120 }}>Status</td>
+          <td className={valueCell}>
+            <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${statusBadge}`}>
+              {statusLabel}
+            </span>
+          </td>
+        </tr>
+        <DetailRow label="Protocol" value={a.taker_protocol || "—"} />
+        <DetailRow label="Host/URL" value={a.taker_host || "—"} />
+        <DetailRow label="Stream Key" value={a.taker_stream_key || "—"} />
+        <DetailRow label="Audio 1" value={a.taker_audio || "—"} />
+        <DetailRow label="Audio 2" value="—" />
+        <DetailRow label="Contact" value={a.taker_email_subject || "—"} />
+      </tbody>
+    </table>
   );
 }
 
