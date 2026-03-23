@@ -1,16 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X, ClipboardPaste } from "lucide-react";
 import {
   useIncomingChannels, useUpsertIncomingChannel, useDeleteIncomingChannel, useBulkInsertIncomingChannels,
   useLeagues, useUpsertLeague, useDeleteLeague,
-  useTakers, useUpsertTaker, useDeleteTaker, useBulkInsertTakers,
-  useTakerChannelMaps, useUpsertTakerChannelMap, useDeleteTakerChannelMap, useBulkInsertTakerChannelMaps,
   useTonybetChannelMaps, useUpsertTonybetChannelMap, useDeleteTonybetChannelMap, useBulkInsertTonybetChannelMaps,
-  useCategories, useUpsertCategory, useDeleteCategory,
-  type TakerRecord,
 } from "@/hooks/useLookups";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import BulkPasteDialog, { type BulkColumn } from "@/components/BulkPasteDialog";
+import BulkPasteDialog from "@/components/BulkPasteDialog";
 
 // ── Generic toggle badge ─────────────────────────────────────────────────────
 function ActiveBadge({ active }: { active: boolean }) {
