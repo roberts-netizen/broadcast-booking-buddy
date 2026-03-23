@@ -15,7 +15,7 @@ import {
 } from "ag-grid-community";
 import { Plus, ClipboardPaste } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakerChannelMaps, useCategories } from "@/hooks/useLookups";
+import { useLeagues, useIncomingChannels, useTakerChannelMaps, useCategories, useTakers } from "@/hooks/useLookups";
 import { Badge } from "@/components/ui/badge";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
@@ -49,6 +49,10 @@ function normalizeDate(value: string): string {
   const dmy = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
   return v;
+}
+
+function normalizeLookup(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase();
 }
 
 function extractRowsFromRawText(raw: string): string[][] {
@@ -171,6 +175,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   const { data: bookings = [], isLoading } = useBookings(effectiveFilters);
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
+  const { data: takers = [] } = useTakers(true);
   const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
   // ── Highlight booking from MCR shortcut ──
@@ -256,6 +261,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       label: t.label as string,
       actual_channel_id: t.actual_channel_id as string,
       taker_id: (t.taker_id ?? null) as string | null,
+      taker_name: (t.taker_name ?? null) as string | null,
       takers: t.takers ?? null,
     })),
     [takerChannelMaps]
@@ -642,12 +648,11 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   // ── Build taker name → id map for bulk import ──
   const takerNameToId = useMemo(() => {
     const map: Record<string, string> = {};
-    for (const m of typedTakerMaps) {
-      const name = (m as any).takers?.name;
-      if (name && m.taker_id) map[name.toLowerCase()] = m.taker_id;
+    for (const taker of takers) {
+      map[normalizeLookup(taker.name)] = taker.id;
     }
     return map;
-  }, [typedTakerMaps]);
+  }, [takers]);
 
   // ── Paste handler for multi-row paste via AG Grid + inline editor fallback ──
   const importRowsFromClipboard = useCallback(
@@ -727,22 +732,28 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         for (let s = 0; s < takerPairs.length; s++) {
           const pair = takerPairs[s];
           if (!pair?.takerName) continue;
-          const takerId = takerNameToId[pair.takerName.toLowerCase()];
-          if (!takerId) continue;
 
-          // Find the matching taker_channel_map by taker_id + label (CHID)
-          const chidLower = pair.chidLabel.toLowerCase();
-          const map = typedTakerMaps.find(
-            (m) => m.taker_id === takerId && m.label.toLowerCase() === chidLower
-          );
-          // If no CHID match, pick the first map for this taker
-          const resolvedMap = map ?? typedTakerMaps.find((m) => m.taker_id === takerId);
-          if (!resolvedMap) continue;
+          const normalizedTakerName = normalizeLookup(pair.takerName);
+          let takerId = takerNameToId[normalizedTakerName] ?? null;
+
+          const candidateMaps = typedTakerMaps.filter((m) => {
+            const mapTakerName = normalizeLookup(m.taker_name ?? (m as any).takers?.name ?? "");
+            return (takerId && m.taker_id === takerId) || mapTakerName === normalizedTakerName;
+          });
+
+          if (!candidateMaps.length) continue;
+          if (!takerId) takerId = candidateMaps[0].taker_id ?? null;
+
+          const normalizedChid = normalizeLookup(pair.chidLabel);
+          const resolvedMap =
+            candidateMaps.find((m) => normalizeLookup(m.label) === normalizedChid || normalizeLookup(m.actual_channel_id) === normalizedChid) ??
+            candidateMaps[0];
 
           await supabase.from("booking_taker_assignments").upsert({
             booking_id: newBooking.id,
             slot_number: s + 1,
             taker_id: takerId,
+            taker_name: pair.takerName,
             taker_channel_map_id: resolvedMap.id,
             actual_channel_id: resolvedMap.actual_channel_id,
           }, { onConflict: "booking_id,slot_number" });
