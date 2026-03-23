@@ -225,7 +225,7 @@ export function useBulkInsertTakerChannelMaps() {
 }
 
 // ── Categories ───────────────────────────────────────────────────────────────
-export type CategoryRecord = { id: string; name: string; type: string; category_type: string; active: boolean; created_at: string };
+export type CategoryRecord = { id: string; name: string; type: string; category_type: string; active: boolean; has_source_pool: boolean; has_taker_pool: boolean; created_at: string };
 
 export function useCategories(activeOnly = false) {
   return useQuery({
