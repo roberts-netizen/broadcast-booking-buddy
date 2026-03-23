@@ -332,6 +332,21 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                           ) : ""}
                         </td>
                         <td className="px-1 py-0.5 border border-border">{renderTakerDetails(b.id, isAdv)}</td>
+                        <td className="px-1.5 py-1 border border-border text-[11px]">
+                          {(() => {
+                            if (!b.betting_settings) return "—";
+                            try {
+                              const parsed = JSON.parse(b.betting_settings);
+                              const name = parsed?.name;
+                              if (!name) return "—";
+                              return (
+                                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                  {name}
+                                </span>
+                              );
+                            } catch { return "—"; }
+                          })()}
+                        </td>
                         <td className="px-0.5 py-1 border border-border w-[24px]">
                           {onNavigateToBooking && (
                             <button
