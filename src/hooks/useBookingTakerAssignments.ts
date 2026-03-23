@@ -53,7 +53,7 @@ export function useBookingTakerAssignments(bookingIds: string[]) {
           taker_stream_key: row.taker_stream_key ?? taker?.stream_key ?? null,
           taker_username: row.taker_username ?? taker?.username ?? null,
           taker_password: row.taker_password ?? taker?.password ?? null,
-          taker_audio: row.taker_audio ?? taker?.audio ?? null,
+          taker_audio: row.taker_audio ?? taker?.audio1 ?? null,
           taker_quality: row.taker_quality ?? taker?.quality ?? null,
           taker_email_subject: row.taker_email_subject ?? taker?.email_subject ?? null,
           taker_communication_method: row.taker_communication_method ?? taker?.communication_method ?? null,
