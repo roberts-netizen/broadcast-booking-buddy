@@ -121,7 +121,7 @@ export default function Index() {
                       <Icon className="h-3.5 w-3.5" />
                       {c.name}
                       {c.type === "advanced" && (
-                        <span className="ml-auto text-[9px] bg-primary/15 text-primary px-1 py-0.5 rounded">ADV</span>
+                        <Badge className={`ml-auto text-[8px] px-1 py-0 border ${getCategoryBadgeClass(i)}`}>{c.category_type === "custom" ? "CUS" : "ADV"}</Badge>
                       )}
                     </button>
                   );
