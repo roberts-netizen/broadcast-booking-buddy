@@ -232,6 +232,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                   {a.booked_by_client && <span className="text-[8px] px-1 py-0 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30 shrink-0">Client</span>}
                 </div>
                 {chId && <span className="text-muted-foreground font-mono truncate pl-3" title={chId}>{chId}</span>}
+                {a.taker_audio && <span className="text-muted-foreground truncate pl-3">Audio - {a.taker_audio}</span>}
               </div>
             );
           })}
