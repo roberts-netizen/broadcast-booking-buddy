@@ -244,9 +244,9 @@ function TakerChannelMapTable() {
             <tr key={r.id} className="border-b border-border last:border-b-0 group hover:bg-muted/30">
               {editing === r.id ? <EditRow /> : (
                 <>
+                  <td className="px-3 py-2">{r.takers?.name ?? <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2 font-mono">{r.label}</td>
                   <td className="px-3 py-2 font-mono text-muted-foreground">{r.actual_channel_id}</td>
-                  <td className="px-3 py-2">{r.takers?.name ?? <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2"><ActiveBadge active={r.active} /></td>
                   <td className="px-2 py-2">
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
