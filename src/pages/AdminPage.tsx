@@ -765,6 +765,7 @@ export default function AdminPage() {
           <TakersTable />
           <CategoriesTable />
           <TakerChannelMapTable />
+          <TonybetChannelMapTable />
         </div>
       )}
 
