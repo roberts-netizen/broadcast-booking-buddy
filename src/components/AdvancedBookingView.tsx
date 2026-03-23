@@ -533,31 +533,75 @@ export function AdvancedBookingView({ booking, categoryId }: Props) {
     },
     { label: "Brick Setup", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
     {
-      label: "Source",
+      label: "Source Name",
       rowSpan: 1,
       render: () => (
-        <input className={inputClass} value={ef.source} placeholder="Describe source..." onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} />
+        <input className={inputClass} value={sourceFields.name} placeholder="Source name..." onChange={(e) => setSourceFields((f) => ({ ...f, name: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
       ),
     },
     {
       label: "Source Status",
       rowSpan: 1,
       render: () => {
-        const currentStatus = (ef as any).source_status ?? "not_tested";
-        const sm = TEST_STATUSES.find((s) => s.value === currentStatus) ?? TEST_STATUSES[0];
+        const sm = TEST_STATUSES.find((s) => s.value === sourceFields.status) ?? TEST_STATUSES[0];
         return (
           <SearchableSelect
             compact
             className={sm.color}
             options={TEST_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
-            value={currentStatus}
+            value={sourceFields.status}
             onChange={(val) => {
-              setEf((f) => ({ ...f, source_status: val || "not_tested" }));
-              updateBooking.mutate({ id: booking.id, source_status: val || "not_tested" } as any);
+              const v = val || "not_tested";
+              setSourceFields((f) => ({ ...f, status: v }));
+              saveSource({ status: v });
             }}
           />
         );
       },
+    },
+    {
+      label: "Src Protocol",
+      rowSpan: 1,
+      render: () => (
+        <SearchableSelect
+          compact
+          freeText
+          options={["RTMP", "SRT", "TCP", "UDP", "Other"].map((p) => ({ value: p, label: p }))}
+          value={sourceFields.protocol}
+          onChange={(val) => { setSourceFields((f) => ({ ...f, protocol: val })); saveSource({ protocol: val }); }}
+        />
+      ),
+    },
+    {
+      label: "Src Host/URL",
+      rowSpan: 1,
+      render: () => (
+        <input className={inputClass} value={sourceFields.host} placeholder="Host or URL..." onChange={(e) => setSourceFields((f) => ({ ...f, host: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+      ),
+    },
+    {
+      label: "Src Stream Key",
+      rowSpan: 1,
+      render: () => (
+        <input className={inputClass} value={sourceFields.stream_key} placeholder="Key..." onChange={(e) => setSourceFields((f) => ({ ...f, stream_key: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+      ),
+    },
+    {
+      label: "Src Audio 1 / 2",
+      rowSpan: 1,
+      render: () => (
+        <div className="flex gap-1">
+          <input className={`${inputClass} flex-1`} value={sourceFields.audio1} placeholder="Audio 1" onChange={(e) => setSourceFields((f) => ({ ...f, audio1: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+          <input className={`${inputClass} flex-1`} value={sourceFields.audio2} placeholder="Audio 2" onChange={(e) => setSourceFields((f) => ({ ...f, audio2: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+        </div>
+      ),
+    },
+    {
+      label: "Src Contact",
+      rowSpan: 1,
+      render: () => (
+        <input className={inputClass} value={sourceFields.contact} placeholder="Contact..." onChange={(e) => setSourceFields((f) => ({ ...f, contact: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+      ),
     },
     {
       label: "Audio setup",
