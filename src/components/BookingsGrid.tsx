@@ -15,7 +15,7 @@ import {
 } from "ag-grid-community";
 import { Plus, ClipboardPaste } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakerChannelMaps, useCategories } from "@/hooks/useLookups";
+import { useLeagues, useIncomingChannels, useTakerChannelMaps, useCategories, useTakers } from "@/hooks/useLookups";
 import { Badge } from "@/components/ui/badge";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
