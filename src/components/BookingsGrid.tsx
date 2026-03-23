@@ -700,6 +700,9 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           }
         }
 
+        if (category === "MCR" && mcrCategoryId) {
+          (row as any).category_id = mcrCategoryId;
+        }
         if (category && category !== "MCR" && defaultTournamentId) {
           (row as any).tournament_id = defaultTournamentId;
         }
