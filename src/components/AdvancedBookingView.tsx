@@ -42,11 +42,15 @@ const DEFAULT_TAKER_COUNT = 3;
 
 type Props = {
   booking: Booking;
+  categoryId?: string | null;
 };
 
-export function AdvancedBookingView({ booking }: Props) {
+export function AdvancedBookingView({ booking, categoryId }: Props) {
   const updateBooking = useUpdateBooking();
-  const { data: takers = [] } = useTakers(true);
+  // Use category-scoped takers if categoryId is provided, else all takers
+  const { data: categoryTakers = [] } = useTakersByCategory(categoryId ?? null);
+  const { data: allTakers = [] } = useTakers(true);
+  const takers = categoryId ? categoryTakers : allTakers;
   const { data: assignments = [], isLoading: assignmentsLoading } = useTakerAssignments([booking.id]);
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
