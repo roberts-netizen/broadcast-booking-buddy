@@ -208,7 +208,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       );
     }
 
-    // MCR events: show taker label + actual_channel_id in fixed-width separated cells
+    // BTA events (HOGMORE/MCR with booking_taker_assignments): show status dot + label + channel
     if (bta.length > 0) {
       return (
         <div className="flex gap-0">
@@ -216,13 +216,22 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             const label = a.taker_channel_map_label || "";
             const chId = a.actual_channel_id || "";
             if (!label && !chId) return null;
+            const statusColor = a.test_status === "tested"
+              ? "bg-[hsl(142,71%,45%)]"
+              : "bg-[hsl(0,72%,51%)]";
             return (
-              <div key={a.id} className="flex flex-col text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 w-[130px] shrink-0">
+              <div
+                key={a.id}
+                className="flex flex-col text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors border-r border-border last:border-r-0 w-[130px] shrink-0"
+                onClick={(e) => { e.stopPropagation(); setSelectedBta(a); }}
+                title="Click to view details"
+              >
                 <div className="flex items-center gap-1">
-                  {label && <span className="font-medium text-foreground truncate" title={label}>{label}</span>}
+                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+                  {label && <span className="font-medium text-primary underline decoration-dotted truncate" title={label}>{label}</span>}
                   {a.booked_by_client && <span className="text-[8px] px-1 py-0 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30 shrink-0">Client</span>}
                 </div>
-                {chId && <span className="text-muted-foreground font-mono truncate" title={chId}>{chId}</span>}
+                {chId && <span className="text-muted-foreground font-mono truncate pl-3" title={chId}>{chId}</span>}
               </div>
             );
           })}
