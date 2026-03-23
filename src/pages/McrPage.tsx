@@ -30,6 +30,7 @@ type Section = "today" | "upcoming" | "past";
 export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?: (bookingId: string, category: string) => void }) {
   const [expandedSections, setExpandedSections] = useState<Set<Section>>(new Set(["today", "upcoming"]));
   const [selectedTaker, setSelectedTaker] = useState<TakerAssignment | null>(null);
+  const [selectedBta, setSelectedBta] = useState<BookingTakerAssignment | null>(null);
 
   const { data: categories = [] } = useCategories(true);
   const { data: leagues = [] } = useLeagues(true);
@@ -207,7 +208,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       );
     }
 
-    // MCR events: show taker label + actual_channel_id in fixed-width separated cells
+    // BTA events (HOGMORE/MCR with booking_taker_assignments): show status dot + label + channel
     if (bta.length > 0) {
       return (
         <div className="flex gap-0">
@@ -215,13 +216,22 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
             const label = a.taker_channel_map_label || "";
             const chId = a.actual_channel_id || "";
             if (!label && !chId) return null;
+            const statusColor = a.test_status === "tested"
+              ? "bg-[hsl(142,71%,45%)]"
+              : "bg-[hsl(0,72%,51%)]";
             return (
-              <div key={a.id} className="flex flex-col text-[10px] leading-tight px-1.5 py-0.5 border-r border-border last:border-r-0 w-[130px] shrink-0">
+              <div
+                key={a.id}
+                className="flex flex-col text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors border-r border-border last:border-r-0 w-[130px] shrink-0"
+                onClick={(e) => { e.stopPropagation(); setSelectedBta(a); }}
+                title="Click to view details"
+              >
                 <div className="flex items-center gap-1">
-                  {label && <span className="font-medium text-foreground truncate" title={label}>{label}</span>}
+                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+                  {label && <span className="font-medium text-primary underline decoration-dotted truncate" title={label}>{label}</span>}
                   {a.booked_by_client && <span className="text-[8px] px-1 py-0 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30 shrink-0">Client</span>}
                 </div>
-                {chId && <span className="text-muted-foreground font-mono truncate" title={chId}>{chId}</span>}
+                {chId && <span className="text-muted-foreground font-mono truncate pl-3" title={chId}>{chId}</span>}
               </div>
             );
           })}
@@ -520,6 +530,35 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
         )}
       </div>
       {renderTakerDetailDialog()}
+      {selectedBta && (
+        <Dialog open={!!selectedBta} onOpenChange={() => setSelectedBta(null)}>
+          <DialogContent className="max-w-md max-h-[70vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-sm">
+                <span>{selectedBta.test_status === "tested" ? "🟢" : "🔴"}</span>
+                <span>{selectedBta.taker_name || selectedBta.taker_channel_map_label || "Taker"}</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-1 text-[11px]">
+              {[
+                ["Name", selectedBta.taker_name || selectedBta.taker_channel_map_label],
+                ["Protocol", selectedBta.taker_protocol],
+                ["Host", selectedBta.taker_host],
+                ["Stream Key", selectedBta.taker_stream_key],
+                ["Audio", selectedBta.taker_audio],
+                ["Email/Contact", selectedBta.taker_email_subject],
+                ["Channel ID", selectedBta.actual_channel_id],
+                ["Test Status", (selectedBta.test_status || "not_tested").replace(/_/g, " ")],
+              ].map(([label, value]) => (
+                <div key={label} className="grid grid-cols-[120px_1fr] gap-2 py-0.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+                  <span>{value || "—"}</span>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
