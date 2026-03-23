@@ -17,7 +17,7 @@ type Props = {
   bgStyle?: React.CSSProperties;
 };
 
-export function SearchableSelect({ options, value, onChange, placeholder = "—", className = "", freeText = false, compact = false }: Props) {
+export function SearchableSelect({ options, value, onChange, placeholder = "—", className = "", freeText = false, compact = false, bgStyle }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const buttonRef = useRef<HTMLButtonElement>(null);
