@@ -37,7 +37,7 @@ export function useBookingTakerAssignments(bookingIds: string[]) {
       if (!bookingIds.length) return [] as BookingTakerAssignment[];
       const { data, error } = await supabase
         .from("booking_taker_assignments")
-        .select("*, taker_channel_maps(label, takers(name, protocol, host, port, stream_key, username, password, audio, quality, email_subject, communication_method, phone_number))")
+        .select("*, taker_channel_maps(label, takers(name, protocol, host, port, stream_key, username, password, audio1, quality, email_subject, communication_method, phone_number))")
         .in("booking_id", bookingIds);
       if (error) throw error;
       return (data as any[]).map((row) => {
