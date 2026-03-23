@@ -109,3 +109,17 @@ export function useClearBookingTakerAssignment() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["booking_taker_assignments"] }),
   });
 }
+
+export function useUpdateAssignmentTestStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, test_status }: { id: string; test_status: string }) => {
+      const { error } = await supabase
+        .from("booking_taker_assignments")
+        .update({ test_status })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["booking_taker_assignments"] }),
+  });
+}
