@@ -616,6 +616,16 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     createBooking.mutate(payload);
   }, [createBooking, category, defaultTournamentId]);
 
+  // ── Build taker name → id map for bulk import ──
+  const takerNameToId = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const m of typedTakerMaps) {
+      const name = (m as any).takers?.name;
+      if (name && m.taker_id) map[name.toLowerCase()] = m.taker_id;
+    }
+    return map;
+  }, [typedTakerMaps]);
+
   // ── Paste handler for multi-row paste via AG Grid + inline editor fallback ──
   const importRowsFromClipboard = useCallback(
     async (rawRows: string[][]) => {
@@ -634,6 +644,9 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           event_name: "",
           work_order_id: "",
         };
+
+        // Collect taker pairs from columns
+        const takerPairs: { takerName: string; chidLabel: string }[] = [];
 
         for (let i = 0; i < BULK_IMPORT_COLUMNS.length; i++) {
           const col = BULK_IMPORT_COLUMNS[i];
@@ -663,6 +676,14 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
             if (!cells[2]?.trim()) row.cet_time = addOneHour(val.slice(0, 5));
           } else if (col === "cet_time") {
             row.cet_time = val.slice(0, 5);
+          } else if (col === "taker1" || col === "taker2" || col === "taker3" || col === "taker4") {
+            const idx = parseInt(col.replace("taker", ""), 10) - 1;
+            if (!takerPairs[idx]) takerPairs[idx] = { takerName: "", chidLabel: "" };
+            takerPairs[idx].takerName = val;
+          } else if (col === "chid1" || col === "chid2" || col === "chid3" || col === "chid4") {
+            const idx = parseInt(col.replace("chid", ""), 10) - 1;
+            if (!takerPairs[idx]) takerPairs[idx] = { takerName: "", chidLabel: "" };
+            takerPairs[idx].chidLabel = val;
           } else {
             (row as any)[col] = val;
           }
@@ -671,14 +692,44 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
         if (category && category !== "MCR" && defaultTournamentId) {
           (row as any).tournament_id = defaultTournamentId;
         }
-        createBooking.mutate(row);
+
+        // Insert booking and get its ID for taker assignments
+        const { data: newBooking } = await supabase.from("bookings").insert(row).select("id").single();
+        if (!newBooking) continue;
+
+        // Create taker assignments
+        for (let s = 0; s < takerPairs.length; s++) {
+          const pair = takerPairs[s];
+          if (!pair?.takerName) continue;
+          const takerId = takerNameToId[pair.takerName.toLowerCase()];
+          if (!takerId) continue;
+
+          // Find the matching taker_channel_map by taker_id + label (CHID)
+          const chidLower = pair.chidLabel.toLowerCase();
+          const map = typedTakerMaps.find(
+            (m) => m.taker_id === takerId && m.label.toLowerCase() === chidLower
+          );
+          // If no CHID match, pick the first map for this taker
+          const resolvedMap = map ?? typedTakerMaps.find((m) => m.taker_id === takerId);
+          if (!resolvedMap) continue;
+
+          await supabase.from("booking_taker_assignments").upsert({
+            booking_id: newBooking.id,
+            slot_number: s + 1,
+            taker_id: takerId,
+            taker_channel_map_id: resolvedMap.id,
+            actual_channel_id: resolvedMap.actual_channel_id,
+          }, { onConflict: "booking_id,slot_number" });
+        }
       }
 
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["booking_taker_assignments"] });
       queryClient.invalidateQueries({ queryKey: ["leagues"] });
       queryClient.invalidateQueries({ queryKey: ["incoming_channels"] });
       return true;
     },
-    [createBooking, leagueNameToId, channelNameToId, category, defaultTournamentId, queryClient]
+    [leagueNameToId, channelNameToId, takerNameToId, typedTakerMaps, category, defaultTournamentId, queryClient]
   );
 
   const processDataFromClipboard = useCallback(
