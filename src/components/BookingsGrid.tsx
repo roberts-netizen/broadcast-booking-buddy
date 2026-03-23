@@ -743,7 +743,7 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
       queryClient.invalidateQueries({ queryKey: ["incoming_channels"] });
       return true;
     },
-    [leagueNameToId, channelNameToId, takerNameToId, typedTakerMaps, category, defaultTournamentId, queryClient]
+    [leagueNameToId, channelNameToId, takerNameToId, typedTakerMaps, category, defaultTournamentId, mcrCategoryId, queryClient]
   );
 
   const processDataFromClipboard = useCallback(
