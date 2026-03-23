@@ -980,9 +980,16 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
           { key: "event_name", label: "Event", required: true },
           { key: "channel_name", label: "Incoming Channel" },
           { key: "work_order_id", label: "WO" },
+          { key: "taker1", label: "Taker1" },
+          { key: "chid1", label: "CHID1" },
+          { key: "taker2", label: "Taker2" },
+          { key: "chid2", label: "CHID2" },
+          { key: "taker3", label: "Taker3" },
+          { key: "chid3", label: "CHID3" },
+          { key: "taker4", label: "Taker4" },
+          { key: "chid4", label: "CHID4" },
         ]}
         onImport={async (rows) => {
-          const mapped = rows.map((r) => r as unknown as string[]);
           const rawRows = rows.map((r) => [
             r.date ?? "",
             r.gmt_time ?? "",
@@ -991,6 +998,14 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
             r.event_name ?? "",
             r.channel_name ?? "",
             r.work_order_id ?? "",
+            r.taker1 ?? "",
+            r.chid1 ?? "",
+            r.taker2 ?? "",
+            r.chid2 ?? "",
+            r.taker3 ?? "",
+            r.chid3 ?? "",
+            r.taker4 ?? "",
+            r.chid4 ?? "",
           ]);
           importRowsFromClipboard(rawRows);
         }}
