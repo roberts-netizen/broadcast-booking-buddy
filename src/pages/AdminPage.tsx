@@ -603,6 +603,7 @@ function TakersTable() {
 // ── Admin Page ────────────────────────────────────────────────────────────────
 
 import ClientAccessAdmin from "@/components/ClientAccessAdmin";
+import CategoriesAdmin from "@/components/CategoriesAdmin";
 
 export default function AdminPage() {
   const { data: channels = [] } = useIncomingChannels(false);
