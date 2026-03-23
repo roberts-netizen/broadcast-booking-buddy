@@ -300,7 +300,12 @@ const TAKER_EXTRA_FIELDS: { key: keyof TakerRecord; label: string }[] = [
 ];
 
 function TakersTable() {
-  const { data: rows = [] } = useTakers(false);
+  const { data: allRows = [] } = useTakers(false);
+  // Exclude HGM and MCR-prefixed takers (those belong to Hogmore/MCR, not Advanced)
+  const rows = useMemo(() => allRows.filter((r: any) => {
+    const name = (r.name || "").toUpperCase();
+    return !name.startsWith("HGM") && !name.startsWith("MCR");
+  }), [allRows]);
   const upsert = useUpsertTaker();
   const del = useDeleteTaker();
   const bulkInsert = useBulkInsertTakers();
