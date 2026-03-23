@@ -599,113 +599,16 @@ function TakersTable() {
   );
 }
 
-// ── Categories table ──────────────────────────────────────────────────────────
-function CategoriesTable() {
-  const { data: rows = [] } = useCategories(false);
-  const upsert = useUpsertCategory();
-  const del = useDeleteCategory();
-
-  const [editing, setEditing] = useState<string | null>(null);
-  const [draft, setDraft] = useState({ name: "", type: "standard", active: true });
-
-  const startNew = () => { setDraft({ name: "", type: "standard", active: true }); setEditing("new"); };
-  const startEdit = (r: { id: string; name: string; type: string; active: boolean }) => {
-    setDraft({ name: r.name, type: r.type, active: r.active });
-    setEditing(r.id);
-  };
-  const save = () => {
-    if (!draft.name.trim()) return;
-    upsert.mutate({ id: editing === "new" ? undefined : editing!, ...draft });
-    setEditing(null);
-  };
-  const cancel = () => setEditing(null);
-
-  const EditRow = () => (
-    <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
-      <td className="px-2 py-1">
-        <input autoFocus className="grid-cell-input border border-ring rounded" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
-      </td>
-      <td className="px-2 py-1">
-        <select className="grid-cell-input border border-border rounded" value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}>
-          <option value="standard">Standard</option>
-          <option value="advanced">Advanced</option>
-        </select>
-      </td>
-      <td className="px-2 py-1">
-        <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
-          <option value="1">Active</option><option value="0">Inactive</option>
-        </select>
-      </td>
-      <td className="px-2 py-1">
-        <div className="flex gap-1">
-          <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
-          <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
-        </div>
-      </td>
-    </tr>
-  );
-
-  return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold">Categories</h2>
-        <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium">
-          <Plus className="h-3.5 w-3.5" /> Add
-        </button>
-      </div>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="bg-muted/50 border-b border-border">
-            <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Name</th>
-            <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-28">Type</th>
-            <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-20">Status</th>
-            <th className="px-2 py-2 w-16"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {editing === "new" && <EditRow />}
-          {rows.map((r) => (
-            <tr key={r.id} className="border-b border-border last:border-b-0 group hover:bg-muted/30">
-              {editing === r.id ? <EditRow /> : (
-                <>
-                  <td className="px-3 py-2">{r.name}</td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                      r.type === "advanced"
-                        ? "bg-primary/15 text-primary"
-                        : "bg-muted text-muted-foreground"
-                    }`}>
-                      {r.type}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2"><ActiveBadge active={r.active} /></td>
-                  <td className="px-2 py-2">
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => startEdit(r)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
-                      <button onClick={() => del.mutate(r.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                    </div>
-                  </td>
-                </>
-              )}
-            </tr>
-          ))}
-          {rows.length === 0 && editing !== "new" && (
-            <tr><td colSpan={4} className="px-3 py-4 text-muted-foreground text-center">No entries yet.</td></tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
+// CategoriesTable moved to src/components/CategoriesAdmin.tsx
 // ── Admin Page ────────────────────────────────────────────────────────────────
 
 import ClientAccessAdmin from "@/components/ClientAccessAdmin";
+import CategoriesAdmin from "@/components/CategoriesAdmin";
 
 export default function AdminPage() {
   const { data: channels = [] } = useIncomingChannels(false);
   const { data: leagues = [] } = useLeagues(false);
-  const [activeTab, setActiveTab] = useState<"settings" | "client-access">("settings");
+  const [activeTab, setActiveTab] = useState<"settings" | "client-access" | "categories">("settings");
 
   const upsertChannel = useUpsertIncomingChannel();
   const deleteChannel = useDeleteIncomingChannel();
@@ -737,6 +640,16 @@ export default function AdminPage() {
         </button>
         <button
           className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+            activeTab === "categories"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => setActiveTab("categories")}
+        >
+          Categories
+        </button>
+        <button
+          className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
             activeTab === "client-access"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -763,11 +676,12 @@ export default function AdminPage() {
             onDelete={(id) => deleteLeague.mutate(id)}
           />
           <TakersTable />
-          <CategoriesTable />
           <TakerChannelMapTable />
           <TonybetChannelMapTable />
         </div>
       )}
+
+      {activeTab === "categories" && <CategoriesAdmin />}
 
       {activeTab === "client-access" && <ClientAccessAdmin />}
     </div>
