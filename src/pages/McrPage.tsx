@@ -208,17 +208,40 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
       );
     }
 
-    // BTA events (HOGMORE/MCR with booking_taker_assignments): show status dot + label + channel
+    // BTA events (HOGMORE/MCR with booking_taker_assignments)
     if (bta.length > 0) {
       return (
         <div className="flex gap-0">
           {bta.map((a) => {
+            const takerName = a.taker_name || "";
             const label = a.taker_channel_map_label || "";
             const chId = a.actual_channel_id || "";
-            if (!label && !chId) return null;
-            const statusColor = a.test_status === "tested"
-              ? "bg-[hsl(142,71%,45%)]"
-              : "bg-[hsl(0,72%,51%)]";
+            if (!takerName && !label && !chId) return null;
+
+            if (isAdv) {
+              // ADV events: show status dot + clickable label
+              const statusColor = a.test_status === "tested"
+                ? "bg-[hsl(142,71%,45%)]"
+                : "bg-[hsl(0,72%,51%)]";
+              return (
+                <div
+                  key={a.id}
+                  className="flex flex-col text-[10px] leading-tight cursor-pointer hover:bg-muted/50 px-1.5 py-0.5 transition-colors border-r border-border last:border-r-0 w-[130px] shrink-0"
+                  onClick={(e) => { e.stopPropagation(); setSelectedBta(a); }}
+                  title="Click to view details"
+                >
+                  <div className="flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+                    {(takerName || label) && <span className="font-medium text-primary underline decoration-dotted truncate" title={takerName || label}>{takerName || label}</span>}
+                    {a.booked_by_client && <span className="text-[8px] px-1 py-0 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30 shrink-0">Client</span>}
+                  </div>
+                  {chId && <span className="text-muted-foreground font-mono truncate pl-3" title={chId}>{chId}</span>}
+                  {a.taker_audio && <span className="text-muted-foreground truncate pl-3">Audio - {a.taker_audio}</span>}
+                </div>
+              );
+            }
+
+            // MCR events: show Taker Name | CHID | Port/Key (no status dot)
             return (
               <div
                 key={a.id}
@@ -226,13 +249,9 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                 onClick={(e) => { e.stopPropagation(); setSelectedBta(a); }}
                 title="Click to view details"
               >
-                <div className="flex items-center gap-1">
-                  <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-                  {label && <span className="font-medium text-primary underline decoration-dotted truncate" title={label}>{label}</span>}
-                  {a.booked_by_client && <span className="text-[8px] px-1 py-0 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30 shrink-0">Client</span>}
-                </div>
-                {chId && <span className="text-muted-foreground font-mono truncate pl-3" title={chId}>{chId}</span>}
-                {a.taker_audio && <span className="text-muted-foreground truncate pl-3">Audio - {a.taker_audio}</span>}
+                {takerName && <span className="font-medium text-foreground truncate" title={takerName}>{takerName}</span>}
+                {label && <span className="text-muted-foreground truncate" title={`CHID: ${label}`}>{label}</span>}
+                {chId && <span className="text-muted-foreground font-mono truncate" title={`Port/Key: ${chId}`}>{chId}</span>}
               </div>
             );
           })}
