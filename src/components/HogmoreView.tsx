@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { useBookings, Booking } from "@/hooks/useBookings";
-import { useBookingTakerAssignments, useUpdateAssignmentTestStatus } from "@/hooks/useBookingTakerAssignments";
-import { useProjectTakerEndpoints } from "@/hooks/useProjectTakerEndpoints";
+import { useHogmoreStreams, HogmoreStream } from "@/hooks/useHogmoreStreams";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Wifi } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 type TimeTab = "today" | "upcoming" | "past";
 
@@ -15,6 +15,7 @@ const valueCell = "px-2 py-1 text-[11px] border-b border-r border-border";
 const STATUS_DOT: Record<string, string> = {
   tested: "bg-green-500",
   not_tested: "bg-destructive",
+  unknown: "bg-muted-foreground",
 };
 
 function parseBettingName(settings: string | null | undefined): string {
@@ -117,22 +118,16 @@ export function HogmoreView() {
 
 function HogmoreRow({ booking }: { booking: Booking }) {
   const [expanded, setExpanded] = useState(false);
-  const { data: assignments = [] } = useBookingTakerAssignments([booking.id]);
-  const updateStatus = useUpdateAssignmentTestStatus();
-  const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
-  const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
+  const { data: streams = [] } = useHogmoreStreams([booking.id]);
 
-  // Split by role
-  const sourceAssignments = useMemo(() => assignments.filter((a) => a.role === "source"), [assignments]);
-  const takerAssignments = useMemo(() => assignments.filter((a) => a.role !== "source"), [assignments]);
+  const sourceStreams = useMemo(() => streams.filter((s) => s.role === "source"), [streams]);
+  const takerStreams = useMemo(() => streams.filter((s) => s.role === "taker"), [streams]);
 
-  const sourceStatus = sourceAssignments.length > 0
-    ? (sourceAssignments[0].test_status ?? "not_tested")
-    : (booking.source_status ?? "not_tested");
+  // Source info for grid columns
+  const source = sourceStreams[0];
+  const sourceStatus = source?.status ?? "not_tested";
   const sourceDot = STATUS_DOT[sourceStatus] || STATUS_DOT.not_tested;
-  const sourceName = sourceAssignments.length > 0
-    ? (sourceAssignments[0].taker_name || sourceAssignments[0].taker_channel_map_label || "—")
-    : (booking.source || "—");
+  const sourceName = source?.name || booking.source || "—";
 
   return (
     <>
@@ -153,31 +148,21 @@ function HogmoreRow({ booking }: { booking: Booking }) {
         </td>
         <td className={cellClass}>{booking.event_notes || "—"}</td>
         <td className={`${cellClass} !p-0`}>
-          {takerAssignments.length === 0 ? <span className="px-2 py-1.5">—</span> : (
+          {takerStreams.length === 0 ? (
+            <span className="px-2 py-1.5">—</span>
+          ) : (
             <div className="flex items-stretch">
-              {takerAssignments.map((a, i) => {
-                const curStatus = a.test_status || "not_tested";
-                const tDot = curStatus === "tested" ? STATUS_DOT.tested : STATUS_DOT.not_tested;
-                const statusLabel = curStatus === "tested" ? "tested" : "not tested";
-                const protocol = a.taker_protocol || "";
-                const streamInfo = [a.actual_channel_id, protocol ? `[${protocol}]` : ""].filter(Boolean).join(" ");
-                const audioInfo = a.taker_audio || "";
-                const toggleStatus = () => {
-                  const next = curStatus === "tested" ? "not_tested" : "tested";
-                  updateStatus.mutate({ id: a.id, test_status: next });
-                };
+              {takerStreams.map((s, i) => {
+                const tDot = STATUS_DOT[s.status] || STATUS_DOT.not_tested;
+                const streamInfo = [s.stream_key, s.protocol ? `[${s.protocol}]` : ""].filter(Boolean).join(" ");
                 return (
-                  <div key={a.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < takerAssignments.length - 1 ? "border-r border-border" : ""}`}>
+                  <div key={s.id} className={`flex flex-col gap-0.5 px-2 py-1 whitespace-nowrap ${i < takerStreams.length - 1 ? "border-r border-border" : ""}`}>
                     <div className="flex items-center gap-1.5">
-                      <span
-                        className={`inline-block h-2 w-2 rounded-full shrink-0 cursor-pointer ${tDot}`}
-                        title={`${statusLabel} — click to toggle`}
-                        onClick={(e) => { e.stopPropagation(); toggleStatus(); }}
-                      />
-                      <span className="text-[11px] font-medium">{a.taker_channel_map_label || a.taker_name || a.actual_channel_id || "—"}</span>
+                      <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${tDot}`} title={s.status.replace(/_/g, " ")} />
+                      <span className="text-[11px] font-medium">{s.name || "—"}</span>
                     </div>
                     {streamInfo && <span className="text-[10px] text-muted-foreground pl-3.5">{streamInfo}</span>}
-                    {audioInfo && <span className="text-[10px] text-muted-foreground pl-3.5">Audio - {audioInfo}</span>}
+                    {s.audio1 && <span className="text-[10px] text-muted-foreground pl-3.5">Audio - {s.audio1}</span>}
                   </div>
                 );
               })}
@@ -191,7 +176,7 @@ function HogmoreRow({ booking }: { booking: Booking }) {
       {expanded && (
         <tr>
           <td colSpan={8} className="bg-muted/10 border-b border-border">
-            <HogmoreExpandedDetail booking={booking} sourceAssignments={sourceAssignments} takerAssignments={takerAssignments} endpoints={endpoints} />
+            <HogmoreExpandedDetail booking={booking} sourceStreams={sourceStreams} takerStreams={takerStreams} />
           </td>
         </tr>
       )}
@@ -201,21 +186,13 @@ function HogmoreRow({ booking }: { booking: Booking }) {
 
 function HogmoreExpandedDetail({
   booking,
-  sourceAssignments,
-  takerAssignments,
-  endpoints,
+  sourceStreams,
+  takerStreams,
 }: {
   booking: Booking;
-  sourceAssignments: any[];
-  takerAssignments: any[];
-  endpoints: any[];
+  sourceStreams: HogmoreStream[];
+  takerStreams: HogmoreStream[];
 }) {
-  const endpointMap = useMemo(() => {
-    const map: Record<string, any> = {};
-    for (const ep of endpoints) map[`${ep.taker_assignment_id}_${ep.endpoint_type}`] = ep;
-    return map;
-  }, [endpoints]);
-
   return (
     <div className="px-4 py-3 grid grid-cols-2 gap-4">
       {/* Event Details */}
@@ -227,10 +204,10 @@ function HogmoreExpandedDetail({
             <DetailRow label="Date" value={booking.date} />
             <DetailRow label="GMT Time" value={booking.gmt_time?.slice(0, 5) || "—"} />
             <DetailRow label="CET Time" value={booking.cet_time?.slice(0, 5) || "—"} />
-            <DetailRow label="Venue" value={(booking as any).venue || "—"} />
+            <DetailRow label="Venue" value={booking.venue || "—"} />
             <DetailRow label="Notes" value={booking.event_notes || "—"} />
             <DetailRow label="Work Order" value={booking.work_order_id || "—"} />
-            <DetailRow label="Project Lead" value={(booking as any).project_lead || "—"} />
+            <DetailRow label="Project Lead" value={booking.project_lead || "—"} />
             <DetailRow label="Betting Delivery" value={parseBettingName(booking.betting_settings)} />
           </tbody>
         </table>
@@ -246,37 +223,28 @@ function HogmoreExpandedDetail({
               SOURCE
             </span>
           </div>
-          {sourceAssignments.length === 0 ? (
+          {sourceStreams.length === 0 ? (
             <div className="text-[11px] text-muted-foreground">
-              {booking.source ? (
-                <table className="w-full border-collapse">
-                  <tbody>
-                    <DetailRow label="Name" value={booking.source || "—"} />
-                    <DetailRow label="Status" value={((booking as any).source_status || "not_tested").replace(/_/g, " ")} />
-                  </tbody>
-                </table>
-              ) : "No source assigned"}
+              {booking.source ? `Legacy: ${booking.source}` : "No source assigned"}
             </div>
           ) : (
-            sourceAssignments.map((a) => (
-              <StreamDetailTable key={a.id} assignment={a} />
-            ))
+            sourceStreams.map((s) => <StreamDetailTable key={s.id} stream={s} />)
           )}
         </div>
 
         {/* TAKERS panel */}
         <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-1.5">
-          Taker{takerAssignments.length > 1 ? "s" : ""}
+          Taker{takerStreams.length !== 1 ? "s" : ""}
         </div>
-        {takerAssignments.length === 0 ? (
+        {takerStreams.length === 0 ? (
           <div className="text-[11px] text-muted-foreground">No takers assigned</div>
         ) : (
-          takerAssignments.map((a, i) => (
-            <div key={a.id} className="mb-3">
-              {takerAssignments.length > 1 && (
+          takerStreams.map((s, i) => (
+            <div key={s.id} className="mb-3">
+              {takerStreams.length > 1 && (
                 <div className="text-[10px] font-medium text-muted-foreground mb-1">Taker {i + 1}</div>
               )}
-              <StreamDetailTable assignment={a} />
+              <StreamDetailTable stream={s} />
             </div>
           ))
         )}
@@ -285,17 +253,17 @@ function HogmoreExpandedDetail({
   );
 }
 
-/** Unified stream detail table — used for both source and taker assignments */
-function StreamDetailTable({ assignment: a }: { assignment: any }) {
-  const statusLabel = (a.test_status || "not_tested").replace(/_/g, " ");
-  const statusBadge = a.test_status === "tested"
+/** Unified stream detail table for hogmore_streams */
+function StreamDetailTable({ stream: s }: { stream: HogmoreStream }) {
+  const statusLabel = (s.status || "not_tested").replace(/_/g, " ");
+  const statusBadge = s.status === "tested"
     ? "bg-green-500/20 text-green-700 dark:text-green-300"
     : "bg-destructive/20 text-destructive";
 
   return (
     <table className="w-full border-collapse">
       <tbody>
-        <DetailRow label="Name" value={a.taker_name || a.taker_channel_map_label || "—"} />
+        <DetailRow label="Name" value={s.name || "—"} />
         <tr>
           <td className={labelCell} style={{ width: 120 }}>Status</td>
           <td className={valueCell}>
@@ -304,12 +272,27 @@ function StreamDetailTable({ assignment: a }: { assignment: any }) {
             </span>
           </td>
         </tr>
-        <DetailRow label="Protocol" value={a.taker_protocol || "—"} />
-        <DetailRow label="Host/URL" value={a.taker_host || "—"} />
-        <DetailRow label="Stream Key" value={a.taker_stream_key || "—"} />
-        <DetailRow label="Audio 1" value={a.taker_audio || "—"} />
-        <DetailRow label="Audio 2" value="—" />
-        <DetailRow label="Contact" value={a.taker_email_subject || "—"} />
+        <DetailRow label="Protocol" value={s.protocol || "—"} />
+        <DetailRow label="Host/URL" value={s.host || "—"} />
+        <DetailRow label="Stream Key" value={s.stream_key || "—"} />
+        <DetailRow label="Audio 1" value={s.audio1 || "—"} />
+        <DetailRow label="Audio 2" value={s.audio2 || "—"} />
+        {s.settings && (
+          <tr>
+            <td className={labelCell} style={{ width: 120 }}>Settings</td>
+            <td className={valueCell}>
+              <Collapsible>
+                <CollapsibleTrigger className="text-[10px] text-muted-foreground underline cursor-pointer">
+                  Show settings
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <pre className="mt-1 text-[10px] font-mono bg-muted/50 rounded p-1.5 whitespace-pre-wrap">{s.settings}</pre>
+                </CollapsibleContent>
+              </Collapsible>
+            </td>
+          </tr>
+        )}
+        <DetailRow label="Contact" value={s.contact || "—"} />
       </tbody>
     </table>
   );
