@@ -611,18 +611,21 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   // ── Add new row ──
   const handleAddRow = useCallback(() => {
     const today = new Date().toISOString().split("T")[0];
-    const payload: Partial<Booking> & { tournament_id?: string | null } = {
+    const payload: Partial<Booking> & { tournament_id?: string | null; category_id?: string | null } = {
       date: today,
       gmt_time: "00:00",
       cet_time: "01:00",
       event_name: "",
       work_order_id: "",
     };
+    if (category === "MCR" && mcrCategoryId) {
+      (payload as any).category_id = mcrCategoryId;
+    }
     if (category && category !== "MCR" && defaultTournamentId) {
       (payload as any).tournament_id = defaultTournamentId;
     }
     createBooking.mutate(payload);
-  }, [createBooking, category, defaultTournamentId]);
+  }, [createBooking, category, defaultTournamentId, mcrCategoryId]);
 
   // ── Build taker name → id map for bulk import ──
   const takerNameToId = useMemo(() => {
