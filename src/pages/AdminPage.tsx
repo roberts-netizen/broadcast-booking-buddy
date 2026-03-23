@@ -342,8 +342,6 @@ export default function AdminPage() {
             onUpsert={(r) => upsertLeague.mutate(r)}
             onDelete={(id) => deleteLeague.mutate(id)}
           />
-          <TakersTable />
-          <TakerChannelMapTable />
           <TonybetChannelMapTable />
         </div>
       )}
