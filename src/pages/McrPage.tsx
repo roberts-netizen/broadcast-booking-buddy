@@ -530,6 +530,35 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
         )}
       </div>
       {renderTakerDetailDialog()}
+      {selectedBta && (
+        <Dialog open={!!selectedBta} onOpenChange={() => setSelectedBta(null)}>
+          <DialogContent className="max-w-md max-h-[70vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-sm">
+                <span>{selectedBta.test_status === "tested" ? "🟢" : "🔴"}</span>
+                <span>{selectedBta.taker_name || selectedBta.taker_channel_map_label || "Taker"}</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-1 text-[11px]">
+              {[
+                ["Name", selectedBta.taker_name || selectedBta.taker_channel_map_label],
+                ["Protocol", selectedBta.taker_protocol],
+                ["Host", selectedBta.taker_host],
+                ["Stream Key", selectedBta.taker_stream_key],
+                ["Audio", selectedBta.taker_audio],
+                ["Email/Contact", selectedBta.taker_email_subject],
+                ["Channel ID", selectedBta.actual_channel_id],
+                ["Test Status", (selectedBta.test_status || "not_tested").replace(/_/g, " ")],
+              ].map(([label, value]) => (
+                <div key={label} className="grid grid-cols-[120px_1fr] gap-2 py-0.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+                  <span>{value || "—"}</span>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
