@@ -289,7 +289,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
                   <th className="px-1.5 py-1 text-left font-semibold w-[42px] border border-border">CET</th>
                   <th className="px-1.5 py-1 text-left font-semibold w-[130px] border border-border">Event</th>
                   <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">League / Brick</th>
-                  <th className="px-1.5 py-1 text-left font-semibold w-[90px] border border-border">Incoming CH</th>
+                  <th className="px-1.5 py-1 text-left font-semibold w-[160px] border border-border">Incoming CH</th>
                   <th className="px-1.5 py-1 text-left font-semibold border border-border">Takers</th>
                   <th className="px-0.5 py-1 text-left font-semibold w-[24px] border border-border"></th>
                 </tr>
