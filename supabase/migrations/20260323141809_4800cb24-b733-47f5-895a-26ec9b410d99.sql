@@ -1,0 +1,14 @@
+
+ALTER TABLE booking_taker_assignments
+  ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'taker';
+
+ALTER TABLE takers
+  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'not_tested';
+
+ALTER TABLE takers
+  ADD COLUMN IF NOT EXISTS settings TEXT;
+
+ALTER TABLE takers
+  ADD COLUMN IF NOT EXISTS audio2 TEXT;
+
+ALTER TABLE takers RENAME COLUMN audio TO audio1;

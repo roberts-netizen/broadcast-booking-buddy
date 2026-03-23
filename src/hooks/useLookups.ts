@@ -121,7 +121,10 @@ export type TakerRecord = {
   communication_method?: string | null;
   phone_number?: string | null;
   quality?: string | null;
-  audio?: string | null;
+  audio1?: string | null;
+  audio2?: string | null;
+  status?: string | null;
+  settings?: string | null;
   protocol?: string | null;
   host?: string | null;
   port?: string | null;

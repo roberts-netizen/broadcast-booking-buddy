@@ -179,7 +179,7 @@ export default function McrPage({ onNavigateToBooking }: { onNavigateToBooking?:
               : a.test_status === "waiting_for_details"
               ? "bg-[hsl(45,93%,47%)]"
               : "bg-[hsl(0,72%,51%)]";
-            const qualAudio = [a.quality, a.audio].filter(Boolean).join(" / ");
+            const qualAudio = [a.quality, (a as any).audio].filter(Boolean).join(" / ");
             const eps = endpointsByAssignment[a.id] ?? [];
             const proto = eps.length > 0
               ? eps.map(e => e.protocol).filter(Boolean).join(", ")

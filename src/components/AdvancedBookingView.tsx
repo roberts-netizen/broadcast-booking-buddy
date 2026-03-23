@@ -212,7 +212,7 @@ export function AdvancedBookingView({ booking }: Props) {
               communication_method: a.communication_method || null,
               phone_number: (a as any).phone_number || null,
               quality: a.quality || null,
-              audio: a.audio || null,
+              audio1: a.audio || null,
               protocol: primaryEp.protocol || null,
               host: primaryEp.host || null,
               port: primaryEp.port || null,
@@ -255,7 +255,7 @@ export function AdvancedBookingView({ booking }: Props) {
                       communication_method: taker.communication_method || null,
                       phone_number: taker.phone_number || null,
                       quality: taker.quality || null,
-                      audio: taker.audio || null,
+                      audio: taker.audio1 || null,
                     } as any);
                     if (taker.protocol || taker.host || taker.port || taker.stream_key || taker.username || taker.password) {
                       handleUpdateEndpoint(a.id, "primary", {

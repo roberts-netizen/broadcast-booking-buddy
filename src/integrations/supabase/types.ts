@@ -48,6 +48,7 @@ export type Database = {
           booking_id: string
           created_at: string
           id: string
+          role: string | null
           slot_number: number
           taker_audio: string | null
           taker_channel_map_id: string | null
@@ -72,6 +73,7 @@ export type Database = {
           booking_id: string
           created_at?: string
           id?: string
+          role?: string | null
           slot_number: number
           taker_audio?: string | null
           taker_channel_map_id?: string | null
@@ -96,6 +98,7 @@ export type Database = {
           booking_id?: string
           created_at?: string
           id?: string
+          role?: string | null
           slot_number?: number
           taker_audio?: string | null
           taker_channel_map_id?: string | null
@@ -550,7 +553,8 @@ export type Database = {
       takers: {
         Row: {
           active: boolean
-          audio: string | null
+          audio1: string | null
+          audio2: string | null
           backup_host: string | null
           backup_password: string | null
           backup_port: string | null
@@ -567,12 +571,15 @@ export type Database = {
           port: string | null
           protocol: string | null
           quality: string | null
+          settings: string | null
+          status: string | null
           stream_key: string | null
           username: string | null
         }
         Insert: {
           active?: boolean
-          audio?: string | null
+          audio1?: string | null
+          audio2?: string | null
           backup_host?: string | null
           backup_password?: string | null
           backup_port?: string | null
@@ -589,12 +596,15 @@ export type Database = {
           port?: string | null
           protocol?: string | null
           quality?: string | null
+          settings?: string | null
+          status?: string | null
           stream_key?: string | null
           username?: string | null
         }
         Update: {
           active?: boolean
-          audio?: string | null
+          audio1?: string | null
+          audio2?: string | null
           backup_host?: string | null
           backup_password?: string | null
           backup_port?: string | null
@@ -611,6 +621,8 @@ export type Database = {
           port?: string | null
           protocol?: string | null
           quality?: string | null
+          settings?: string | null
+          status?: string | null
           stream_key?: string | null
           username?: string | null
         }

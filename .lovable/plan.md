@@ -39,3 +39,19 @@ A condensed, one-row-per-event view for Project Managers working with advanced c
 - Taker cells have fixed width with visible vertical borders between each taker
 - Header row with muted background
 
+## Unified Source/Taker Stream Storage
+
+### Completed
+- Added `role` column to `booking_taker_assignments` (default 'taker', values: 'source' or 'taker')
+- Added `status`, `settings`, `audio2` columns to `takers` table
+- Renamed `audio` → `audio1` in `takers` table
+- Updated all code references from `audio` to `audio1`
+- Updated `BookingTakerAssignment` type to include `role`
+- Updated `TakerRecord` type with new fields (audio1, audio2, status, settings)
+- Updated HogmoreView expanded detail to show unified SOURCE panel (blue badge) and TAKERS panel
+- Kept legacy `bookings.source` and `bookings.source_status` columns for backward compatibility
+
+### Still to do (follow-up)
+- Drop `bookings.source` and `bookings.source_status` after scraper is updated
+- Update AdvancedBookingView to use role-based source assignments instead of legacy fields
+- Add source assignment creation UI
