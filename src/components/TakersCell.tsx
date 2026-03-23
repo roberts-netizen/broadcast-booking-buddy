@@ -1,4 +1,15 @@
 import React, { useState, useCallback, useMemo } from "react";
+
+/** Extract leading number from strings like "T02-...", "CH14", "SR03" for natural sorting */
+const extractNum = (s: string): number => {
+  const m = s.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : Infinity;
+};
+const naturalSort = (a: string, b: string) => {
+  const na = extractNum(a);
+  const nb = extractNum(b);
+  return na !== nb ? na - nb : a.localeCompare(b);
+};
 import { Settings2, Plus } from "lucide-react";
 import { SearchableSelect } from "./SearchableSelect";
 import {
