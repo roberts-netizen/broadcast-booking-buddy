@@ -212,6 +212,13 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
     return map;
   }, [allReports]);
 
+  // Fetch categories to get MCR category_id
+  const { data: allCategories = [] } = useCategories(false);
+  const mcrCategoryId = useMemo(() => {
+    const mcr = allCategories.find((c) => c.category_type === "mcr");
+    return mcr?.id ?? null;
+  }, [allCategories]);
+
   // Get or create the default tournament ID for non-MCR categories
   const { data: categoryTournaments = [], refetch: refetchTournaments } = useQuery({
     queryKey: ["tournaments-for-category", category],
