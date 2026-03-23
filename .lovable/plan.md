@@ -1,57 +1,27 @@
 
 
-## PM View for ADV Categories
+## Fix ADV Taker Table Columns
 
-### What it is
-A condensed, one-row-per-event view for Project Managers working with advanced categories (ONE-OFF, ATP). Instead of the full spreadsheet-style expanded view, the PM sees a flat table similar to the MCR BookingsGrid — each event is a single row with only the fields a PM needs.
+### Problem
+The ADV Taker table currently only shows Name and Status as visible columns, with all other fields hidden in an expandable detail row. The user wants key fields visible as table columns.
 
-### PM fields per row
-- **Event** (editable inline)
-- **Date** (editable)
-- **Time CET** (editable)
-- **Source** (editable)
-- **Notes** (editable)
-- **Takers** — for each taker assignment: taker name + email subject + communication notes, displayed in fixed-width divided cells (like MCR taker cells)
+### Changes
 
-### How it works
-1. Add a view toggle in `AdvancedCategoryView.tsx` — two modes: "Full View" (current spreadsheet) and "PM View" (condensed table)
-2. Create a new component `src/components/PMBookingView.tsx` — a simple HTML table rendering one row per booking with the PM-relevant columns
-3. Each taker assignment column shows: taker name (bold), email subject (small text), notes (small text) — stacked vertically in a fixed-width cell with border dividers, matching MCR taker cell styling
-4. All fields are inline-editable (inputs on click/focus), using the same local-state-buffer pattern for performance
+**File: `src/pages/AdminPage.tsx`**
 
-### Technical details
+1. **Update the ADV Taker table header** to show these columns:
+   - Name | Email Subject | Communication | Audio 1 | Audio 2 | Protocol | Host/IP | StreamKey | Port | Password/StreamID | Quality | Status | Actions
 
-**New file: `src/components/PMBookingView.tsx`**
-- Receives `bookings: Booking[]` and renders a flat `<table>`
-- Fetches `taker_assignments` for all visible bookings using `useTakerAssignments`
-- Uses `useTakers` for name resolution
-- Columns: Event | Date | Time CET | Source | Notes | Taker 1 | Taker 2 | Taker 3
-- Each taker cell: name, email subject, comm notes — vertically stacked, 150px fixed width, border-separated
-- Inline editing with blur-to-save pattern
+2. **Update each row** to display these fields inline as cells (not hidden in expandable detail):
+   - All fields shown as compact text cells in the table
+   - Editing mode: each cell becomes an inline input
+   - Expandable detail row kept for backup fields only (2nd Host, 2nd Port, 2nd StreamKey, 2nd User/StreamID, 2nd Password, Settings, Phone)
 
-**Modified file: `src/components/AdvancedCategoryView.tsx`**
-- Add a toggle button (e.g., "PM View" / "Full View") in the top bar next to "Add Event"
-- When PM View is active, render `<PMBookingView>` instead of mapping individual `<AdvancedBookingView>` components
-- State stored in component: `const [viewMode, setViewMode] = useState<"full" | "pm">("full")`
+3. **Update `TAKER_EXTRA_FIELDS`** — split into two arrays:
+   - `TAKER_INLINE_FIELDS`: email_subject, communication_method, audio1, audio2, protocol, host, stream_key, port, username, password, quality
+   - `TAKER_DETAIL_FIELDS`: phone_number, settings, backup_host, backup_port, backup_stream_key, backup_username, backup_password (shown in expandable row only)
 
-### Styling
-- Matches MCR grid density: small fonts (11-12px), compact row height (~40px), minimal padding
-- Taker cells have fixed width with visible vertical borders between each taker
-- Header row with muted background
+4. **Rename heading** from "Takers Advanced" to "ADV Taker"
 
-## Unified Source/Taker Stream Storage
+5. **Table styling**: compact cells with `text-xs`, horizontal scroll on overflow, fixed min-widths per column for readability.
 
-### Completed
-- Added `role` column to `booking_taker_assignments` (default 'taker', values: 'source' or 'taker')
-- Added `status`, `settings`, `audio2` columns to `takers` table
-- Renamed `audio` → `audio1` in `takers` table
-- Updated all code references from `audio` to `audio1`
-- Updated `BookingTakerAssignment` type to include `role`
-- Updated `TakerRecord` type with new fields (audio1, audio2, status, settings)
-- Updated HogmoreView expanded detail to show unified SOURCE panel (blue badge) and TAKERS panel
-- Kept legacy `bookings.source` and `bookings.source_status` columns for backward compatibility
-
-### Still to do (follow-up)
-- Drop `bookings.source` and `bookings.source_status` after scraper is updated
-- Update AdvancedBookingView to use role-based source assignments instead of legacy fields
-- Add source assignment creation UI
