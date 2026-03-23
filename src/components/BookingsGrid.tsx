@@ -51,6 +51,10 @@ function normalizeDate(value: string): string {
   return v;
 }
 
+function normalizeLookup(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
 function extractRowsFromRawText(raw: string): string[][] {
   const rows = raw
     .split(/\r?\n/)
