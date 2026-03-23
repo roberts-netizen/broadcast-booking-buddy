@@ -231,9 +231,9 @@ function TakerChannelMapTable() {
       <table className="w-full text-xs">
         <thead>
           <tr className="bg-muted/50 border-b border-border">
-            <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Label</th>
-            <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Actual Ch. ID</th>
             <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Taker</th>
+            <th className="px-3 py-2 text-left font-semibold text-muted-foreground">CHID</th>
+            <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Port/Key</th>
             <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-20">Status</th>
             <th className="px-2 py-2 w-16"></th>
           </tr>
