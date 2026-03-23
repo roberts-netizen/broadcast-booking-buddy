@@ -18,9 +18,15 @@ export type BookingTakerAssignment = {
   taker_name?: string | null;
   taker_protocol?: string | null;
   taker_host?: string | null;
+  taker_port?: string | null;
   taker_stream_key?: string | null;
+  taker_username?: string | null;
+  taker_password?: string | null;
   taker_audio?: string | null;
+  taker_quality?: string | null;
   taker_email_subject?: string | null;
+  taker_communication_method?: string | null;
+  taker_phone_number?: string | null;
 };
 
 export function useBookingTakerAssignments(bookingIds: string[]) {
@@ -30,7 +36,7 @@ export function useBookingTakerAssignments(bookingIds: string[]) {
       if (!bookingIds.length) return [] as BookingTakerAssignment[];
       const { data, error } = await supabase
         .from("booking_taker_assignments")
-        .select("*, taker_channel_maps(label, takers(name, protocol, host, stream_key, audio, email_subject))")
+        .select("*, taker_channel_maps(label, takers(name, protocol, host, port, stream_key, username, password, audio, quality, email_subject, communication_method, phone_number))")
         .in("booking_id", bookingIds);
       if (error) throw error;
       return (data as any[]).map((row) => {
@@ -42,9 +48,15 @@ export function useBookingTakerAssignments(bookingIds: string[]) {
           taker_name: taker?.name ?? null,
           taker_protocol: taker?.protocol ?? null,
           taker_host: taker?.host ?? null,
+          taker_port: taker?.port ?? null,
           taker_stream_key: taker?.stream_key ?? null,
+          taker_username: taker?.username ?? null,
+          taker_password: taker?.password ?? null,
           taker_audio: taker?.audio ?? null,
+          taker_quality: taker?.quality ?? null,
           taker_email_subject: taker?.email_subject ?? null,
+          taker_communication_method: taker?.communication_method ?? null,
+          taker_phone_number: taker?.phone_number ?? null,
         };
       }) as BookingTakerAssignment[];
     },

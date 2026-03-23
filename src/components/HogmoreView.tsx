@@ -235,9 +235,17 @@ function HogmoreExpandedDetail({
                     <DetailRow label="Name" value={a.taker_name || a.taker_channel_map_label || "—"} />
                     <DetailRow label="Protocol" value={a.taker_protocol || "—"} />
                     <DetailRow label="Host" value={a.taker_host || "—"} />
+                    <DetailRow label="Port" value={a.taker_port || "—"} />
                     <DetailRow label="Stream Key" value={a.taker_stream_key || "—"} />
+                    <DetailRow label="Username" value={a.taker_username || "—"} />
+                    <DetailRow label="Password" value={a.taker_password || "—"} />
                     <DetailRow label="Audio" value={a.taker_audio || "—"} />
+                    <DetailRow label="Quality" value={a.taker_quality || "—"} />
                     <DetailRow label="Email/Contact" value={a.taker_email_subject || "—"} />
+                    <DetailRow label="Comm. Method" value={a.taker_communication_method || "—"} />
+                    <DetailRow label="Phone" value={a.taker_phone_number || "—"} />
+                    <DetailRow label="Channel ID" value={a.actual_channel_id || "—"} />
+                    <DetailRow label="Test Status" value={(a.test_status || "not_tested").replace(/_/g, " ")} />
                   </tbody>
                 </table>
               </div>
