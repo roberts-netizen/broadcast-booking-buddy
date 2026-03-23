@@ -16,7 +16,8 @@ import {
   useProjectTakerEndpoints,
   useUpsertEndpoint,
 } from "@/hooks/useProjectTakerEndpoints";
-import { useTakers } from "@/hooks/useLookups";
+import { useTakers, useTakersByCategory } from "@/hooks/useLookups";
+import { useBookingSource, useUpsertBookingSource } from "@/hooks/useBookingSources";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -41,14 +42,47 @@ const DEFAULT_TAKER_COUNT = 3;
 
 type Props = {
   booking: Booking;
+  categoryId?: string | null;
 };
 
-export function AdvancedBookingView({ booking }: Props) {
+export function AdvancedBookingView({ booking, categoryId }: Props) {
   const updateBooking = useUpdateBooking();
-  const { data: takers = [] } = useTakers(true);
+  // Use category-scoped takers if categoryId is provided, else all takers
+  const { data: categoryTakers = [] } = useTakersByCategory(categoryId ?? null);
+  const { data: allTakers = [] } = useTakers(true);
+  const takers = categoryId ? categoryTakers : allTakers;
   const { data: assignments = [], isLoading: assignmentsLoading } = useTakerAssignments([booking.id]);
   const assignmentIds = useMemo(() => assignments.map((a) => a.id), [assignments]);
   const { data: endpoints = [] } = useProjectTakerEndpoints(assignmentIds);
+
+  // Booking source (for ADV/Custom categories)
+  const { data: bookingSource } = useBookingSource(booking.id);
+  const upsertSource = useUpsertBookingSource();
+  const [sourceFields, setSourceFields] = useState({
+    name: "", protocol: "", host: "", stream_key: "",
+    audio1: "", audio2: "", settings: "", contact: "", status: "not_tested",
+  });
+  const sourceInited = useRef(false);
+  useEffect(() => {
+    if (bookingSource && !sourceInited.current) {
+      sourceInited.current = true;
+      setSourceFields({
+        name: bookingSource.name ?? "",
+        protocol: bookingSource.protocol ?? "",
+        host: bookingSource.host ?? "",
+        stream_key: bookingSource.stream_key ?? "",
+        audio1: bookingSource.audio1 ?? "",
+        audio2: bookingSource.audio2 ?? "",
+        settings: bookingSource.settings ?? "",
+        contact: bookingSource.contact ?? "",
+        status: bookingSource.status ?? "not_tested",
+      });
+    }
+  }, [bookingSource]);
+  const saveSource = useCallback((patch?: Partial<typeof sourceFields>) => {
+    const merged = { ...sourceFields, ...patch };
+    upsertSource.mutate({ booking_id: booking.id, ...merged } as any);
+  }, [sourceFields, booking.id, upsertSource]);
 
   const createAssignment = useCreateTakerAssignment();
   const updateAssignment = useUpdateTakerAssignment();
@@ -208,6 +242,7 @@ export function AdvancedBookingView({ booking }: Props) {
             .insert({
               name: name.trim(),
               active: true,
+              category_id: categoryId || null,
               email_subject: a.email_subject || null,
               communication_method: a.communication_method || null,
               phone_number: (a as any).phone_number || null,
@@ -471,8 +506,8 @@ export function AdvancedBookingView({ booking }: Props) {
   // Filter out hidden info rows (must be before eventLabels which uses visibleCount)
   const visibleInfoRows = infoRows.filter((r) => !r.hidden);
   const visibleCount = visibleInfoRows.length;
-  // Reserve fixed rows: Event(1) + Date(1) + Time(1) + Brick(1) + Source(1) + SourceStatus(1) + ProjectLead(1) = 7, rest split between Audio and Notes
-  const fixedRows = 7;
+  // Reserve fixed rows: Event(1) + Date(1) + Time(1) + Brick(1) + Source fields(7) + Audio(1) + ProjectLead(1) + Notes(1) = 14
+  const fixedRows = 14;
   const remaining = Math.max(2, visibleCount - fixedRows);
   const audioSpan = Math.max(1, remaining - 2);
   const notesSpan = Math.max(1, remaining - audioSpan);
@@ -499,31 +534,75 @@ export function AdvancedBookingView({ booking }: Props) {
     },
     { label: "Brick Setup", rowSpan: 1, render: () => <input className={inputClass} value={ef.venue} onChange={(e) => setEf((f) => ({ ...f, venue: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} /> },
     {
-      label: "Source",
+      label: "Source Name",
       rowSpan: 1,
       render: () => (
-        <input className={inputClass} value={ef.source} placeholder="Describe source..." onChange={(e) => setEf((f) => ({ ...f, source: e.target.value }))} onKeyDown={handleEventKeyDown} onBlur={handleEventBlur} />
+        <input className={inputClass} value={sourceFields.name} placeholder="Source name..." onChange={(e) => setSourceFields((f) => ({ ...f, name: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
       ),
     },
     {
       label: "Source Status",
       rowSpan: 1,
       render: () => {
-        const currentStatus = (ef as any).source_status ?? "not_tested";
-        const sm = TEST_STATUSES.find((s) => s.value === currentStatus) ?? TEST_STATUSES[0];
+        const sm = TEST_STATUSES.find((s) => s.value === sourceFields.status) ?? TEST_STATUSES[0];
         return (
           <SearchableSelect
             compact
             className={sm.color}
             options={TEST_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
-            value={currentStatus}
+            value={sourceFields.status}
             onChange={(val) => {
-              setEf((f) => ({ ...f, source_status: val || "not_tested" }));
-              updateBooking.mutate({ id: booking.id, source_status: val || "not_tested" } as any);
+              const v = val || "not_tested";
+              setSourceFields((f) => ({ ...f, status: v }));
+              saveSource({ status: v });
             }}
           />
         );
       },
+    },
+    {
+      label: "Src Protocol",
+      rowSpan: 1,
+      render: () => (
+        <SearchableSelect
+          compact
+          freeText
+          options={["RTMP", "SRT", "TCP", "UDP", "Other"].map((p) => ({ value: p, label: p }))}
+          value={sourceFields.protocol}
+          onChange={(val) => { setSourceFields((f) => ({ ...f, protocol: val })); saveSource({ protocol: val }); }}
+        />
+      ),
+    },
+    {
+      label: "Src Host/URL",
+      rowSpan: 1,
+      render: () => (
+        <input className={inputClass} value={sourceFields.host} placeholder="Host or URL..." onChange={(e) => setSourceFields((f) => ({ ...f, host: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+      ),
+    },
+    {
+      label: "Src Stream Key",
+      rowSpan: 1,
+      render: () => (
+        <input className={inputClass} value={sourceFields.stream_key} placeholder="Key..." onChange={(e) => setSourceFields((f) => ({ ...f, stream_key: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+      ),
+    },
+    {
+      label: "Src Audio 1 / 2",
+      rowSpan: 1,
+      render: () => (
+        <div className="flex gap-1">
+          <input className={`${inputClass} flex-1`} value={sourceFields.audio1} placeholder="Audio 1" onChange={(e) => setSourceFields((f) => ({ ...f, audio1: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+          <input className={`${inputClass} flex-1`} value={sourceFields.audio2} placeholder="Audio 2" onChange={(e) => setSourceFields((f) => ({ ...f, audio2: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+        </div>
+      ),
+    },
+    {
+      label: "Src Contact",
+      rowSpan: 1,
+      render: () => (
+        <input className={inputClass} value={sourceFields.contact} placeholder="Contact..." onChange={(e) => setSourceFields((f) => ({ ...f, contact: e.target.value }))} onBlur={() => saveSource()} onKeyDown={(e) => { if (e.key === "Enter") saveSource(); }} />
+      ),
     },
     {
       label: "Audio setup",

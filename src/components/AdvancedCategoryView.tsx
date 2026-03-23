@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Plus, LayoutList, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookings, useCreateBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues } from "@/hooks/useLookups";
+import { useLeagues, useCategories } from "@/hooks/useLookups";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdvancedBookingView } from "./AdvancedBookingView";
@@ -25,6 +25,9 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
   const [viewMode, setViewMode] = useState<ViewMode>("full");
   const { data: bookings = [], isLoading } = useBookings({ ...filters, tournamentType: category });
   const { data: leagues = [] } = useLeagues(true);
+  const { data: allCategories = [] } = useCategories(false);
+  const categoryRecord = useMemo(() => allCategories.find((c) => c.name === category), [allCategories, category]);
+  const categoryId = categoryRecord?.id ?? null;
   const createBooking = useCreateBooking();
 
   // Fetch tournaments for this category so we can assign tournament_id to new bookings
@@ -75,8 +78,9 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
       date: new Date().toISOString().slice(0, 10),
       gmt_time: "12:00",
       work_order_id: "",
+      ...(categoryId ? { category_id: categoryId } : {}),
       ...(tournaments.length > 0 ? { tournament_id: tournaments[0].id } : {}),
-    });
+    } as any);
   };
 
   const tabs: { key: TimeTab; label: string; count: number }[] = [
@@ -142,7 +146,7 @@ export function AdvancedCategoryView({ category, highlightBookingId, onHighlight
                 id={`booking-${booking.id}`}
                 className={highlightBookingId === booking.id ? "ring-2 ring-primary bg-primary/5 transition-all" : ""}
               >
-                <AdvancedBookingView booking={booking} />
+                <AdvancedBookingView booking={booking} categoryId={categoryId} />
               </div>
             ))}
           </div>
