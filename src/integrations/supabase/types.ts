@@ -422,23 +422,34 @@ export type Database = {
       incoming_channels: {
         Row: {
           active: boolean
+          category_id: string | null
           created_at: string
           id: string
           name: string
         }
         Insert: {
           active?: boolean
+          category_id?: string | null
           created_at?: string
           id?: string
           name: string
         }
         Update: {
           active?: boolean
+          category_id?: string | null
           created_at?: string
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "incoming_channels_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       league_taker_tags: {
         Row: {
@@ -479,23 +490,34 @@ export type Database = {
       leagues: {
         Row: {
           active: boolean
+          category_id: string | null
           created_at: string
           id: string
           name: string
         }
         Insert: {
           active?: boolean
+          category_id?: string | null
           created_at?: string
           id?: string
           name: string
         }
         Update: {
           active?: boolean
+          category_id?: string | null
           created_at?: string
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leagues_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_taker_endpoints: {
         Row: {
