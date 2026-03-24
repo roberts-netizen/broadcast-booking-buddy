@@ -3,6 +3,8 @@ import { Plus, Pencil, Trash2, Check, X, ChevronDown, ChevronRight } from "lucid
 import {
   useCategories, useUpsertCategory, useDeleteCategory,
   useTakersByCategory, useUpsertCategoryTaker, useDeleteTaker,
+  useLeaguesByCategory, useUpsertLeague, useDeleteLeague,
+  useIncomingChannelsByCategory, useUpsertIncomingChannel, useDeleteIncomingChannel,
   type TakerRecord, type CategoryRecord,
 } from "@/hooks/useLookups";
 
@@ -58,6 +60,106 @@ const ADV_DETAIL_FIELDS: { key: keyof TakerRecord; label: string }[] = [
   { key: "backup_password", label: "2nd Password" },
 ];
 
+// ── Simple Name+Active Pool (for Leagues and Sources/Incoming Channels) ──────
+function SimplePool({ categoryId, title, useData, useUpsertHook, useDeleteHook, entityName }: {
+  categoryId: string;
+  title: string;
+  useData: (catId: string | null) => { data: any[] | undefined };
+  useUpsertHook: () => { mutate: (row: any) => void };
+  useDeleteHook: () => { mutate: (id: string) => void };
+  entityName: string;
+}) {
+  const { data: rows = [] } = useData(categoryId);
+  const upsert = useUpsertHook();
+  const del = useDeleteHook();
+
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState({ name: "", active: true });
+
+  const startNew = () => { setDraft({ name: "", active: true }); setEditing("new"); };
+  const startEdit = (r: any) => { setDraft({ name: r.name, active: r.active }); setEditing(r.id); };
+  const save = () => {
+    if (!draft.name.trim()) return;
+    const payload: any = { name: draft.name.trim(), active: draft.active, category_id: categoryId };
+    if (editing !== "new") payload.id = editing;
+    upsert.mutate(payload);
+    setEditing(null);
+  };
+  const cancel = () => setEditing(null);
+
+  return (
+    <div className="mb-2">
+      <div className="flex items-center justify-between px-4 py-2">
+        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{title} ({rows.length})</span>
+        <button onClick={startNew} className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium">
+          <Plus className="h-3 w-3" /> Add {entityName}
+        </button>
+      </div>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-muted/40 border-y border-border">
+            <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground">Name</th>
+            <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-16">Status</th>
+            <th className="px-2 py-1.5 w-14"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {editing === "new" && (
+            <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+              <td className="px-2 py-1"><input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} /></td>
+              <td className="px-2 py-1">
+                <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
+                  <option value="1">Active</option><option value="0">Inactive</option>
+                </select>
+              </td>
+              <td className="px-2 py-1">
+                <div className="flex gap-1">
+                  <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
+                  <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              </td>
+            </tr>
+          )}
+          {rows.map((r: any) => (
+            <tr key={r.id} className="border-b border-border last:border-b-0 group hover:bg-muted/30">
+              {editing === r.id ? (
+                <>
+                  <td className="px-2 py-1"><input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} /></td>
+                  <td className="px-2 py-1">
+                    <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
+                      <option value="1">Active</option><option value="0">Inactive</option>
+                    </select>
+                  </td>
+                  <td className="px-2 py-1">
+                    <div className="flex gap-1">
+                      <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
+                      <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </td>
+                </>
+              ) : (
+                <>
+                  <td className="px-3 py-1.5">{r.name}</td>
+                  <td className="px-3 py-1.5"><ActiveBadge active={r.active} /></td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => startEdit(r)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
+                      <button onClick={() => del.mutate(r.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                    </div>
+                  </td>
+                </>
+              )}
+            </tr>
+          ))}
+          {rows.length === 0 && editing !== "new" && (
+            <tr><td colSpan={3} className="px-3 py-3 text-muted-foreground text-center text-[10px]">No {entityName.toLowerCase()}s yet.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ── MCR Taker Pool ───────────────────────────────────────────────────────────
 function McrTakerPool({ category }: { category: CategoryRecord }) {
   const { data: takers = [] } = useTakersByCategory(category.id);
@@ -101,53 +203,49 @@ function McrTakerPool({ category }: { category: CategoryRecord }) {
   );
 
   return (
-    <tr className="border-b border-border">
-      <td colSpan={6} className="p-0">
-        <div className="bg-muted/20 border-t border-border">
-          <div className="flex items-center justify-between px-4 py-2">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Taker Pool ({takers.length})</span>
-            <button onClick={startNew} className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium">
-              <Plus className="h-3 w-3" /> Add Taker
-            </button>
-          </div>
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-muted/40 border-y border-border">
-                <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-[200px]">Taker</th>
-                <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-[100px]">CHID</th>
-                <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-[120px]">Port/Key</th>
-                <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-16">Status</th>
-                <th className="px-2 py-1.5 w-14"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {editing === "new" && <EditRow />}
-              {takers.map((t: any) => (
-                <React.Fragment key={t.id}>
-                  {editing === t.id ? <EditRow /> : (
-                    <tr className="border-b border-border last:border-b-0 group hover:bg-muted/30">
-                      <td className="px-3 py-1.5 font-medium">{t.name}</td>
-                      <td className="px-3 py-1.5 font-mono text-muted-foreground">{t.stream_key || "—"}</td>
-                      <td className="px-3 py-1.5 font-mono text-muted-foreground">{t.host || "—"}</td>
-                      <td className="px-3 py-1.5"><ActiveBadge active={t.active} /></td>
-                      <td className="px-2 py-1.5">
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => startEdit(t)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
-                          <button onClick={() => del.mutate(t.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-              {takers.length === 0 && editing !== "new" && (
-                <tr><td colSpan={5} className="px-3 py-3 text-muted-foreground text-center text-[10px]">No takers in this pool yet.</td></tr>
+    <div className="mb-2">
+      <div className="flex items-center justify-between px-4 py-2">
+        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Taker Pool ({takers.length})</span>
+        <button onClick={startNew} className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium">
+          <Plus className="h-3 w-3" /> Add Taker
+        </button>
+      </div>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-muted/40 border-y border-border">
+            <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-[200px]">Taker</th>
+            <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-[100px]">CHID</th>
+            <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-[120px]">Port/Key</th>
+            <th className="px-3 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-16">Status</th>
+            <th className="px-2 py-1.5 w-14"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {editing === "new" && <EditRow />}
+          {takers.map((t: any) => (
+            <React.Fragment key={t.id}>
+              {editing === t.id ? <EditRow /> : (
+                <tr className="border-b border-border last:border-b-0 group hover:bg-muted/30">
+                  <td className="px-3 py-1.5 font-medium">{t.name}</td>
+                  <td className="px-3 py-1.5 font-mono text-muted-foreground">{t.stream_key || "—"}</td>
+                  <td className="px-3 py-1.5 font-mono text-muted-foreground">{t.host || "—"}</td>
+                  <td className="px-3 py-1.5"><ActiveBadge active={t.active} /></td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => startEdit(t)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
+                      <button onClick={() => del.mutate(t.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                    </div>
+                  </td>
+                </tr>
               )}
-            </tbody>
-          </table>
-        </div>
-      </td>
-    </tr>
+            </React.Fragment>
+          ))}
+          {takers.length === 0 && editing !== "new" && (
+            <tr><td colSpan={5} className="px-3 py-3 text-muted-foreground text-center text-[10px]">No takers in this pool yet.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -186,33 +284,70 @@ function AdvTakerPool({ category }: { category: CategoryRecord }) {
   const totalCols = 2 + ADV_INLINE_FIELDS.length + 1;
 
   return (
-    <tr className="border-b border-border">
-      <td colSpan={6} className="p-0">
-        <div className="bg-muted/20 border-t border-border">
-          <div className="flex items-center justify-between px-4 py-2">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Taker Pool ({takers.length})</span>
-            <button onClick={startNew} className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium">
-              <Plus className="h-3 w-3" /> Add Taker
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs min-w-[1100px]">
-              <thead>
-                <tr className="bg-muted/40 border-y border-border">
-                  <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">Name</th>
+    <div className="mb-2">
+      <div className="flex items-center justify-between px-4 py-2">
+        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Taker Pool ({takers.length})</span>
+        <button onClick={startNew} className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium">
+          <Plus className="h-3 w-3" /> Add Taker
+        </button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs min-w-[1100px]">
+          <thead>
+            <tr className="bg-muted/40 border-y border-border">
+              <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-muted-foreground whitespace-nowrap min-w-[120px]">Name</th>
+              {ADV_INLINE_FIELDS.map((f) => (
+                <th key={f.key} className="px-1 py-1.5 text-left text-[10px] font-semibold text-muted-foreground whitespace-nowrap min-w-[80px]">{f.label}</th>
+              ))}
+              <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-16">Status</th>
+              <th className="px-2 py-1.5 w-14"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {editing === "new" && (
+              <>
+                <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+                  <td className="px-1 py-1">
+                    <input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
+                  </td>
                   {ADV_INLINE_FIELDS.map((f) => (
-                    <th key={f.key} className="px-1 py-1.5 text-left text-[10px] font-semibold text-muted-foreground whitespace-nowrap min-w-[80px]">{f.label}</th>
+                    <td key={f.key} className="px-1 py-1">
+                      <input className="grid-cell-input border border-border rounded w-full text-xs" type={f.key === "password" ? "password" : "text"} value={(draft[f.key] as string) ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} placeholder={f.label} />
+                    </td>
                   ))}
-                  <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-muted-foreground w-16">Status</th>
-                  <th className="px-2 py-1.5 w-14"></th>
+                  <td className="px-1 py-1">
+                    <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
+                      <option value="1">Active</option><option value="0">Inactive</option>
+                    </select>
+                  </td>
+                  <td className="px-1 py-1">
+                    <div className="flex gap-1">
+                      <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
+                      <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {editing === "new" && (
-                  <>
-                    <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+                <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+                  <td colSpan={totalCols} className="px-3 py-2">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {ADV_DETAIL_FIELDS.map((f) => (
+                        <div key={f.key} className="flex items-center gap-2">
+                          <label className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</label>
+                          <input className="grid-cell-input border border-border rounded flex-1 text-xs" type={f.key.includes("password") ? "password" : "text"} value={(draft[f.key] as string) ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              </>
+            )}
+            {takers.map((t: any) => (
+              <React.Fragment key={t.id}>
+                <tr className="border-b border-border last:border-b-0 group hover:bg-muted/30">
+                  {editing === t.id ? (
+                    <>
                       <td className="px-1 py-1">
-                        <input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name…" onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
+                        <input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
                       </td>
                       {ADV_INLINE_FIELDS.map((f) => (
                         <td key={f.key} className="px-1 py-1">
@@ -230,112 +365,143 @@ function AdvTakerPool({ category }: { category: CategoryRecord }) {
                           <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
                         </div>
                       </td>
-                    </tr>
-                    <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
-                      <td colSpan={totalCols} className="px-3 py-2">
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                          {ADV_DETAIL_FIELDS.map((f) => (
-                            <div key={f.key} className="flex items-center gap-2">
-                              <label className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</label>
-                              <input className="grid-cell-input border border-border rounded flex-1 text-xs" type={f.key.includes("password") ? "password" : "text"} value={(draft[f.key] as string) ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
-                            </div>
-                          ))}
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-2 py-2">
+                        <button onClick={() => toggleDetail(t.id)} className="flex items-center gap-1 hover:text-primary whitespace-nowrap">
+                          {detailExpanded[t.id] ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
+                          {t.name}
+                        </button>
+                      </td>
+                      {ADV_INLINE_FIELDS.map((f) => {
+                        const val = t[f.key];
+                        return (
+                          <td key={f.key} className="px-1 py-2 text-xs truncate max-w-[100px]" title={val || ""}>
+                            {f.key === "password" && val ? "••••" : (val || "—")}
+                          </td>
+                        );
+                      })}
+                      <td className="px-2 py-2"><ActiveBadge active={t.active} /></td>
+                      <td className="px-2 py-2">
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => startEdit(t)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
+                          <button onClick={() => del.mutate(t.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
                         </div>
                       </td>
-                    </tr>
-                  </>
-                )}
-                {takers.map((t: any) => (
-                  <React.Fragment key={t.id}>
-                    <tr className="border-b border-border last:border-b-0 group hover:bg-muted/30">
-                      {editing === t.id ? (
-                        <>
-                          <td className="px-1 py-1">
-                            <input autoFocus className="grid-cell-input border border-ring rounded w-full" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
-                          </td>
-                          {ADV_INLINE_FIELDS.map((f) => (
-                            <td key={f.key} className="px-1 py-1">
-                              <input className="grid-cell-input border border-border rounded w-full text-xs" type={f.key === "password" ? "password" : "text"} value={(draft[f.key] as string) ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} placeholder={f.label} />
-                            </td>
-                          ))}
-                          <td className="px-1 py-1">
-                            <select className="grid-cell-input border border-border rounded" value={draft.active ? "1" : "0"} onChange={(e) => setDraft({ ...draft, active: e.target.value === "1" })}>
-                              <option value="1">Active</option><option value="0">Inactive</option>
-                            </select>
-                          </td>
-                          <td className="px-1 py-1">
-                            <div className="flex gap-1">
-                              <button onClick={save} className="text-[hsl(var(--confirmation-yes))] hover:opacity-80"><Check className="h-3.5 w-3.5" /></button>
-                              <button onClick={cancel} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="px-2 py-2">
-                            <button onClick={() => toggleDetail(t.id)} className="flex items-center gap-1 hover:text-primary whitespace-nowrap">
-                              {detailExpanded[t.id] ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
-                              {t.name}
-                            </button>
-                          </td>
-                          {ADV_INLINE_FIELDS.map((f) => {
-                            const val = t[f.key];
-                            return (
-                              <td key={f.key} className="px-1 py-2 text-xs truncate max-w-[100px]" title={val || ""}>
-                                {f.key === "password" && val ? "••••" : (val || "—")}
-                              </td>
-                            );
-                          })}
-                          <td className="px-2 py-2"><ActiveBadge active={t.active} /></td>
-                          <td className="px-2 py-2">
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => startEdit(t)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
-                              <button onClick={() => del.mutate(t.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                            </div>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                    {editing === t.id && (
-                      <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
-                        <td colSpan={totalCols} className="px-3 py-2">
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                            {ADV_DETAIL_FIELDS.map((f) => (
-                              <div key={f.key} className="flex items-center gap-2">
-                                <label className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</label>
-                                <input className="grid-cell-input border border-border rounded flex-1 text-xs" type={f.key.includes("password") ? "password" : "text"} value={(draft[f.key] as string) ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
-                              </div>
-                            ))}
+                    </>
+                  )}
+                </tr>
+                {editing === t.id && (
+                  <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
+                    <td colSpan={totalCols} className="px-3 py-2">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                        {ADV_DETAIL_FIELDS.map((f) => (
+                          <div key={f.key} className="flex items-center gap-2">
+                            <label className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</label>
+                            <input className="grid-cell-input border border-border rounded flex-1 text-xs" type={f.key.includes("password") ? "password" : "text"} value={(draft[f.key] as string) ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }} />
                           </div>
-                        </td>
-                      </tr>
-                    )}
-                    {detailExpanded[t.id] && editing !== t.id && (
-                      <tr className="border-b border-border bg-muted/20">
-                        <td colSpan={totalCols} className="px-3 py-2">
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                            {ADV_DETAIL_FIELDS.map((f) => {
-                              const val = (t as any)[f.key];
-                              if (!val) return null;
-                              return (
-                                <div key={f.key} className="flex items-center gap-2">
-                                  <span className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</span>
-                                  <span className="text-xs truncate">{f.key.includes("password") ? "••••••" : val}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-                {takers.length === 0 && editing !== "new" && (
-                  <tr><td colSpan={totalCols} className="px-3 py-3 text-muted-foreground text-center text-[10px]">No takers in this pool yet.</td></tr>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
                 )}
-              </tbody>
-            </table>
-          </div>
+                {detailExpanded[t.id] && editing !== t.id && (
+                  <tr className="border-b border-border bg-muted/20">
+                    <td colSpan={totalCols} className="px-3 py-2">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                        {ADV_DETAIL_FIELDS.map((f) => {
+                          const val = (t as any)[f.key];
+                          if (!val) return null;
+                          return (
+                            <div key={f.key} className="flex items-center gap-2">
+                              <span className="text-[10px] text-muted-foreground w-28 shrink-0">{f.label}</span>
+                              <span className="text-xs truncate">{f.key.includes("password") ? "••••••" : val}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+            {takers.length === 0 && editing !== "new" && (
+              <tr><td colSpan={totalCols} className="px-3 py-3 text-muted-foreground text-center text-[10px]">No takers in this pool yet.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── Category Expanded Content ────────────────────────────────────────────────
+function CategoryPools({ category }: { category: CategoryRecord }) {
+  // Determine which sub-tab to show
+  const [activePoolTab, setActivePoolTab] = useState<"takers" | "leagues" | "sources">("takers");
+
+  const hasTakers = category.has_taker_pool && category.category_type !== "hogmore";
+  const hasSources = category.has_source_pool;
+  // All categories with pools get a leagues section
+  const hasLeagues = hasTakers || hasSources;
+
+  const tabs = [
+    ...(hasTakers ? [{ key: "takers" as const, label: "Takers" }] : []),
+    ...(hasLeagues ? [{ key: "leagues" as const, label: "Leagues" }] : []),
+    ...(hasSources ? [{ key: "sources" as const, label: "Sources" }] : []),
+  ];
+
+  // Default to first available tab
+  const currentTab = tabs.find(t => t.key === activePoolTab) ? activePoolTab : tabs[0]?.key || "takers";
+
+  return (
+    <tr className="border-b border-border">
+      <td colSpan={6} className="p-0">
+        <div className="bg-muted/20 border-t border-border">
+          {tabs.length > 1 && (
+            <div className="flex gap-0.5 px-4 pt-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActivePoolTab(tab.key)}
+                  className={`px-3 py-1 text-[10px] font-semibold rounded-t transition-colors ${
+                    currentTab === tab.key
+                      ? "bg-card text-foreground border border-b-0 border-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {currentTab === "takers" && hasTakers && (
+            category.category_type === "mcr" ? <McrTakerPool category={category} /> : <AdvTakerPool category={category} />
+          )}
+
+          {currentTab === "leagues" && hasLeagues && (
+            <SimplePool
+              categoryId={category.id}
+              title="Leagues"
+              useData={useLeaguesByCategory}
+              useUpsertHook={useUpsertLeague}
+              useDeleteHook={useDeleteLeague}
+              entityName="League"
+            />
+          )}
+
+          {currentTab === "sources" && hasSources && (
+            <SimplePool
+              categoryId={category.id}
+              title="Sources (Incoming Channels)"
+              useData={useIncomingChannelsByCategory}
+              useUpsertHook={useUpsertIncomingChannel}
+              useDeleteHook={useDeleteIncomingChannel}
+              entityName="Channel"
+            />
+          )}
         </div>
       </td>
     </tr>
@@ -365,7 +531,7 @@ export default function CategoriesAdmin() {
   const cancel = () => setEditing(null);
   const toggle = (id: string) => setExpanded((p) => ({ ...p, [id]: !p[id] }));
 
-  const canExpand = (r: CategoryRecord) => r.has_taker_pool && r.category_type !== "hogmore";
+  const canExpand = (r: CategoryRecord) => (r.has_taker_pool || r.has_source_pool) && r.category_type !== "hogmore";
 
   const CategoryFormRow = ({ isNew }: { isNew?: boolean }) => (
     <tr className="border-b border-border bg-[hsl(var(--grid-row-editing))]">
@@ -415,7 +581,7 @@ export default function CategoriesAdmin() {
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold">Categories & Taker Pools</h2>
+        <h2 className="text-sm font-semibold">Categories & Pools</h2>
         <button onClick={startNew} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium">
           <Plus className="h-3.5 w-3.5" /> Add Category
         </button>
@@ -477,7 +643,7 @@ export default function CategoriesAdmin() {
                 </tr>
               )}
               {expanded[r.id] && editing !== r.id && canExpand(r) && (
-                r.category_type === "mcr" ? <McrTakerPool category={r} /> : <AdvTakerPool category={r} />
+                <CategoryPools category={r} />
               )}
             </React.Fragment>
           ))}
