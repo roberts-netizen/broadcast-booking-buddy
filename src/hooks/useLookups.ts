@@ -15,13 +15,31 @@ export function useLeagues(activeOnly = false) {
   });
 }
 
+export function useLeaguesByCategory(categoryId: string | null) {
+  return useQuery({
+    queryKey: ["leagues", "by_category", categoryId],
+    queryFn: async () => {
+      if (!categoryId) return [];
+      const { data, error } = await supabase
+        .from("leagues")
+        .select("*")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId,
+  });
+}
+
 export function useUpsertLeague() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: { id?: string; name: string; active: boolean }) => {
-      const { error } = row.id
-        ? await supabase.from("leagues").update({ name: row.name, active: row.active }).eq("id", row.id)
-        : await supabase.from("leagues").insert({ name: row.name, active: row.active });
+    mutationFn: async (row: { id?: string; name: string; active: boolean; category_id?: string }) => {
+      const { id, ...rest } = row;
+      const { error } = id
+        ? await supabase.from("leagues").update(rest).eq("id", id)
+        : await supabase.from("leagues").insert(rest);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leagues"] }),
@@ -42,7 +60,7 @@ export function useDeleteLeague() {
 export function useBulkInsertLeagues() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+    mutationFn: async (rows: { name: string; active: boolean; category_id?: string }[]) => {
       const { error } = await supabase.from("leagues").insert(rows);
       if (error) throw error;
     },
@@ -64,13 +82,31 @@ export function useIncomingChannels(activeOnly = false) {
   });
 }
 
+export function useIncomingChannelsByCategory(categoryId: string | null) {
+  return useQuery({
+    queryKey: ["incoming_channels", "by_category", categoryId],
+    queryFn: async () => {
+      if (!categoryId) return [];
+      const { data, error } = await supabase
+        .from("incoming_channels")
+        .select("*")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId,
+  });
+}
+
 export function useUpsertIncomingChannel() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: { id?: string; name: string; active: boolean }) => {
-      const { error } = row.id
-        ? await supabase.from("incoming_channels").update({ name: row.name, active: row.active }).eq("id", row.id)
-        : await supabase.from("incoming_channels").insert({ name: row.name, active: row.active });
+    mutationFn: async (row: { id?: string; name: string; active: boolean; category_id?: string }) => {
+      const { id, ...rest } = row;
+      const { error } = id
+        ? await supabase.from("incoming_channels").update(rest).eq("id", id)
+        : await supabase.from("incoming_channels").insert(rest);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["incoming_channels"] }),
@@ -91,7 +127,7 @@ export function useDeleteIncomingChannel() {
 export function useBulkInsertIncomingChannels() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (rows: { name: string; active: boolean }[]) => {
+    mutationFn: async (rows: { name: string; active: boolean; category_id?: string }[]) => {
       const { error } = await supabase.from("incoming_channels").insert(rows);
       if (error) throw error;
     },
