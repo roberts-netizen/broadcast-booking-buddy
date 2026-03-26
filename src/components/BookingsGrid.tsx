@@ -137,7 +137,7 @@ function DeleteRenderer(props: ICellRendererParams & { onDelete: (id: string) =>
   );
 }
 
-// ── Main Grid ────────────────────────────────────────────────────────────────
+// ── Main Grid Component ──────────────────────────────────────────────────────
 export default function BookingsGrid({ category, onBookingClick, highlightBookingId, onHighlightHandled }: { category?: string; onBookingClick?: (booking: Booking) => void; highlightBookingId?: string | null; onHighlightHandled?: () => void }) {
   const gridRef = useRef<AgGridReact>(null);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
