@@ -15,7 +15,7 @@ import {
 } from "ag-grid-community";
 import { Plus, ClipboardPaste } from "lucide-react";
 import { useBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, Booking } from "@/hooks/useBookings";
-import { useLeagues, useIncomingChannels, useTakerChannelMaps, useCategories, useTakers } from "@/hooks/useLookups";
+import { useLeagues, useIncomingChannels, useCategories, useTakers, useTakersByCategory } from "@/hooks/useLookups";
 import { Badge } from "@/components/ui/badge";
 import { useBookingTakerAssignments, BookingTakerAssignment } from "@/hooks/useBookingTakerAssignments";
 import { TakersCell } from "@/components/TakersCell";
@@ -176,7 +176,6 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   const { data: leagues = [] } = useLeagues(true);
   const { data: channels = [] } = useIncomingChannels(true);
   const { data: takers = [] } = useTakers(true);
-  const { data: takerChannelMaps = [] } = useTakerChannelMaps(true);
 
   // ── Highlight booking from MCR shortcut ──
   useEffect(() => {
@@ -255,16 +254,26 @@ export default function BookingsGrid({ category, onBookingClick, highlightBookin
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
 
+  // Build category-scoped taker data for the current view's category
+  const currentCategoryId = useMemo(() => {
+    if (!category) return mcrCategoryId;
+    const cat = allCategories.find((c) => c.name === category || c.category_type === category.toLowerCase());
+    return cat?.id ?? mcrCategoryId;
+  }, [category, allCategories, mcrCategoryId]);
+
+  const { data: categoryTakers = [] } = useTakersByCategory(currentCategoryId);
+
+  // Map takers to the TakerChannelMap-like format that TakersCell expects
   const typedTakerMaps = useMemo(
-    () => (takerChannelMaps as any[]).map((t) => ({
+    () => categoryTakers.map((t: any) => ({
       id: t.id as string,
-      label: t.label as string,
-      actual_channel_id: t.actual_channel_id as string,
-      taker_id: (t.taker_id ?? null) as string | null,
-      taker_name: (t.taker_name ?? null) as string | null,
-      takers: t.takers ?? null,
+      label: t.name as string,
+      actual_channel_id: (t.host ?? "") as string,
+      taker_id: t.id as string,
+      taker_name: t.name as string,
+      takers: { name: t.name },
     })),
-    [takerChannelMaps]
+    [categoryTakers]
   );
 
   // Lookup maps for display
